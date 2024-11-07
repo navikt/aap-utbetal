@@ -1,4 +1,4 @@
-package no.nav.aap.utbetaling.tilkjentytelse
+package no.nav.aap.utbetal.tilkjentytelse
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
@@ -11,8 +11,6 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.registrerTilkjentYtelse(dataSource: DataSource) =
 
     route("/tilkjentytelse").post<Unit, Unit, TilkjentYtelseDto> { _, tilkjentYtelse ->
-
         TilkjentYtelseService().lagre(dataSource, tilkjentYtelse)
-
         respondWithStatus(HttpStatusCode.OK)
     }

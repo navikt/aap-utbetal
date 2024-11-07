@@ -4,7 +4,7 @@ plugins {
     `java-library`
 }
 
-group = "no.nav.aap.utbetaling"
+group = "no.nav.aap.utbetal"
 
 apply(plugin = "maven-publish")
 apply(plugin = "java-library")

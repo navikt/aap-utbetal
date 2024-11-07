@@ -1,4 +1,4 @@
-package no.nav.app.utbetaling.server
+package no.nav.aap.utbetal.server
 
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -24,6 +24,7 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.utbetal.tilkjentytelse.registrerTilkjentYtelse
 import org.slf4j.LoggerFactory
 
 private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
@@ -63,6 +64,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     routing {
         authenticate(AZURE) {
             apiRouting {
+                registrerTilkjentYtelse(dataSource)
             }
         }
         actuator(prometheus)
@@ -70,10 +72,10 @@ internal fun Application.server(dbConfig: DbConfig) {
 }
 
 class DbConfig(
-    val database: String = System.getenv("NAIS_DATABASE_UTBETALING_UTBETALING_DATABASE"),
-    val jdbcUrl: String = System.getenv("NAIS_DATABASE_UTBETALING_UTBETALING_JDBC_URL"),
-    val username: String = System.getenv("NAIS_DATABASE_UTBETALING_UTBETALING_USERNAME"),
-    val password: String = System.getenv("NAIS_DATABASE_UTBETALING_UTBETALING_PASSWORD")
+    val database: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_DATABASE"),
+    val jdbcUrl: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_JDBC_URL"),
+    val username: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_USERNAME"),
+    val password: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PASSWORD")
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {

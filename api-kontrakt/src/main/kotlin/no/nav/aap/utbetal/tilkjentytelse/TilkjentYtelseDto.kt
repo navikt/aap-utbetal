@@ -1,4 +1,4 @@
-package no.nav.aap.utbetaling.tilkjentytelse
+package no.nav.aap.utbetal.tilkjentytelse
 
 import java.util.UUID
 
