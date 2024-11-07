@@ -1,0 +1,43 @@
+plugins {
+    id("utbetal.conventions")
+    `maven-publish`
+    `java-library`
+}
+
+group = "no.nav.aap.utbetaling"
+
+apply(plugin = "maven-publish")
+apply(plugin = "java-library")
+
+val jacksonVersion = "2.18.0"
+
+dependencies {
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+    api("no.nav:ktor-openapi-generator:1.0.46")
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            artifactId = project.name
+            version = project.findProperty("version")?.toString() ?: "0.0.0"
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/navikt/aap-oppgave")
+            credentials {
+                username = "x-access-token"
+                // Ligger tilgjengelig i Github Actions
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
