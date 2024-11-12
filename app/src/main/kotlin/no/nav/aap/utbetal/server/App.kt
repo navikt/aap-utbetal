@@ -31,6 +31,7 @@ import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.tilkjentytelse.registrerTilkjentYtelse
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -78,7 +79,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     routing {
         authenticate(AZURE) {
             apiRouting {
-                registrerTilkjentYtelse(dataSource)
+                registrerTilkjentYtelse(dataSource, prometheus)
             }
         }
         actuator(prometheus)
@@ -90,7 +91,7 @@ fun Application.motor(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        jobber = listOf()
+        jobber = listOf(OverførTilØkonomiJobbUtfører)
     )
 
     dataSource.transaction { dbConnection ->
@@ -100,6 +101,7 @@ fun Application.motor(dataSource: DataSource): Motor {
     monitor.subscribe(ApplicationStarted) {
         motor.start()
     }
+
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         motor.stop()
