@@ -7,6 +7,8 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
@@ -18,25 +20,35 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.tilkjentytelse.registrerTilkjentYtelse
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
-private val SECURE_LOGGER = LoggerFactory.getLogger("secureLog")
-private const val ANTALL_WORKERS = 5
+private const val ANTALL_WORKERS = 4
 
 class App
 
+val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+fun PrometheusMeterRegistry.uhåndtertExceptionTeller(type: String): Counter =
+    this.counter("behandlingsflyt_uhaandtert_exception_total", listOf(Tag.of("type", type)))
+
+
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e ->
-        LoggerFactory.getLogger("App")
-            .error("Ikke-håndert exception: ${e::class.qualifiedName}. Se sikker logg for stacktrace")
-        SECURE_LOGGER.error("Uhåndtert feil", e)
+        LoggerFactory.getLogger(App::class.java).error("Uhåndtert feil.", e)
+        prometheus.uhåndtertExceptionTeller(e::class.java.name).increment()
     }
     embeddedServer(Netty, 8080) { server(DbConfig()) }.start(wait = true)
 }
@@ -61,6 +73,8 @@ internal fun Application.server(dbConfig: DbConfig) {
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
 
+    motor(dataSource)
+
     routing {
         authenticate(AZURE) {
             apiRouting {
@@ -71,18 +85,47 @@ internal fun Application.server(dbConfig: DbConfig) {
     }
 }
 
+
+fun Application.motor(dataSource: DataSource): Motor {
+    val motor = Motor(
+        dataSource = dataSource,
+        antallKammer = ANTALL_WORKERS,
+        jobber = listOf()
+    )
+
+    dataSource.transaction { dbConnection ->
+        RetryService(dbConnection).enable()
+    }
+
+    monitor.subscribe(ApplicationStarted) {
+        motor.start()
+    }
+    monitor.subscribe(ApplicationStopped) { application ->
+        application.environment.log.info("Server har stoppet")
+        motor.stop()
+        // Release resources and unsubscribe from events
+        application.monitor.unsubscribe(ApplicationStarted) {}
+        application.monitor.unsubscribe(ApplicationStopped) {}
+    }
+
+    return motor
+}
+
+
 class DbConfig(
+    val host: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_HOST"),
+    val port: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PORT"),
     val database: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_DATABASE"),
-    val jdbcUrl: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_JDBC_URL"),
+    val url: String = "jdbc:postgresql://$host:$port/$database",
     val username: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_USERNAME"),
     val password: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PASSWORD")
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.jdbcUrl
+    jdbcUrl = dbConfig.url
     username = dbConfig.username
     password = dbConfig.password
-    maximumPoolSize = 10 + ANTALL_WORKERS
+    maximumPoolSize = 10 + (ANTALL_WORKERS*2)
     minimumIdle = 1
     driverClassName = "org.postgresql.Driver"
     connectionTestQuery = "SELECT 1"
