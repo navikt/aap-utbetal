@@ -31,7 +31,7 @@ class OverførTilØkonomiJobbUtfører(): JobbUtfører {
         }
 
         override fun cron(): CronExpression? {
-            return CronExpression.create("0 0 0 * * *")
+            return CronExpression.create("0 0 1,15 * *") //Midnatt den 1. og 15. hver måned.
         }
     }
 }
