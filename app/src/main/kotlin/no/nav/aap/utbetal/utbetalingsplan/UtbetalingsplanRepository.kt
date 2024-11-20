@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.utbetalinger
+package no.nav.aap.utbetal.utbetalingsplan
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
@@ -7,10 +7,10 @@ import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import java.util.UUID
 
-data class Utbetaling(
+data class Utbetalingsplan(
     val behandlingsreferanse: UUID,
-    val perioder: List<UtbetalingPeriode>,
-
+    val forrigeBehandlingsreferanse: UUID? = null,
+    val perioder: List<UtbetalingPeriode>
 )
 
 data class UtbetalingPeriode(
@@ -22,16 +22,17 @@ data class UtbetalingPeriode(
     val grunnbeløp: Beløp,
     val antallBarn: Int,
     val barnetilleggsats: Beløp,
-    val barnetillegg: Beløp
+    val barnetillegg: Beløp,
+    val endretSidenForrige: Boolean = false
 )
 
-class UtbetalingRepository(connection: DBConnection) {
+class UtbetalingsplanRepository(connection: DBConnection) {
 
-    fun lagre(utbetaling: Utbetaling) {
+    fun lagre(utbetalingsplan: Utbetalingsplan) {
         TODO()
     }
 
-    fun hentUtbetalinger(saksnummer: String): List<Utbetaling> {
+    fun hentUtbetalingsplan(behandlingsreferanse: UUID): Utbetalingsplan? {
         TODO()
     }
 

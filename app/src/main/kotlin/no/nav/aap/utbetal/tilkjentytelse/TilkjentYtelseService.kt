@@ -1,7 +1,7 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.utbetal.utbetalinger.Utbetaling
+import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -14,16 +14,11 @@ class TilkjentYtelseService {
     }
 
 
-    fun simulerUtbetaling(forrigeTilkjentYtelse: TilkjentYtelseDto, nyTilkjentYtelse: TilkjentYtelseDto): Utbetaling {
+    fun simulerUtbetaling(dataSource: DataSource, nyTilkjentYtelse: TilkjentYtelseDto): Utbetalingsplan {
         TODO()
     }
 
-    fun finnUtbetalingsendring(dataSource: DataSource, behandlingsreferanse: UUID): List<TilkjentYtelsePeriodeDto> {
-        val tilkjentYtelseListe = dataSource.transaction { connection ->
-            TilkjentYtelseRepository(connection).hent(behandlingsreferanse)
-        }
-        TODO()
-    }
+
 
 }
 /*

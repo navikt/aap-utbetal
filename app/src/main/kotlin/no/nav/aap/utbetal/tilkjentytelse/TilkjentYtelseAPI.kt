@@ -17,3 +17,4 @@ fun NormalOpenAPIRoute.registrerTilkjentYtelse(dataSource: DataSource, prometheu
         TilkjentYtelseService().lagre(dataSource, tilkjentYtelse)
         respondWithStatus(HttpStatusCode.OK)
     }
+

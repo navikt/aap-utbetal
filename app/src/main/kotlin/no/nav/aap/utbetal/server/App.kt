@@ -32,7 +32,9 @@ import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.tilkjentytelse.hentUtbetalingsplan
 import no.nav.aap.utbetal.tilkjentytelse.registrerTilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.simulerUtbetalingsplan
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -80,6 +82,8 @@ internal fun Application.server(dbConfig: DbConfig) {
         authenticate(AZURE) {
             apiRouting {
                 registrerTilkjentYtelse(dataSource, prometheus)
+                simulerUtbetalingsplan(dataSource, prometheus)
+                hentUtbetalingsplan(dataSource, prometheus)
             }
         }
         actuator(prometheus)
