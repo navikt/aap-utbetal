@@ -15,43 +15,12 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
             setParams {
-                setString(1, tilkjentYtelse.behandlingsreferanse.toString())
-                setString(2, tilkjentYtelse.forrigeBehandlingsreferanse?.toString())
+                setUUID(1, tilkjentYtelse.behandlingsreferanse)
+                setUUID(2, tilkjentYtelse.forrigeBehandlingsreferanse)
             }
         }
 
-        val sqlInsertTilkjentPeriode = """
-            INSERT INTO TILKJENT_PERIODE
-                (
-                    PERIODE,
-                    DAGSATS,           
-                    GRUNNLAG,          
-                    GRADERING,         
-                    GRUNNBELOP,        
-                    ANTALL_BARN,
-                    BARNETILLEGG,  
-                    GRUNNLAGSFAKTOR,
-                    BARNETILLEGGSATS,
-                    TILKJENT_YTELSE_ID
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """.trimIndent()
-
-
-        connection.executeBatch(sqlInsertTilkjentPeriode, tilkjentYtelse.perioder) {
-            setParams {
-                setPeriode(1, Periode(it.fom, it.tom))
-                setBigDecimal(2, it.detaljer.dagsats)
-                setBigDecimal(3, it.detaljer.grunnlag)
-                setBigDecimal(4, it.detaljer.gradering)
-                setBigDecimal(5, it.detaljer.grunnbeløp)
-                setInt(6, it.detaljer.antallBarn)
-                setBigDecimal(7, it.detaljer.barnetillegg)
-                setBigDecimal(8, it.detaljer.grunnlagsfaktor)
-                setBigDecimal(9, it.detaljer.barnetilleggsats)
-                setLong(10, tilkjentYtelseId)
-            }
-        }
+        lagre(tilkjentYtelseId, tilkjentYtelse.perioder)
     }
 
 
@@ -70,7 +39,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     BARNETILLEGGSATS,
                     TILKJENT_YTELSE_ID
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
 
