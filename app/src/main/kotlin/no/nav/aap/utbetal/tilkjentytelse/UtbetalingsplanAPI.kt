@@ -9,8 +9,10 @@ import io.ktor.http.HttpStatusCode
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
+import no.nav.aap.utbetaling.Endringstype
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
 import javax.sql.DataSource
@@ -36,24 +38,64 @@ fun NormalOpenAPIRoute.hentUtbetalingsplan(dataSource: DataSource, prometheus: P
     }
 
 private fun Utbetalingsplan.tilUtbetalingDto(): UtbetalingsplanDto {
-    val perioder = this.perioder.map {
-        UtbetalingsperiodeDto(
-            fom = it.periode.fom,
-            tom = it.periode.tom,
-            dagsats = it.dagsats.verdi(),
-            gradering = it.gradering.prosentverdi(),
-            grunnlag = it.grunnlag.verdi(),
-            grunnlagsfaktor = it.grunnlagsfaktor.verdi(),
-            grunnbeløp = it.grunnbeløp.verdi(),
-            antallBarn = it.antallBarn,
-            barnetilleggsats = it.barnetilleggsats.verdi(),
-            barnetillegg = it.barnetillegg.verdi(),
-            endretSidenForrrige = it.endretSidenForrige
-        )
-    }
     return UtbetalingsplanDto(
         behandlingsreferanse = this.behandlingsreferanse,
         forrigeBehandlingsreferanse = this.forrigeBehandlingsreferanse,
-        perioder = perioder,
+        perioder = this.perioder.map { it.tilUtbetalingsperiodeDto() },
     )
 }
+
+private fun Utbetalingsperiode.tilUtbetalingsperiodeDto(): UtbetalingsperiodeDto {
+    return when(this) {
+        is Utbetalingsperiode.EndretPeriode -> this.tilUtbetalingsperiodeDto()
+        is Utbetalingsperiode.NyPeriode -> this.tilUtbetalingsperiodeDto()
+        is Utbetalingsperiode.UendretPeriode -> this.tilUtbetalingsperiodeDto()
+    }
+}
+
+private fun Utbetalingsperiode.NyPeriode.tilUtbetalingsperiodeDto() =
+    UtbetalingsperiodeDto(
+        fom = this.periode.fom,
+        tom = this.periode.tom,
+        dagsats = this.utbetaling.dagsats.verdi(),
+        gradering = this.utbetaling.gradering.prosentverdi(),
+        grunnlag = this.utbetaling.grunnlag.verdi(),
+        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
+        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
+        antallBarn = this.utbetaling.antallBarn,
+        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
+        barnetillegg = this.utbetaling.barnetillegg.verdi(),
+        endringstype = Endringstype.NY
+    )
+
+private fun Utbetalingsperiode.EndretPeriode.tilUtbetalingsperiodeDto() =
+    UtbetalingsperiodeDto(
+        fom = this.periode.fom,
+        tom = this.periode.tom,
+        dagsats = this.nyUtbetaling.dagsats.verdi(),
+        gradering = this.nyUtbetaling.gradering.prosentverdi(),
+        grunnlag = this.nyUtbetaling.grunnlag.verdi(),
+        grunnlagsfaktor = this.nyUtbetaling.grunnlagsfaktor.verdi(),
+        grunnbeløp = this.nyUtbetaling.grunnbeløp.verdi(),
+        antallBarn = this.nyUtbetaling.antallBarn,
+        barnetilleggsats = this.nyUtbetaling.barnetilleggsats.verdi(),
+        barnetillegg = this.nyUtbetaling.barnetillegg.verdi(),
+        endringstype = Endringstype.ENDRET
+    )
+
+
+private fun Utbetalingsperiode.UendretPeriode.tilUtbetalingsperiodeDto() =
+    UtbetalingsperiodeDto(
+        fom = this.periode.fom,
+        tom = this.periode.tom,
+        dagsats = this.utbetaling.dagsats.verdi(),
+        gradering = this.utbetaling.gradering.prosentverdi(),
+        grunnlag = this.utbetaling.grunnlag.verdi(),
+        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
+        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
+        antallBarn = this.utbetaling.antallBarn,
+        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
+        barnetillegg = this.utbetaling.barnetillegg.verdi(),
+        endringstype = Endringstype.UENDRET
+    )
+

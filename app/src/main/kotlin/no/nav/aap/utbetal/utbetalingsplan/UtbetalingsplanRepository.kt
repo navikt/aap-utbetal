@@ -7,14 +7,7 @@ import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import java.util.UUID
 
-data class Utbetalingsplan(
-    val behandlingsreferanse: UUID,
-    val forrigeBehandlingsreferanse: UUID? = null,
-    val perioder: List<UtbetalingPeriode>
-)
-
-data class UtbetalingPeriode(
-    val periode: Periode,
+data class Utbetaling(
     val dagsats: Beløp,
     val gradering: Prosent,
     val grunnlag: Beløp,
@@ -23,7 +16,18 @@ data class UtbetalingPeriode(
     val antallBarn: Int,
     val barnetilleggsats: Beløp,
     val barnetillegg: Beløp,
-    val endretSidenForrige: Boolean = false
+)
+
+sealed interface Utbetalingsperiode {
+    data class UendretPeriode(val periode: Periode, val utbetaling: Utbetaling) : Utbetalingsperiode
+    data class NyPeriode(val periode: Periode, val utbetaling: Utbetaling) : Utbetalingsperiode
+    data class EndretPeriode(val periode: Periode, val tidligereUtbetaling: Utbetaling, val nyUtbetaling: Utbetaling) : Utbetalingsperiode
+}
+
+data class Utbetalingsplan(
+    val behandlingsreferanse: UUID,
+    val forrigeBehandlingsreferanse: UUID? = null,
+    val perioder: List<Utbetalingsperiode>
 )
 
 class UtbetalingsplanRepository(connection: DBConnection) {
@@ -35,6 +39,5 @@ class UtbetalingsplanRepository(connection: DBConnection) {
     fun hentUtbetalingsplan(behandlingsreferanse: UUID): Utbetalingsplan? {
         TODO()
     }
-
 
 }

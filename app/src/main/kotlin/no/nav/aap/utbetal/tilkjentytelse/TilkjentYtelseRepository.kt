@@ -80,7 +80,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 row.getLong("ID") to TilkjentYtelseDto(
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
-                    forrigeBehandlingsreferanse = row.getUUID("FORRIGE_BEHANDLING_REF"),
+                    forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
                     listOf()
                 )
             }

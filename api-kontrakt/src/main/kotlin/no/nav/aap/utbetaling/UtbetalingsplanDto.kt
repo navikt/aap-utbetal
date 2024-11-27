@@ -10,6 +10,12 @@ data class UtbetalingsplanDto(
     val perioder: List<UtbetalingsperiodeDto>
 )
 
+enum class Endringstype {
+    UENDRET,
+    ENDRET,
+    NY
+}
+
 data class UtbetalingsperiodeDto(
     val fom: LocalDate,
     val tom: LocalDate,
@@ -21,6 +27,6 @@ data class UtbetalingsperiodeDto(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
-    val endretSidenForrrige: Boolean = false,
+    val endringstype: Endringstype,
 )
 

@@ -17,6 +17,7 @@ import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
+import no.nav.aap.utbetaling.UtbetalingsplanDto
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -32,12 +33,33 @@ class ApiTest {
 
     @Test
     fun `Ta imot tilkjent ytelse fra førstegangsbehandling`() {
-        val tilkjentYtelse = opprettTilkjentYtelse(BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        val tilkjentYtelse = opprettTilkjentYtelse(26, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
     }
 
-    private fun opprettTilkjentYtelse(beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
-        val perioder = (0..25).map {
+    @Test
+    fun `Simuler utbetaling i revurdering`() {
+        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        postTilkjentYtelse(tilkjentYtelse)
+
+        val nesteTilkjentYtelse = tilkjentYtelse.copy(
+            forrigeBehandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
+            behandlingsreferanse = UUID.randomUUID(),
+            perioder = listOf(
+                tilkjentYtelse.perioder[0],
+                tilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(dagsats = BigDecimal(600))),
+                tilkjentYtelse.perioder[2]
+            )
+        )
+
+        val utbetalingsplan = simulerUtbetaling(nesteTilkjentYtelse)
+
+        println(utbetalingsplan)
+
+    }
+
+    private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
+        val perioder = (0 until antallPerioder).map {
             TilkjentYtelsePeriodeDto(
                 fom = startDato.plusWeeks(it * 2L),
                 tom = startDato.plusWeeks(it * 2L).plusDays(13),
@@ -62,6 +84,14 @@ class ApiTest {
             PostRequest(body = tilkjentYtelse)
         )
     }
+
+    private fun simulerUtbetaling(tilkjentYtelse: TilkjentYtelseDto): UtbetalingsplanDto? {
+        return client.post(
+            URI.create("http://localhost:8080/simulering"),
+            PostRequest(body = tilkjentYtelse)
+        )
+    }
+
 
 
     companion object {
