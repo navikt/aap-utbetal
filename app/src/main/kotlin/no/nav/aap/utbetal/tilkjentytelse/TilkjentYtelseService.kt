@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
+import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
 import javax.sql.DataSource
 
 class TilkjentYtelseService {

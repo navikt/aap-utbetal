@@ -1,12 +1,16 @@
-package no.nav.aap.utbetal.tilkjentytelse
+package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
-import org.assertj.core.api.Assertions.assertThat
+import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
-import kotlin.test.Test
+import java.util.UUID
 
 class UtbetalingsplanBeregnerTest {
 
@@ -21,7 +25,7 @@ class UtbetalingsplanBeregnerTest {
         val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(ty1, ty2)
 
         val perioder = utbetalingsplan.perioder
-        assertThat(perioder.size).isEqualTo(4)
+        Assertions.assertThat(perioder.size).isEqualTo(4)
         verifiserUendretPeriode(perioder[0], 1000)
         verifiserEndretPeriode(perioder[1], 600)
         verifiserUendretPeriode(perioder[2], 1000)
@@ -29,18 +33,21 @@ class UtbetalingsplanBeregnerTest {
     }
 
     private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) {
-        assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.UendretPeriode::class.java)
-        assertThat((utbetalingsperiode as Utbetalingsperiode.UendretPeriode).utbetaling.dagsats).isEqualTo(Beløp(beløp))
+        Assertions.assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.UendretPeriode::class.java)
+        Assertions.assertThat((utbetalingsperiode as Utbetalingsperiode.UendretPeriode).utbetaling.dagsats)
+            .isEqualTo(Beløp(beløp))
     }
 
     private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) {
-        assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.EndretPeriode::class.java)
-        assertThat((utbetalingsperiode as Utbetalingsperiode.EndretPeriode).nyUtbetaling.dagsats).isEqualTo(Beløp(beløp))
+        Assertions.assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.EndretPeriode::class.java)
+        Assertions.assertThat((utbetalingsperiode as Utbetalingsperiode.EndretPeriode).nyUtbetaling.dagsats)
+            .isEqualTo(Beløp(beløp))
     }
 
     private fun verifiserNyPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) {
-        assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.NyPeriode::class.java)
-        assertThat((utbetalingsperiode as Utbetalingsperiode.NyPeriode).utbetaling.dagsats).isEqualTo(Beløp(beløp))
+        Assertions.assertThat(utbetalingsperiode).isInstanceOf(Utbetalingsperiode.NyPeriode::class.java)
+        Assertions.assertThat((utbetalingsperiode as Utbetalingsperiode.NyPeriode).utbetaling.dagsats)
+            .isEqualTo(Beløp(beløp))
     }
 
     private fun opprettTilkjentYtelse(startDato: LocalDate, vararg beløpListe: Long): TilkjentYtelseDto {
@@ -58,7 +65,7 @@ class UtbetalingsplanBeregnerTest {
                 gradering = BigDecimal.valueOf(0L),
                 dagsats = BigDecimal.valueOf(beløp),
                 grunnlag = BigDecimal.valueOf(beløp),
-                grunnbeløp = BigDecimal.valueOf(100000L) ,
+                grunnbeløp = BigDecimal.valueOf(100000L),
                 antallBarn = 0,
                 barnetillegg = BigDecimal.valueOf(0L),
                 grunnlagsfaktor = BigDecimal.valueOf(0.008),

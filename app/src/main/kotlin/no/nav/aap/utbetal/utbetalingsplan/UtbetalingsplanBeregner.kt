@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.tilkjentytelse
+package no.nav.aap.utbetal.utbetalingsplan
 
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
@@ -7,9 +7,8 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
-import no.nav.aap.utbetal.utbetalingsplan.Utbetaling
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 
 class UtbetalingsplanBeregner {
 
@@ -27,12 +26,17 @@ class UtbetalingsplanBeregner {
     }
 
     private fun TilkjentYtelseDto.tilTidslinje() =
-        Tidslinje(this.perioder.map { periode -> Segment<TilkjentYtelseDetaljerDto>(Periode(periode.fom, periode.tom), periode.detaljer) })
+        Tidslinje(this.perioder.map { periode ->
+            Segment<TilkjentYtelseDetaljerDto>(
+                Periode(periode.fom, periode.tom),
+                periode.detaljer
+            )
+        })
 
     private fun TilkjentYtelseDetaljerDto.tilUtbetaling(): Utbetaling {
         return Utbetaling(
             dagsats = Beløp(this.dagsats),
-            gradering = Prosent.fraDesimal(this.gradering),
+            gradering = Prosent.Companion.fraDesimal(this.gradering),
             grunnlag = Beløp(this.grunnlag),
             grunnlagsfaktor = GUnit(this.grunnlagsfaktor),
             grunnbeløp = Beløp(this.grunnbeløp),
@@ -46,9 +50,19 @@ class UtbetalingsplanBeregner {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (venstre != null && høyre != null) {
                 if (venstre == høyre) {
-                    return@OUTER_JOIN Segment(periode, Utbetalingsperiode.UendretPeriode(periode, høyre.verdi.tilUtbetaling()))
+                    return@OUTER_JOIN Segment(
+                        periode,
+                        Utbetalingsperiode.UendretPeriode(periode, høyre.verdi.tilUtbetaling())
+                    )
                 }
-                return@OUTER_JOIN Segment(periode, Utbetalingsperiode.EndretPeriode(periode, venstre.verdi.tilUtbetaling(), høyre.verdi.tilUtbetaling()))
+                return@OUTER_JOIN Segment(
+                    periode,
+                    Utbetalingsperiode.EndretPeriode(
+                        periode,
+                        venstre.verdi.tilUtbetaling(),
+                        høyre.verdi.tilUtbetaling()
+                    )
+                )
             }
             if (høyre != null) {
                 return@OUTER_JOIN Segment(periode, Utbetalingsperiode.NyPeriode(periode, høyre.verdi.tilUtbetaling()))

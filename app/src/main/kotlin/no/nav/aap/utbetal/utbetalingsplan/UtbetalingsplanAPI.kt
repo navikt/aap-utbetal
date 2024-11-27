@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.tilkjentytelse
+package no.nav.aap.utbetal.utbetalingsplan
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
@@ -9,9 +9,9 @@ import io.ktor.http.HttpStatusCode
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.httpCallCounter
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
+import no.nav.aap.utbetal.tilkjentytelse.HentUtbetalingsplanDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseService
 import no.nav.aap.utbetaling.Endringstype
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
