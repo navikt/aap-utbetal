@@ -47,7 +47,7 @@ class ApiTest {
             behandlingsreferanse = UUID.randomUUID(),
             perioder = listOf(
                 tilkjentYtelse.perioder[0],
-                tilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(dagsats = BigDecimal(600))),
+                tilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(redusertDagsats = BigDecimal(250))),
                 tilkjentYtelse.perioder[2]
             )
         )

@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.verdityper.Prosent
 import java.util.UUID
 
 data class Utbetaling(
+    val redusertDagsats: Beløp,
     val dagsats: Beløp,
     val gradering: Prosent,
     val grunnlag: Beløp,

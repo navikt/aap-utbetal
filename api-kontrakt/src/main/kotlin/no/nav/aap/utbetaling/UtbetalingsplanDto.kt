@@ -19,6 +19,7 @@ enum class Endringstype {
 data class UtbetalingsperiodeDto(
     val fom: LocalDate,
     val tom: LocalDate,
+    val redusertDagsats: BigDecimal,
     val dagsats: BigDecimal,
     val gradering: Int,
     val grunnlag: BigDecimal,

@@ -35,6 +35,7 @@ class UtbetalingsplanBeregner {
 
     private fun TilkjentYtelseDetaljerDto.tilUtbetaling(): Utbetaling {
         return Utbetaling(
+            redusertDagsats = Beløp(this.redusertDagsats),
             dagsats = Beløp(this.dagsats),
             gradering = Prosent.Companion.fraDesimal(this.gradering),
             grunnlag = Beløp(this.grunnlag),

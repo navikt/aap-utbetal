@@ -57,6 +57,7 @@ private fun Utbetalingsperiode.NyPeriode.tilUtbetalingsperiodeDto() =
     UtbetalingsperiodeDto(
         fom = this.periode.fom,
         tom = this.periode.tom,
+        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
         dagsats = this.utbetaling.dagsats.verdi(),
         gradering = this.utbetaling.gradering.prosentverdi(),
         grunnlag = this.utbetaling.grunnlag.verdi(),
@@ -72,6 +73,7 @@ private fun Utbetalingsperiode.EndretPeriode.tilUtbetalingsperiodeDto() =
     UtbetalingsperiodeDto(
         fom = this.periode.fom,
         tom = this.periode.tom,
+        redusertDagsats = this.nyUtbetaling.redusertDagsats.verdi(),
         dagsats = this.nyUtbetaling.dagsats.verdi(),
         gradering = this.nyUtbetaling.gradering.prosentverdi(),
         grunnlag = this.nyUtbetaling.grunnlag.verdi(),
@@ -88,6 +90,7 @@ private fun Utbetalingsperiode.UendretPeriode.tilUtbetalingsperiodeDto() =
     UtbetalingsperiodeDto(
         fom = this.periode.fom,
         tom = this.periode.tom,
+        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
         dagsats = this.utbetaling.dagsats.verdi(),
         gradering = this.utbetaling.gradering.prosentverdi(),
         grunnlag = this.utbetaling.grunnlag.verdi(),
