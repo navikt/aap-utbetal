@@ -72,6 +72,7 @@ class ApiTest {
                     barnetillegg = BigDecimal.valueOf(0L),
                     grunnlagsfaktor = BigDecimal.valueOf(0.008),
                     barnetilleggsats = BigDecimal.valueOf(36L),
+                    redusertDagsats = beløp,
                 )
             )
         }

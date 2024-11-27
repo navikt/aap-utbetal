@@ -37,9 +37,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     BARNETILLEGG,  
                     GRUNNLAGSFAKTOR,
                     BARNETILLEGGSATS,
+                    REDUSERT_DAGSATS,
                     TILKJENT_YTELSE_ID
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
 
@@ -54,7 +55,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setBigDecimal(7, it.detaljer.barnetillegg)
                 setBigDecimal(8, it.detaljer.grunnlagsfaktor)
                 setBigDecimal(9, it.detaljer.barnetilleggsats)
-                setLong(10, tilkjentYtelseId)
+                setBigDecimal(10, it.detaljer.redusertDagsats)
+                setLong(11, tilkjentYtelseId)
             }
         }
     }
@@ -104,7 +106,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 ANTALL_BARN,
                 BARNETILLEGG,  
                 GRUNNLAGSFAKTOR,
-                BARNETILLEGGSATS
+                BARNETILLEGGSATS,
+                REDUSERT_DAGSATS
             FROM TILKJENT_PERIODE
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
@@ -128,6 +131,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                         barnetillegg = row.getBigDecimal("BARNETILLEGG"),
                         grunnlagsfaktor = row.getBigDecimal("GRUNNLAGSFAKTOR"),
                         barnetilleggsats = row.getBigDecimal("BARNETILLEGGSATS"),
+                        redusertDagsats = row.getBigDecimal("REDUSERT_DAGSATS"),
                     )
                 )
             }
