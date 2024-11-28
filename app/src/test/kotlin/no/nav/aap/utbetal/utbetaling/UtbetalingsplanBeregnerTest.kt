@@ -1,16 +1,19 @@
 package no.nav.aap.utbetal.utbetaling
 
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
+import no.nav.aap.komponenter.verdityper.GUnit
+import no.nav.aap.komponenter.verdityper.Prosent
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljer
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 class UtbetalingsplanBeregnerTest {
 
@@ -50,27 +53,26 @@ class UtbetalingsplanBeregnerTest {
             .isEqualTo(Beløp(beløp))
     }
 
-    private fun opprettTilkjentYtelse(startDato: LocalDate, vararg beløpListe: Long): TilkjentYtelseDto {
+    private fun opprettTilkjentYtelse(startDato: LocalDate, vararg beløpListe: Long): TilkjentYtelse {
         val perioder = beløpListe.mapIndexed { i, beløp ->
-            lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), beløp)
+            lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(beløp))
         }
-        return TilkjentYtelseDto(UUID.randomUUID(), null, perioder)
+        return TilkjentYtelse(UUID.randomUUID(), null, perioder)
     }
 
-    private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, beløp: Long) =
-        TilkjentYtelsePeriodeDto(
-            fom = fom,
-            tom = tom,
-            TilkjentYtelseDetaljerDto(
-                gradering = BigDecimal.valueOf(0L),
-                dagsats = BigDecimal.valueOf(beløp),
-                grunnlag = BigDecimal.valueOf(beløp),
-                grunnbeløp = BigDecimal.valueOf(100000L),
+    private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, beløp: Beløp) =
+        TilkjentYtelsePeriode(
+            periode = Periode(fom, tom),
+            detaljer = TilkjentYtelseDetaljer(
+                gradering = Prosent.`0_PROSENT`,
+                dagsats = beløp,
+                grunnlag = beløp,
+                grunnbeløp = Beløp(100000L),
                 antallBarn = 0,
-                barnetillegg = BigDecimal.valueOf(0L),
-                grunnlagsfaktor = BigDecimal.valueOf(0.008),
-                barnetilleggsats = BigDecimal.valueOf(36L),
-                redusertDagsats = BigDecimal.valueOf(beløp),
+                barnetillegg = Beløp(0L),
+                grunnlagsfaktor = GUnit(BigDecimal.valueOf(0.008)),
+                barnetilleggsats = Beløp(36L),
+                redusertDagsats = beløp,
             )
         )
 }

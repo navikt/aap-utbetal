@@ -12,6 +12,7 @@ import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.tilkjentytelse.HentUtbetalingsplanDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseService
+import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse
 import no.nav.aap.utbetaling.Endringstype
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
@@ -20,7 +21,7 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.simulerUtbetalingsplan(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
     route("/simulering").post<Unit, UtbetalingsplanDto, TilkjentYtelseDto> { _, tilkjentYtelse ->
         prometheus.httpCallCounter("/simulering").increment()
-        val utbetaling = TilkjentYtelseService().simulerUtbetaling(dataSource, tilkjentYtelse)
+        val utbetaling = TilkjentYtelseService().simulerUtbetaling(dataSource, tilkjentYtelse.tilTilkjentYtelse())
         respond(utbetaling.tilUtbetalingDto())
     }
 

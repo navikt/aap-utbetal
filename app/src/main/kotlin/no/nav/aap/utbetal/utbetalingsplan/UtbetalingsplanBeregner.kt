@@ -3,16 +3,12 @@ package no.nav.aap.utbetal.utbetalingsplan
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
-import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.komponenter.verdityper.GUnit
-import no.nav.aap.komponenter.verdityper.Prosent
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljer
 
 class UtbetalingsplanBeregner {
 
-    fun tilkjentYtelseTilUtbetalingsplan(forrigeTilkjentYtelse: TilkjentYtelseDto?, nyTilkjentYtelse: TilkjentYtelseDto): Utbetalingsplan {
+    fun tilkjentYtelseTilUtbetalingsplan(forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
         val forrigeTidslinje = forrigeTilkjentYtelse?.tilTidslinje() ?: Tidslinje()
         val nyTidslinje = nyTilkjentYtelse.tilTidslinje()
 
@@ -25,29 +21,29 @@ class UtbetalingsplanBeregner {
         )
     }
 
-    private fun TilkjentYtelseDto.tilTidslinje() =
+    private fun TilkjentYtelse.tilTidslinje() =
         Tidslinje(this.perioder.map { periode ->
-            Segment<TilkjentYtelseDetaljerDto>(
-                Periode(periode.fom, periode.tom),
+            Segment<TilkjentYtelseDetaljer>(
+                periode.periode,
                 periode.detaljer
             )
         })
 
-    private fun TilkjentYtelseDetaljerDto.tilUtbetaling(): Utbetaling {
+    private fun TilkjentYtelseDetaljer.tilUtbetaling(): Utbetaling {
         return Utbetaling(
-            redusertDagsats = Beløp(this.redusertDagsats),
-            dagsats = Beløp(this.dagsats),
-            gradering = Prosent.Companion.fraDesimal(this.gradering),
-            grunnlag = Beløp(this.grunnlag),
-            grunnlagsfaktor = GUnit(this.grunnlagsfaktor),
-            grunnbeløp = Beløp(this.grunnbeløp),
+            redusertDagsats = this.redusertDagsats,
+            dagsats = this.dagsats,
+            gradering = this.gradering,
+            grunnlag = this.grunnlag,
+            grunnlagsfaktor = this.grunnlagsfaktor,
+            grunnbeløp = this.grunnbeløp,
             antallBarn = this.antallBarn,
-            barnetilleggsats = Beløp(this.barnetilleggsats),
-            barnetillegg = Beløp(this.barnetillegg),
+            barnetilleggsats = this.barnetilleggsats,
+            barnetillegg = this.barnetillegg,
         )
     }
 
-    private fun prioriterHøyreSideCrossJoinMedEndring(): JoinStyle.OUTER_JOIN<TilkjentYtelseDetaljerDto, TilkjentYtelseDetaljerDto, Utbetalingsperiode> {
+    private fun prioriterHøyreSideCrossJoinMedEndring(): JoinStyle.OUTER_JOIN<TilkjentYtelseDetaljer, TilkjentYtelseDetaljer, Utbetalingsperiode> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (venstre != null && høyre != null) {
                 if (venstre == høyre) {

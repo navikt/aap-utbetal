@@ -7,13 +7,13 @@ import javax.sql.DataSource
 
 class TilkjentYtelseService {
 
-    fun lagre(dataSource: DataSource, tilkjentYtelse: TilkjentYtelseDto) {
+    fun lagre(dataSource: DataSource, tilkjentYtelse: TilkjentYtelse) {
         dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagre(tilkjentYtelse)
         }
     }
 
-    fun simulerUtbetaling(dataSource: DataSource, nyTilkjentYtelse: TilkjentYtelseDto): Utbetalingsplan {
+    fun simulerUtbetaling(dataSource: DataSource, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
         val forrigBehandlingsreferanse = nyTilkjentYtelse.forrigeBehandlingsreferanse
         val forrigeTilkjentYtelse = if (forrigBehandlingsreferanse != null) {
             dataSource.transaction(readOnly = true) { connection ->

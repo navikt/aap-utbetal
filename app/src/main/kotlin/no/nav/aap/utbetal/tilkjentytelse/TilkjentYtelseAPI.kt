@@ -12,9 +12,9 @@ import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.registrerTilkjentYtelse(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
 
-    route("/tilkjentytelse").post<Unit, Unit, TilkjentYtelseDto> { _, tilkjentYtelse ->
+    route("/tilkjentytelse").post<Unit, Unit, TilkjentYtelseDto> { _, tilkjentYtelseDto ->
         prometheus.httpCallCounter("/tilkjentytelse").increment()
-        TilkjentYtelseService().lagre(dataSource, tilkjentYtelse)
+        TilkjentYtelseService().lagre(dataSource, tilkjentYtelseDto.tilTilkjentYtelse())
         respondWithStatus(HttpStatusCode.OK)
     }
 

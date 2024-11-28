@@ -2,11 +2,38 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.komponenter.verdityper.GUnit
+import no.nav.aap.komponenter.verdityper.Prosent
+import java.math.BigDecimal
 import java.util.UUID
+
+data class TilkjentYtelse(
+    val behandlingsreferanse: UUID,
+    val forrigeBehandlingsreferanse: UUID? = null,
+    val perioder: List<TilkjentYtelsePeriode>
+)
+
+data class TilkjentYtelsePeriode(
+    val periode: Periode,
+    val detaljer: TilkjentYtelseDetaljer
+)
+
+data class TilkjentYtelseDetaljer(
+    val redusertDagsats: Beløp,
+    val gradering: Prosent,
+    val dagsats: Beløp,
+    val grunnlag: Beløp,
+    val grunnlagsfaktor: GUnit,
+    val grunnbeløp: Beløp,
+    val antallBarn: Int,
+    val barnetilleggsats: Beløp,
+    val barnetillegg: Beløp
+)
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
-    fun lagre(tilkjentYtelse: TilkjentYtelseDto) {
+    fun lagre(tilkjentYtelse: TilkjentYtelse) {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
                 (BEHANDLING_REF, FORRIGE_BEHANDLING_REF)
@@ -24,7 +51,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     }
 
 
-    private fun lagre(tilkjentYtelseId: Long, tilkjentPerioder: List<TilkjentYtelsePeriodeDto>) {
+    private fun lagre(tilkjentYtelseId: Long, tilkjentPerioder: List<TilkjentYtelsePeriode>) {
         val sqlInsertTilkjentPeriode = """
             INSERT INTO TILKJENT_PERIODE
                 (
@@ -46,23 +73,23 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
 
         connection.executeBatch(sqlInsertTilkjentPeriode, tilkjentPerioder) {
             setParams {
-                setPeriode(1, Periode(it.fom, it.tom))
-                setBigDecimal(2, it.detaljer.dagsats)
-                setBigDecimal(3, it.detaljer.grunnlag)
-                setBigDecimal(4, it.detaljer.gradering)
-                setBigDecimal(5, it.detaljer.grunnbeløp)
+                setPeriode(1, it.periode)
+                setBigDecimal(2, it.detaljer.dagsats.verdi())
+                setBigDecimal(3, it.detaljer.grunnlag.verdi())
+                setBigDecimal(4, BigDecimal.valueOf(it.detaljer.gradering.prosentverdi().toLong()))
+                setBigDecimal(5, it.detaljer.grunnbeløp.verdi())
                 setInt(6, it.detaljer.antallBarn)
-                setBigDecimal(7, it.detaljer.barnetillegg)
-                setBigDecimal(8, it.detaljer.grunnlagsfaktor)
-                setBigDecimal(9, it.detaljer.barnetilleggsats)
-                setBigDecimal(10, it.detaljer.redusertDagsats)
+                setBigDecimal(7, it.detaljer.barnetillegg.verdi())
+                setBigDecimal(8, it.detaljer.grunnlagsfaktor.verdi())
+                setBigDecimal(9, it.detaljer.barnetilleggsats.verdi())
+                setBigDecimal(10, it.detaljer.redusertDagsats.verdi())
                 setLong(11, tilkjentYtelseId)
             }
         }
     }
 
 
-    fun hent(behandlingReferanse: UUID): TilkjentYtelseDto? {
+    fun hent(behandlingReferanse: UUID): TilkjentYtelse? {
         val selectTilkjentYtelse = """
             SELECT 
                 ID,
@@ -75,12 +102,12 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         """.trimIndent()
 
 
-        val idOgTilkjentYtelse = connection.queryFirstOrNull<Pair<Long, TilkjentYtelseDto>>(selectTilkjentYtelse) {
+        val idOgTilkjentYtelse = connection.queryFirstOrNull<Pair<Long, TilkjentYtelse>>(selectTilkjentYtelse) {
             setParams {
                 setUUID(1, behandlingReferanse)
             }
             setRowMapper { row ->
-                row.getLong("ID") to TilkjentYtelseDto(
+                row.getLong("ID") to TilkjentYtelse(
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
                     listOf()
@@ -95,7 +122,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentTilkjentePerioder(tilkjentYtelseId: Long): List<TilkjentYtelsePeriodeDto> {
+    private fun hentTilkjentePerioder(tilkjentYtelseId: Long): List<TilkjentYtelsePeriode> {
         val selectTilkjentePerioder = """
             SELECT 
                 PERIODE,
@@ -112,26 +139,25 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
 
-        return connection.queryList<TilkjentYtelsePeriodeDto>(selectTilkjentePerioder) {
+        return connection.queryList<TilkjentYtelsePeriode>(selectTilkjentePerioder) {
             setParams {
                 setLong(1, tilkjentYtelseId)
             }
             setRowMapper { row ->
 
                 val periode = row.getPeriode("PERIODE")
-                TilkjentYtelsePeriodeDto(
-                    fom = periode.fom,
-                    tom = periode.tom,
-                    detaljer = TilkjentYtelseDetaljerDto(
-                        dagsats = row.getBigDecimal("DAGSATS"),
-                        grunnlag = row.getBigDecimal("GRUNNLAG"),
-                        gradering = row.getBigDecimal("GRADERING"),
-                        grunnbeløp = row.getBigDecimal("GRUNNLAG"),
+                TilkjentYtelsePeriode(
+                    periode = periode,
+                    detaljer = TilkjentYtelseDetaljer(
+                        dagsats = Beløp(row.getBigDecimal("DAGSATS")),
+                        grunnlag = Beløp(row.getBigDecimal("GRUNNLAG")),
+                        gradering = Prosent.fraDesimal(row.getBigDecimal("GRADERING")),
+                        grunnbeløp = Beløp(row.getBigDecimal("GRUNNBELOP")),
                         antallBarn = row.getInt("ANTALL_BARN"),
-                        barnetillegg = row.getBigDecimal("BARNETILLEGG"),
-                        grunnlagsfaktor = row.getBigDecimal("GRUNNLAGSFAKTOR"),
-                        barnetilleggsats = row.getBigDecimal("BARNETILLEGGSATS"),
-                        redusertDagsats = row.getBigDecimal("REDUSERT_DAGSATS"),
+                        barnetillegg = Beløp(row.getBigDecimal("BARNETILLEGG")),
+                        grunnlagsfaktor = GUnit(row.getBigDecimal("GRUNNLAGSFAKTOR")),
+                        barnetilleggsats = Beløp(row.getBigDecimal("BARNETILLEGGSATS")),
+                        redusertDagsats = Beløp(row.getBigDecimal("REDUSERT_DAGSATS")),
                     )
                 )
             }
