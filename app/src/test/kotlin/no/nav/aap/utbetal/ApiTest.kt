@@ -1,15 +1,15 @@
 package no.nav.aap.utbetal
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.httpklient.httpclient.post
+import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.server
@@ -17,7 +17,10 @@ import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
+import no.nav.aap.utbetaling.Endringstype
+import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -26,7 +29,7 @@ import java.net.URI
 import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 import kotlin.test.Test
 
 class ApiTest {
@@ -42,20 +45,31 @@ class ApiTest {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
 
-        val nesteTilkjentYtelse = tilkjentYtelse.copy(
+        var nesteTilkjentYtelse = opprettTilkjentYtelse(4, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        nesteTilkjentYtelse = nesteTilkjentYtelse.copy(
             forrigeBehandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
             behandlingsreferanse = UUID.randomUUID(),
             perioder = listOf(
-                tilkjentYtelse.perioder[0],
-                tilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(redusertDagsats = BigDecimal(250))),
-                tilkjentYtelse.perioder[2]
+                nesteTilkjentYtelse.perioder[0],
+                nesteTilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(redusertDagsats = BigDecimal(250))),
+                nesteTilkjentYtelse.perioder[2],
+                nesteTilkjentYtelse.perioder[3]
             )
         )
 
         val utbetalingsplan = simulerUtbetaling(nesteTilkjentYtelse)
 
-        println(utbetalingsplan)
+        val simulertePerioder = utbetalingsplan!!.perioder
+        assertThat(simulertePerioder).hasSize(4)
+        simulertePerioder.sjekkPeriode(0, 500L, Endringstype.UENDRET)
+        simulertePerioder.sjekkPeriode(1, 250, Endringstype.ENDRET)
+        simulertePerioder.sjekkPeriode(2, 500L, Endringstype.UENDRET)
+        simulertePerioder.sjekkPeriode(3, 500L, Endringstype.NY)
+    }
 
+    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, endringstype: Endringstype) {
+        assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
+        assertThat(this[index].endringstype).isEqualTo(endringstype)
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
@@ -93,8 +107,6 @@ class ApiTest {
         )
     }
 
-
-
     companion object {
         private val postgres = no.nav.aap.utbetal.postgreSQLContainer()
         private val fakes = Fakes(azurePort = 8081)
@@ -128,15 +140,6 @@ class ApiTest {
             }
         }
 
-        /*
-        @JvmStatic
-        @BeforeAll
-        fun beforeall() {
-            no.nav.aap.utbetal.ApiTest.Companion.server.start()
-            port =
-                runBlocking { no.nav.aap.utbetal.ApiTest.Companion.server.engine.resolvedConnectors().filter { it.type == ConnectorType.HTTP }.first().port }
-        }
-*/
         @JvmStatic
         @AfterAll
         fun afterAll() {
