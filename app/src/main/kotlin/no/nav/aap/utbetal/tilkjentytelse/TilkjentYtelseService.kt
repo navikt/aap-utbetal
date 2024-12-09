@@ -1,23 +1,29 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.utbetal.utbetalingsplan.SakUtbetaling
+import no.nav.aap.utbetal.utbetalingsplan.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
 import javax.sql.DataSource
+
+private val utbetalingsdatoer:Set<Int> = setOf(10, 25)
 
 class TilkjentYtelseService {
 
     fun lagre(dataSource: DataSource, tilkjentYtelse: TilkjentYtelse) {
         dataSource.transaction { connection ->
-            TilkjentYtelseRepository(connection).lagre(tilkjentYtelse)
-            val utbetalingRepo = UtbetalingsplanRepository(connection)
-            if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
-                TODO("Opprett sak_utbetaling rad")
+            val sakUtbetalingRepo = SakUtbetalingRepository(connection)
+            val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
+                sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
+            } else {
+                sakUtbetalingRepo.hent(tilkjentYtelse.saksnummer)?.id
+                    ?: throw IllegalStateException("Det skal finnes en rad i SAK_UTBETALING for saksnummer: ${tilkjentYtelse.saksnummer}")
             }
-            TODO("Opprett utbetaling_request med detajer")
+            TilkjentYtelseRepository(connection).lagre(tilkjentYtelse)
         }
     }
+
 
     fun simulerUtbetaling(dataSource: DataSource, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
         val forrigBehandlingsreferanse = nyTilkjentYtelse.forrigeBehandlingsreferanse

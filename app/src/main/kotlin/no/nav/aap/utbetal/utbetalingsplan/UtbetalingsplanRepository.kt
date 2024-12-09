@@ -19,3 +19,4 @@ class UtbetalingsplanRepository(connection: DBConnection) {
     }
 
 }
+
