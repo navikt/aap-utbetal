@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
@@ -9,6 +10,7 @@ import java.math.BigDecimal
 import java.util.UUID
 
 data class TilkjentYtelse(
+    val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
     val forrigeBehandlingsreferanse: UUID? = null,
     val perioder: List<TilkjentYtelsePeriode>
@@ -36,14 +38,15 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     fun lagre(tilkjentYtelse: TilkjentYtelse) {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
-                (BEHANDLING_REF, FORRIGE_BEHANDLING_REF)
-                VALUES(?, ?)
+                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF)
+                VALUES(?, ? ,?)
         """.trimIndent()
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
             setParams {
-                setUUID(1, tilkjentYtelse.behandlingsreferanse)
-                setUUID(2, tilkjentYtelse.forrigeBehandlingsreferanse)
+                setString(1, tilkjentYtelse.saksnummer.toString())
+                setUUID(2, tilkjentYtelse.behandlingsreferanse)
+                setUUID(3, tilkjentYtelse.forrigeBehandlingsreferanse)
             }
         }
 
@@ -93,6 +96,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         val selectTilkjentYtelse = """
             SELECT 
                 ID,
+                SAKSNUMMER
                 BEHANDLING_REF,
                 FORRIGE_BEHANDLING_REF
             FROM 
@@ -108,6 +112,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 row.getLong("ID") to TilkjentYtelse(
+                    saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
                     listOf()

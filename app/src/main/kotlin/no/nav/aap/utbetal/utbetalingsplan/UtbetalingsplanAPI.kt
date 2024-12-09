@@ -46,60 +46,24 @@ private fun Utbetalingsplan.tilUtbetalingDto(): UtbetalingsplanDto {
     )
 }
 
-private fun Utbetalingsperiode.tilUtbetalingsperiodeDto(): UtbetalingsperiodeDto {
-    return when(this) {
-        is Utbetalingsperiode.EndretPeriode -> this.tilUtbetalingsperiodeDto()
-        is Utbetalingsperiode.NyPeriode -> this.tilUtbetalingsperiodeDto()
-        is Utbetalingsperiode.UendretPeriode -> this.tilUtbetalingsperiodeDto()
-    }
+private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
+    UtbetalingsperiodeDto(
+        fom = this.periode.fom,
+        tom = this.periode.tom,
+        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
+        dagsats = this.utbetaling.dagsats.verdi(),
+        gradering = this.utbetaling.gradering.prosentverdi(),
+        grunnlag = this.utbetaling.grunnlag.verdi(),
+        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
+        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
+        antallBarn = this.utbetaling.antallBarn,
+        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
+        barnetillegg = this.utbetaling.barnetillegg.verdi(),
+        endringstype = this.utbetalingsperiodeType.tilEndringstype()
+    )
+
+private fun UtbetalingsperiodeType.tilEndringstype() = when (this) {
+    UtbetalingsperiodeType.NY -> Endringstype.NY
+    UtbetalingsperiodeType.ENDRET -> Endringstype.ENDRET
+    UtbetalingsperiodeType.UENDRET -> Endringstype.UENDRET
 }
-
-private fun Utbetalingsperiode.NyPeriode.tilUtbetalingsperiodeDto() =
-    UtbetalingsperiodeDto(
-        fom = this.periode.fom,
-        tom = this.periode.tom,
-        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
-        dagsats = this.utbetaling.dagsats.verdi(),
-        gradering = this.utbetaling.gradering.prosentverdi(),
-        grunnlag = this.utbetaling.grunnlag.verdi(),
-        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
-        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
-        antallBarn = this.utbetaling.antallBarn,
-        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
-        barnetillegg = this.utbetaling.barnetillegg.verdi(),
-        endringstype = Endringstype.NY
-    )
-
-private fun Utbetalingsperiode.EndretPeriode.tilUtbetalingsperiodeDto() =
-    UtbetalingsperiodeDto(
-        fom = this.periode.fom,
-        tom = this.periode.tom,
-        redusertDagsats = this.nyUtbetaling.redusertDagsats.verdi(),
-        dagsats = this.nyUtbetaling.dagsats.verdi(),
-        gradering = this.nyUtbetaling.gradering.prosentverdi(),
-        grunnlag = this.nyUtbetaling.grunnlag.verdi(),
-        grunnlagsfaktor = this.nyUtbetaling.grunnlagsfaktor.verdi(),
-        grunnbeløp = this.nyUtbetaling.grunnbeløp.verdi(),
-        antallBarn = this.nyUtbetaling.antallBarn,
-        barnetilleggsats = this.nyUtbetaling.barnetilleggsats.verdi(),
-        barnetillegg = this.nyUtbetaling.barnetillegg.verdi(),
-        endringstype = Endringstype.ENDRET
-    )
-
-
-private fun Utbetalingsperiode.UendretPeriode.tilUtbetalingsperiodeDto() =
-    UtbetalingsperiodeDto(
-        fom = this.periode.fom,
-        tom = this.periode.tom,
-        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
-        dagsats = this.utbetaling.dagsats.verdi(),
-        gradering = this.utbetaling.gradering.prosentverdi(),
-        grunnlag = this.utbetaling.grunnlag.verdi(),
-        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
-        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
-        antallBarn = this.utbetaling.antallBarn,
-        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
-        barnetillegg = this.utbetaling.barnetillegg.verdi(),
-        endringstype = Endringstype.UENDRET
-    )
-

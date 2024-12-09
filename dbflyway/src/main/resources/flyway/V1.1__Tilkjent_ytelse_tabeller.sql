@@ -1,6 +1,7 @@
 CREATE TABLE TILKJENT_YTELSE
 (
     ID                      BIGSERIAL       NOT NULL PRIMARY KEY,
+    SAKSNUMMER              VARCHAR(10)     NOT NULL,
     BEHANDLING_REF          UUID            NOT NULL,
     FORRIGE_BEHANDLING_REF  UUID
 );

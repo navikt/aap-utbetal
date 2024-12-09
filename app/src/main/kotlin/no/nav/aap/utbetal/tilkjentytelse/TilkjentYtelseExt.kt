@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
@@ -24,6 +25,7 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
         )
     }
     return TilkjentYtelse(
+        saksnummer = Saksnummer(this.saksnummer),
         behandlingsreferanse = this.behandlingsreferanse,
         forrigeBehandlingsreferanse = this.forrigeBehandlingsreferanse,
         perioder = perioder

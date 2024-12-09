@@ -49,20 +49,16 @@ class UtbetalingsplanBeregner {
                 if (venstre == høyre) {
                     return@OUTER_JOIN Segment(
                         periode,
-                        Utbetalingsperiode.UendretPeriode(periode, høyre.verdi.tilUtbetaling())
+                        Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.UENDRET)
                     )
                 }
                 return@OUTER_JOIN Segment(
                     periode,
-                    Utbetalingsperiode.EndretPeriode(
-                        periode,
-                        venstre.verdi.tilUtbetaling(),
-                        høyre.verdi.tilUtbetaling()
-                    )
+                    Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.ENDRET)
                 )
             }
             if (høyre != null) {
-                return@OUTER_JOIN Segment(periode, Utbetalingsperiode.NyPeriode(periode, høyre.verdi.tilUtbetaling()))
+                return@OUTER_JOIN Segment(periode, Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.NY))
             } else {
                 if (venstre == null)  {
                     return@OUTER_JOIN null
