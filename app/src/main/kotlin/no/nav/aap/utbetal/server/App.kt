@@ -30,6 +30,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
+import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.utbetalingsplan.hentUtbetalingsplan
@@ -76,7 +77,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
 
-    motor(dataSource)
+    val motor = motor(dataSource)
 
     routing {
         authenticate(AZURE) {
@@ -84,9 +85,10 @@ internal fun Application.server(dbConfig: DbConfig) {
                 registrerTilkjentYtelse(dataSource, prometheus)
                 simulerUtbetalingsplan(dataSource, prometheus)
                 hentUtbetalingsplan(dataSource, prometheus)
+                motorApi(dataSource)
             }
         }
-        actuator(prometheus)
+        actuator(prometheus, motor)
     }
 }
 
@@ -139,7 +141,7 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
 
 internal data class ErrorRespons(val message: String?)
 
-private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
+private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) {
     route("/actuator") {
         get("/metrics") {
             call.respond(prometheus.scrape())
@@ -151,8 +153,12 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
         }
 
         get("/ready") {
-            val status = HttpStatusCode.Companion.OK
-            call.respond(status, "Oppe!")
+            if (motor.kjører()) {
+                val status = HttpStatusCode.OK
+                call.respond(status, "Oppe!")
+            } else {
+                call.respond(HttpStatusCode.ServiceUnavailable, "Kjører ikke")
+            }
         }
     }
 }
