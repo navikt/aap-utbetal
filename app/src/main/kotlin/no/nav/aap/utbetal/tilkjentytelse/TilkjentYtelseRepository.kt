@@ -97,7 +97,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         val selectTilkjentYtelse = """
             SELECT 
                 ID,
-                SAKSNUMMER
+                SAKSNUMMER,
                 BEHANDLING_REF,
                 FORRIGE_BEHANDLING_REF
             FROM 

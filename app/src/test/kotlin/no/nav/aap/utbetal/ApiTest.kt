@@ -22,7 +22,6 @@ import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Disabled
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.math.BigDecimal
@@ -35,14 +34,12 @@ import kotlin.test.Test
 
 class ApiTest {
 
-    @Disabled
     @Test
     fun `Ta imot tilkjent ytelse fra førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(26, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
     }
 
-    @Disabled
     @Test
     fun `Simuler utbetaling i revurdering`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
@@ -93,7 +90,8 @@ class ApiTest {
                 )
             )
         }
-        return TilkjentYtelseDto("123", UUID.randomUUID(), null, perioder)
+        val saksnummer = Random().nextInt(999999999).toString()
+        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, perioder)
     }
 
     private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {
@@ -113,7 +111,6 @@ class ApiTest {
     companion object {
         private val postgres = no.nav.aap.utbetal.postgreSQLContainer()
         private val fakes = Fakes(azurePort = 8081)
-        private lateinit var port: Number
 
         private val dbConfig = DbConfig(
             host = "test",

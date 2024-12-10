@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.utbetalingsplan
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDateTime
 
 data class SakUtbetaling(
@@ -12,10 +13,10 @@ data class SakUtbetaling(
 
 class SakUtbetalingRepository(val connection: DBConnection) {
 
-    fun  lagre(sakUtbetaling: SakUtbetaling): Long {
-        val sql = """
-            INSERT INTO SAK_UTBETALING (SAKSNUMMER, OPPRETTET_TIDSPUNKT) VALUES (?, ?)
-        """.trimIndent()
+    private val alleSakUtbetalingFelter = "ID, SAKSNUMMER, OPPRETTET_TIDSPUNKT"
+
+    fun lagre(sakUtbetaling: SakUtbetaling): Long {
+        val sql = "INSERT INTO SAK_UTBETALING (SAKSNUMMER, OPPRETTET_TIDSPUNKT) VALUES (?, ?)"
 
         return connection.executeReturnKey(sql) {
             setParams {
@@ -25,23 +26,42 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         }
     }
 
+    fun avslutt(saksnummer: Saksnummer) {
+        val sql = "UPDATE SAK_UTBETALING SET AKTIV = FALSE WHERE SAKSNUMMER = ?"
+        return connection.execute(sql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+        }
+
+    }
+
     fun hent(saksnummer: Saksnummer): SakUtbetaling? {
-        val sql = """
-            SELECT ID, SAKSNUMMER, OPPRETTET_TIDSPUNKT FROM SAK_UTBETALING WHERE SAKSNUMMER = ?
-        """.trimIndent()
+        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE SAKSNUMMER = ? and AKTIV = TRUE"
 
         return connection.queryFirstOrNull(sql) {
             setParams {
                 setString(1, saksnummer.toString())
             }
-            setRowMapper { row ->
-                SakUtbetaling(
-                    id = row.getLong("ID"),
-                    saksnummer = Saksnummer(row.getString("Saksnummer")),
-                    opprettetTidspunkt = row.getLocalDateTime("opprettet_tidspunkt")
-                )
-            }
+            setRowMapper { it.tilSakUtbetaling() }
         }
     }
+
+    fun finnAktiveSaker(): List<SakUtbetaling> {
+        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE AKTIV = TRUE"
+
+        return connection.queryList(sql) {
+            setRowMapper { it.tilSakUtbetaling() }
+        }
+
+    }
+
+    private fun Row.tilSakUtbetaling() =
+        SakUtbetaling(
+            id = this.getLong("ID"),
+            saksnummer = Saksnummer(this.getString("SAKSNUMMER")),
+            opprettetTidspunkt = this.getLocalDateTime("OPPRETTET_TIDSPUNKT")
+        )
+
 
 }
