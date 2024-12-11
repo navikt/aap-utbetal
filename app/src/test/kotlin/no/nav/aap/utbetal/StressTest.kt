@@ -20,8 +20,9 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import no.nav.aap.utbetaling.Endringstype
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import no.nav.aap.utbetaling.UtbetalingsplanDto
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.math.BigDecimal
@@ -30,46 +31,31 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.test.Test
+import kotlin.system.measureTimeMillis
+import kotlin.test.Ignore
 
-class ApiTest {
-
-    @Test
-    fun `Ta imot tilkjent ytelse fra førstegangsbehandling`() {
-        val tilkjentYtelse = opprettTilkjentYtelse(26, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        postTilkjentYtelse(tilkjentYtelse)
-    }
+@Ignore
+class StressTest {
 
     @Test
-    fun `Simuler utbetaling i revurdering`() {
-        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        postTilkjentYtelse(tilkjentYtelse)
+    fun `Lagre 1000 tilkjent ytelser, og kjøre alle utbetalinger`() {
+        val msLagreTilkjentYtelse = measureTimeMillis {
+            (1..1000).forEach { i ->
+                val tilkjentYtelse = opprettTilkjentYtelse(26, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+                postTilkjentYtelse(tilkjentYtelse)
+            }
+        }
+        println("Lagre 1000  tilkjent ytelser: $msLagreTilkjentYtelse")
 
-        var nesteTilkjentYtelse = opprettTilkjentYtelse(4, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        nesteTilkjentYtelse = nesteTilkjentYtelse.copy(
-            forrigeBehandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
-            behandlingsreferanse = UUID.randomUUID(),
-            perioder = listOf(
-                nesteTilkjentYtelse.perioder[0],
-                nesteTilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(redusertDagsats = BigDecimal(250))),
-                nesteTilkjentYtelse.perioder[2],
-                nesteTilkjentYtelse.perioder[3]
-            )
-        )
-
-        val utbetalingsplan = simulerUtbetaling(nesteTilkjentYtelse)
-
-        val simulertePerioder = utbetalingsplan!!.perioder
-        assertThat(simulertePerioder).hasSize(4)
-        simulertePerioder.sjekkPeriode(0, 500L, Endringstype.UENDRET)
-        simulertePerioder.sjekkPeriode(1, 250, Endringstype.ENDRET)
-        simulertePerioder.sjekkPeriode(2, 500L, Endringstype.UENDRET)
-        simulertePerioder.sjekkPeriode(3, 500L, Endringstype.NY)
+        val msOpprettUtbetalingsjobber = measureTimeMillis {
+            opprettUtbetalingsjobber()
+        }
+        println("Oppretter 1000 utbetalingsjobber: $msOpprettUtbetalingsjobber")
     }
 
     private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, endringstype: Endringstype) {
-        assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
-        assertThat(this[index].endringstype).isEqualTo(endringstype)
+        Assertions.assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
+        Assertions.assertThat(this[index].endringstype).isEqualTo(endringstype)
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
@@ -81,7 +67,7 @@ class ApiTest {
                     gradering = BigDecimal.valueOf(0L),
                     dagsats = beløp,
                     grunnlag = beløp,
-                    grunnbeløp = BigDecimal.valueOf(100000L) ,
+                    grunnbeløp = BigDecimal.valueOf(100000L),
                     antallBarn = 0,
                     barnetillegg = BigDecimal.valueOf(0L),
                     grunnlagsfaktor = BigDecimal.valueOf(0.008),
@@ -101,15 +87,15 @@ class ApiTest {
         )
     }
 
-    private fun simulerUtbetaling(tilkjentYtelse: TilkjentYtelseDto): UtbetalingsplanDto? {
+    private fun opprettUtbetalingsjobber(): Unit? {
         return client.post(
-            URI.create("http://localhost:8080/simulering"),
-            PostRequest(body = tilkjentYtelse)
+            URI.create("http://localhost:8080/opprett-utbetalingsjobber"),
+            PostRequest(body = Unit)
         )
     }
 
     companion object {
-        private val postgres = no.nav.aap.utbetal.postgreSQLContainer()
+        private val postgres = postgreSQLContainer()
         private val fakes = Fakes(azurePort = 8081)
 
         private val dbConfig = DbConfig(
@@ -121,7 +107,7 @@ class ApiTest {
             password = postgres.password
         )
 
-        private val client = RestClient.withDefaultResponseHandler(
+        private val client = RestClient.Companion.withDefaultResponseHandler(
             config = ClientConfig(scope = "utbetal"),
             tokenProvider = ClientCredentialsTokenProvider
         )
@@ -149,23 +135,25 @@ class ApiTest {
             server.stop()
             postgres.close()
         }
+
+        private fun Application.module(fakes: Fakes) {
+            // Setter opp virtuell sandkasse lokalt
+            monitor.subscribe(ApplicationStopped) { application ->
+                application.environment.log.info("Server har stoppet")
+                fakes.close()
+                // Release resources and unsubscribe from events
+                application.monitor.unsubscribe(ApplicationStopped) {}
+            }
+        }
+
+        private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
+            val postgres = PostgreSQLContainer<Nothing>("postgres:16")
+            postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
+            postgres.start()
+            return postgres
+        }
+
     }
 
-}
 
-private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
-    val postgres = PostgreSQLContainer<Nothing>("postgres:16")
-    postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
-    postgres.start()
-    return postgres
-}
-
-private fun Application.module(fakes: Fakes) {
-    // Setter opp virtuell sandkasse lokalt
-    monitor.subscribe(ApplicationStopped) { application ->
-        application.environment.log.info("Server har stoppet")
-        fakes.close()
-        // Release resources and unsubscribe from events
-        application.monitor.unsubscribe(ApplicationStopped) {}
-    }
 }
