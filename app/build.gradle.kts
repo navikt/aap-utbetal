@@ -1,8 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val ktorVersion = "3.0.1"
-val komponenterVersjon = "1.0.59"
-val behandlingsflytVersjon= "0.0.34"
+val komponenterVersjon = "1.0.101"
+val behandlingsflytVersjon= "0.0.87"
 
 plugins {
     id("utbetal.conventions")
