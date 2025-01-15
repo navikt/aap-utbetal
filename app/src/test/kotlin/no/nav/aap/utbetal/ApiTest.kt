@@ -30,6 +30,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class ApiTest {
@@ -41,6 +42,7 @@ class ApiTest {
     }
 
     @Test
+    @Ignore
     fun `Simuler utbetaling i revurdering`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)

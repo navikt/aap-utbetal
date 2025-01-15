@@ -4,18 +4,45 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.cron.CronExpression
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
+import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
+import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.UUID
 
-class OverførTilØkonomiJobbUtfører(): JobbUtfører {
+class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): JobbUtfører {
+
+    private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
+
     override fun utfør(input: JobbInput) {
-        println("==========================")
-        println("SENDER TIL ØKONOMISYSTEMET")
-        println("==========================")
+        val behandlingsreferanse = input.parameter("behandlingsreferanse")
+        log.info("Overfører til økonomi for behandling: $behandlingsreferanse")
+
+        opprettUtbetalingsplan(UUID.fromString(behandlingsreferanse))
+        // TODO: kall helved-utbetaling med utbetalingsplan
+        // TODO: oppdater status på utbetalingsstaus til SENDT
+        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(UUID.fromString(behandlingsreferanse))
     }
+
+    private fun opprettUtbetalingsplan(behandlingsreferanse: UUID): Utbetalingsplan {
+        val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
+        val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse)
+        if (nyTilkjentYtelse == null) {
+            throw IllegalArgumentException("Finner ikke tilkjent ytelse for behanndling: $behandlingsreferanse")
+        }
+        val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
+        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(forrigeTilkjentYtelse, nyTilkjentYtelse)
+        UtbetalingsplanRepository(connection).lagre(utbetalingsplan)
+        return utbetalingsplan
+    }
+
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return OverførTilØkonomiJobbUtfører()
+            return OverførTilØkonomiJobbUtfører(connection)
         }
 
         override fun type(): String {
@@ -30,8 +57,8 @@ class OverførTilØkonomiJobbUtfører(): JobbUtfører {
             return "Overfør tilkjent ytelse til økonomi"
         }
 
-        override fun cron(): CronExpression? {
-            return CronExpression.create("0 0 0 1,15 * *") //Midnatt den 1. og 15. hver måned.
+        override fun retries(): Int {
+            return 10 //TODO: hvor mange ganger skal vi prøve?
         }
     }
 }

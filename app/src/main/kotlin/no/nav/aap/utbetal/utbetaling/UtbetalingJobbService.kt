@@ -1,0 +1,32 @@
+package no.nav.aap.utbetal.utbetaling
+
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
+import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.UUID
+
+class UtbetalingJobbService(private val connection: DBConnection) {
+
+    private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
+
+    fun opprettUtbetalingJobb(behandlingsreferanse: UUID) {
+        log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
+        FlytJobbRepository(connection).leggTil(
+            JobbInput(OverførTilØkonomiJobbUtfører)
+                .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
+        )
+    }
+
+    fun opprettSjekkKvitteringJobb(behandlingsreferanse: UUID) {
+        log.info("Oppretter jobb for å sjekke status på utbetaling for behandlingsreferanse: $behandlingsreferanse")
+        FlytJobbRepository(connection).leggTil(
+            JobbInput(SjekkKvitteringFraØkonomiUtfører)
+                .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
+        )
+    }
+
+}

@@ -6,7 +6,9 @@ import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import javax.sql.DataSource
 
 
@@ -14,7 +16,10 @@ fun NormalOpenAPIRoute.registrerTilkjentYtelse(dataSource: DataSource, prometheu
 
     route("/tilkjentytelse").post<Unit, Unit, TilkjentYtelseDto> { _, tilkjentYtelseDto ->
         prometheus.httpCallCounter("/tilkjentytelse").increment()
-        TilkjentYtelseService().lagre(dataSource, tilkjentYtelseDto.tilTilkjentYtelse())
+        dataSource.transaction { connection ->
+            TilkjentYtelseService(connection).lagre(tilkjentYtelseDto.tilTilkjentYtelse())
+            UtbetalingJobbService(connection).opprettUtbetalingJobb(tilkjentYtelseDto.behandlingsreferanse)
+        }
         respondWithStatus(HttpStatusCode.OK)
     }
 
