@@ -10,15 +10,17 @@ APIene er dokumentert med Swagger: http://localhost:8080/swagger-ui/index.html
 ```mermaid
 graph TD
     Behandlingsflyt--Oppdaterer med tilkjent ytelse<br/> ved vedtak-->Utbetal((Utbetal))
-    Selvbetjening--Hent utbetalinger-->Utbetal((Utbetal))
-    Saksbehandling--Hent utbetalinger<br/> og status-->Utbetal((Utbetal))
-    Saksbehandling--Hent simulering-->Utbetal((Utbetal))
+    Utbetal--Åpen behandling?-->Behandlingsflyt
+    Selvbetjening--Hent utbetalinger-->Utbetal
+    Saksbehandling--Hent utbetalinger<br/> og status-->Utbetal
+    Saksbehandling--Hent simulering-->Utbetal
     Utbetal--Lagre tilkjent ytelse og<br/> opprett task for utbetaling-->DB[(Database)]
-    Utbetal--Lagre sendt utbetaling og<br/> opprett task for hent kvittering-->DB[(Database)]
-    Utbetal--Oppdaterer status<br/> for utbetaling-->DB[(Database)]
+    Utbetal--Lagre sendt utbetaling og<br/> opprett task for hent kvittering-->DB
+    Utbetal--Oppdaterer status<br/> for utbetaling-->DB
     Utbetal--Simuler utbetaling-->Helved-utbetaling
     Utbetal--Oppdaterer med tilkjent ytelse<br/> fra første endring-->Helved-utbetaling
     Utbetal--Sjekker status<br/> for utbetaling-->Helved-utbetaling
+    Utbetal--Start utbetaling ved<br/> åpen behandling-->Helved-utbetaling
 ```
 
 ### Lokalt utviklingsmiljø:
