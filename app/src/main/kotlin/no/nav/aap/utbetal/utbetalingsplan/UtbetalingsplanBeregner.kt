@@ -3,12 +3,12 @@ package no.nav.aap.utbetal.utbetalingsplan
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljer
 
 class UtbetalingsplanBeregner {
 
-    fun tilkjentYtelseTilUtbetalingsplan(forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
+    fun tilkjentYtelseTilUtbetalingsplan(sakUtbetalingId: Long, forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
         val forrigeTidslinje = forrigeTilkjentYtelse?.tilTidslinje() ?: Tidslinje()
         val nyTidslinje = nyTilkjentYtelse.tilTidslinje()
 
@@ -17,48 +17,36 @@ class UtbetalingsplanBeregner {
         return Utbetalingsplan(
             forrigeBehandlingsreferanse = nyTilkjentYtelse.forrigeBehandlingsreferanse,
             behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-            perioder = utbetalingsperioder
+            perioder = utbetalingsperioder,
+            tilkjentYtelseId = nyTilkjentYtelse.id!!,
+            sakUtbetalingId = sakUtbetalingId
         )
     }
 
     private fun TilkjentYtelse.tilTidslinje() =
         Tidslinje(this.perioder.map { periode ->
-            Segment<TilkjentYtelseDetaljer>(
+            Segment<YtelseDetaljer>(
                 periode.periode,
                 periode.detaljer
             )
         })
 
-    private fun TilkjentYtelseDetaljer.tilUtbetaling(): Utbetaling {
-        return Utbetaling(
-            redusertDagsats = this.redusertDagsats,
-            dagsats = this.dagsats,
-            gradering = this.gradering,
-            grunnlag = this.grunnlag,
-            grunnlagsfaktor = this.grunnlagsfaktor,
-            grunnbeløp = this.grunnbeløp,
-            antallBarn = this.antallBarn,
-            barnetilleggsats = this.barnetilleggsats,
-            barnetillegg = this.barnetillegg,
-        )
-    }
-
-    private fun prioriterHøyreSideCrossJoinMedEndring(): JoinStyle.OUTER_JOIN<TilkjentYtelseDetaljer, TilkjentYtelseDetaljer, Utbetalingsperiode> {
+    private fun prioriterHøyreSideCrossJoinMedEndring(): JoinStyle.OUTER_JOIN<YtelseDetaljer, YtelseDetaljer, Utbetalingsperiode> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (venstre != null && høyre != null) {
                 if (venstre == høyre) {
                     return@OUTER_JOIN Segment(
                         periode,
-                        Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.UENDRET)
+                        Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.UENDRET)
                     )
                 }
                 return@OUTER_JOIN Segment(
                     periode,
-                    Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.ENDRET)
+                    Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.ENDRET)
                 )
             }
             if (høyre != null) {
-                return@OUTER_JOIN Segment(periode, Utbetalingsperiode(periode, høyre.verdi.tilUtbetaling(), UtbetalingsperiodeType.NY))
+                return@OUTER_JOIN Segment(periode, Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.NY))
             } else {
                 if (venstre == null)  {
                     return@OUTER_JOIN null

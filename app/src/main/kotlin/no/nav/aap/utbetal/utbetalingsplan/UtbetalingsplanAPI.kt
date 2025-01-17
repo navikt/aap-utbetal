@@ -40,15 +40,15 @@ private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
     UtbetalingsperiodeDto(
         fom = this.periode.fom,
         tom = this.periode.tom,
-        redusertDagsats = this.utbetaling.redusertDagsats.verdi(),
-        dagsats = this.utbetaling.dagsats.verdi(),
-        gradering = this.utbetaling.gradering.prosentverdi(),
-        grunnlag = this.utbetaling.grunnlag.verdi(),
-        grunnlagsfaktor = this.utbetaling.grunnlagsfaktor.verdi(),
-        grunnbeløp = this.utbetaling.grunnbeløp.verdi(),
-        antallBarn = this.utbetaling.antallBarn,
-        barnetilleggsats = this.utbetaling.barnetilleggsats.verdi(),
-        barnetillegg = this.utbetaling.barnetillegg.verdi(),
+        redusertDagsats = this.detaljer.redusertDagsats.verdi(),
+        dagsats = this.detaljer.dagsats.verdi(),
+        gradering = this.detaljer.gradering.prosentverdi(),
+        grunnlag = this.detaljer.grunnlag.verdi(),
+        grunnlagsfaktor = this.detaljer.grunnlagsfaktor.verdi(),
+        grunnbeløp = this.detaljer.grunnbeløp.verdi(),
+        antallBarn = this.detaljer.antallBarn,
+        barnetilleggsats = this.detaljer.barnetilleggsats.verdi(),
+        barnetillegg = this.detaljer.barnetillegg.verdi(),
         endringstype = this.utbetalingsperiodeType.tilEndringstype()
     )
 

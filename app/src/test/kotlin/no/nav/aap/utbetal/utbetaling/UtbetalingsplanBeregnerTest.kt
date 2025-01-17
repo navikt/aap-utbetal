@@ -5,8 +5,8 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
+import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsperiodeType
@@ -21,15 +21,13 @@ import java.util.*
 
 class UtbetalingsplanBeregnerTest {
 
-    data class Foo(val num: Int)
-
     @Test
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val ty1 = opprettTilkjentYtelse(start, 1000, 1000, 1000)
         val ty2 = opprettTilkjentYtelse(start, 1000, 600, 1000, 500)
 
-        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(ty1, ty2)
+        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(1, ty1, ty2)
 
         val perioder = utbetalingsplan.perioder
         Assertions.assertThat(perioder.size).isEqualTo(4)
@@ -53,7 +51,7 @@ class UtbetalingsplanBeregnerTest {
 
     private fun verifiserPeriode(utbetalingsperiodeType: UtbetalingsperiodeType, utbetalingsperiode: Utbetalingsperiode, beløp: Long) {
         assertTrue(utbetalingsperiode.utbetalingsperiodeType == utbetalingsperiodeType)
-        assertThat(utbetalingsperiode.utbetaling.dagsats).isEqualTo(Beløp(beløp))
+        assertThat(utbetalingsperiode.detaljer.dagsats).isEqualTo(Beløp(beløp))
     }
 
 
@@ -61,13 +59,18 @@ class UtbetalingsplanBeregnerTest {
         val perioder = beløpListe.mapIndexed { i, beløp ->
             lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(beløp))
         }
-        return TilkjentYtelse(Saksnummer("123"), UUID.randomUUID(), null, perioder)
+        return TilkjentYtelse(
+            id = 123L,
+            saksnummer = Saksnummer("123"),
+            behandlingsreferanse = UUID.randomUUID(),
+            forrigeBehandlingsreferanse = null,
+            perioder = perioder)
     }
 
     private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, beløp: Beløp) =
         TilkjentYtelsePeriode(
             periode = Periode(fom, tom),
-            detaljer = TilkjentYtelseDetaljer(
+            detaljer = YtelseDetaljer(
                 gradering = Prosent.`0_PROSENT`,
                 dagsats = beløp,
                 grunnlag = beløp,

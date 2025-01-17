@@ -1,11 +1,13 @@
 package no.nav.aap.utbetal.server.prosessering
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import no.nav.aap.utbetal.utbetalingsplan.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
 import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
@@ -18,23 +20,25 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
     private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
 
     override fun utfør(input: JobbInput) {
+        val saksnummer = input.parameter("saksnummer")
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
         log.info("Overfører til økonomi for behandling: $behandlingsreferanse")
 
-        opprettUtbetalingsplan(UUID.fromString(behandlingsreferanse))
+        opprettUtbetalingsplan(Saksnummer(saksnummer), UUID.fromString(behandlingsreferanse))
         // TODO: kall helved-utbetaling med utbetalingsplan
         // TODO: oppdater status på utbetalingsstaus til SENDT
         UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(UUID.fromString(behandlingsreferanse))
     }
 
-    private fun opprettUtbetalingsplan(behandlingsreferanse: UUID): Utbetalingsplan {
+    private fun opprettUtbetalingsplan(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetalingsplan {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse)
         if (nyTilkjentYtelse == null) {
-            throw IllegalArgumentException("Finner ikke tilkjent ytelse for behanndling: $behandlingsreferanse")
+            throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
         }
+        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
-        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(forrigeTilkjentYtelse, nyTilkjentYtelse)
+        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(sakUtbetaling.id!!, forrigeTilkjentYtelse, nyTilkjentYtelse)
         UtbetalingsplanRepository(connection).lagre(utbetalingsplan)
         return utbetalingsplan
     }

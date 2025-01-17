@@ -5,13 +5,14 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
+import no.nav.aap.utbetal.felles.YtelseDetaljer
 
 fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
     val perioder = this.perioder.map { periodeDto ->
         val detaljerDto = periodeDto.detaljer
         TilkjentYtelsePeriode(
             periode = Periode(periodeDto.fom, periodeDto.tom),
-            detaljer = TilkjentYtelseDetaljer(
+            detaljer = YtelseDetaljer(
                 redusertDagsats = Beløp(detaljerDto.redusertDagsats),
                 gradering = Prosent.fraDesimal(detaljerDto.gradering),
                 dagsats = Beløp(detaljerDto.dagsats),

@@ -2,37 +2,12 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
+import no.nav.aap.utbetal.felles.YtelseDetaljer
 import java.math.BigDecimal
 import java.util.UUID
-
-data class TilkjentYtelse(
-    val saksnummer: Saksnummer,
-    val behandlingsreferanse: UUID,
-    val forrigeBehandlingsreferanse: UUID? = null,
-
-    val perioder: List<TilkjentYtelsePeriode>
-)
-
-data class TilkjentYtelsePeriode(
-    val periode: Periode,
-    val detaljer: TilkjentYtelseDetaljer
-)
-
-data class TilkjentYtelseDetaljer(
-    val redusertDagsats: Beløp,
-    val gradering: Prosent,
-    val dagsats: Beløp,
-    val grunnlag: Beløp,
-    val grunnlagsfaktor: GUnit,
-    val grunnbeløp: Beløp,
-    val antallBarn: Int,
-    val barnetilleggsats: Beløp,
-    val barnetillegg: Beløp
-)
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
@@ -107,12 +82,13 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         """.trimIndent()
 
 
-        val idOgTilkjentYtelse = connection.queryFirstOrNull<Pair<Long, TilkjentYtelse>>(selectTilkjentYtelse) {
+        val tilkjentYtelse = connection.queryFirstOrNull<TilkjentYtelse>(selectTilkjentYtelse) {
             setParams {
                 setUUID(1, behandlingReferanse)
             }
             setRowMapper { row ->
-                row.getLong("ID") to TilkjentYtelse(
+                TilkjentYtelse(
+                    id = row.getLong("ID"),
                     saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
@@ -120,12 +96,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 )
             }
         }
-        if (idOgTilkjentYtelse != null) {
-            val (tilkjentYtelseId, tilkjentYtelse) = idOgTilkjentYtelse
-            return tilkjentYtelse.copy(perioder = hentTilkjentePerioder(tilkjentYtelseId))
-        } else {
-            return null
-        }
+        return tilkjentYtelse?.copy(perioder = hentTilkjentePerioder(tilkjentYtelse.id!!))
     }
 
     private fun hentTilkjentePerioder(tilkjentYtelseId: Long): List<TilkjentYtelsePeriode> {
@@ -154,7 +125,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 val periode = row.getPeriode("PERIODE")
                 TilkjentYtelsePeriode(
                     periode = periode,
-                    detaljer = TilkjentYtelseDetaljer(
+                    detaljer = YtelseDetaljer(
                         dagsats = Beløp(row.getBigDecimal("DAGSATS")),
                         grunnlag = Beløp(row.getBigDecimal("GRUNNLAG")),
                         gradering = Prosent.fraDesimal(row.getBigDecimal("GRADERING")),
