@@ -17,9 +17,8 @@ import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
-import no.nav.aap.utbetaling.Endringstype
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
-import no.nav.aap.utbetaling.UtbetalingsplanDto
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -53,9 +52,9 @@ class StressTest {
         println("Oppretter 1000 utbetalingsjobber: $msOpprettUtbetalingsjobber")
     }
 
-    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, endringstype: Endringstype) {
+    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, utbetalingsperiodeType: UtbetalingsperiodeType) {
         Assertions.assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
-        Assertions.assertThat(this[index].endringstype).isEqualTo(endringstype)
+        Assertions.assertThat(this[index].utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
@@ -123,7 +122,7 @@ class StressTest {
             initDatasource(dbConfig).transaction {
                 it.execute("DELETE FROM TILKJENT_PERIODE")
                 it.execute("DELETE FROM TILKJENT_YTELSE")
-                it.execute("DELETE FROM UTBETALING_PERIODE")
+                it.execute("DELETE FROM UTBETALINGSPERIODE")
                 it.execute("DELETE FROM UTBETALING")
                 it.execute("DELETE FROM SAK_UTBETALING")
             }

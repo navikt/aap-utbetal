@@ -1,38 +1,32 @@
-package no.nav.aap.utbetal.utbetalingsplan
+package no.nav.aap.utbetal.utbetaling
 
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.HttpStatusCode
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.httpCallCounter
-import no.nav.aap.utbetal.tilkjentytelse.HentUtbetalingsplanDto
-import no.nav.aap.utbetaling.Endringstype
+import no.nav.aap.utbetaling.HentUtbetalingerDto
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
-import no.nav.aap.utbetaling.UtbetalingsplanDto
+import no.nav.aap.utbetaling.UtbetalingDto
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.hent(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
-    route("/utbetalingsplan").post<Unit, UtbetalingsplanDto, HentUtbetalingsplanDto> { _, utbetalingsplanDto ->
+    route("/utbetalingsplaner").post<Unit, List<UtbetalingDto>, HentUtbetalingerDto> { _, utbetalingsplanDto ->
         prometheus.httpCallCounter("/utbetalingsplan").increment()
         val utbetalingsplan = dataSource.transaction(readOnly = true) { connection ->
-            UtbetalingsplanRepository(connection).hent(utbetalingsplanDto.behandlingsreferanse)
+            UtbetalingRepository(connection).hent(utbetalingsplanDto.behandlingsreferanse)
         }
-        if (utbetalingsplan == null) {
-            respondWithStatus(HttpStatusCode.NoContent)
-        } else {
-            respond(utbetalingsplan.tilUtbetalingDto())
-        }
+        respond(utbetalingsplan.map { it.tilUtbetalingDto() })
     }
 
-private fun Utbetalingsplan.tilUtbetalingDto(): UtbetalingsplanDto {
-    return UtbetalingsplanDto(
-        behandlingsreferanse = this.behandlingsreferanse,
-        forrigeBehandlingsreferanse = this.forrigeBehandlingsreferanse,
-        perioder = this.perioder.map { it.tilUtbetalingsperiodeDto() },
+private fun Utbetaling.tilUtbetalingDto(): UtbetalingDto {
+    return UtbetalingDto(
+        utbetalingOversendt = this.utbetalingOversendt,
+        utbetalingBekreftet = this.utbetalingBekreftet,
+        utbetalingStatus = this.utbetalingStatus,
+        perioder = this.perioder.map { it.tilUtbetalingsperiodeDto() }
     )
 }
 
@@ -49,11 +43,5 @@ private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
         antallBarn = this.detaljer.antallBarn,
         barnetilleggsats = this.detaljer.barnetilleggsats.verdi(),
         barnetillegg = this.detaljer.barnetillegg.verdi(),
-        endringstype = this.utbetalingsperiodeType.tilEndringstype()
+        utbetalingsperiodeType = this.utbetalingsperiodeType
     )
-
-private fun UtbetalingsperiodeType.tilEndringstype() = when (this) {
-    UtbetalingsperiodeType.NY -> Endringstype.NY
-    UtbetalingsperiodeType.ENDRET -> Endringstype.ENDRET
-    UtbetalingsperiodeType.UENDRET -> Endringstype.UENDRET
-}

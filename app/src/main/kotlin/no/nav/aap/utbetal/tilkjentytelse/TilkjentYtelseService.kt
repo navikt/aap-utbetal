@@ -1,8 +1,8 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.utbetal.utbetalingsplan.SakUtbetaling
-import no.nav.aap.utbetal.utbetalingsplan.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.SakUtbetaling
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 
 private val utbetalingsdatoer:Set<Int> = setOf(10, 25)
 

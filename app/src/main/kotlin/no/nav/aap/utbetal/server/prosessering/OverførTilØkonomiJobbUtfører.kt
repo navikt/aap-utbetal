@@ -7,10 +7,10 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
-import no.nav.aap.utbetal.utbetalingsplan.SakUtbetalingRepository
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsplan
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanRepository
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetaling
+import no.nav.aap.utbetal.utbetaling.UtbetalingsplanBeregner
+import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -30,7 +30,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(UUID.fromString(behandlingsreferanse))
     }
 
-    private fun opprettUtbetalingsplan(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetalingsplan {
+    private fun opprettUtbetalingsplan(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse)
         if (nyTilkjentYtelse == null) {
@@ -39,7 +39,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
         val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(sakUtbetaling.id!!, forrigeTilkjentYtelse, nyTilkjentYtelse)
-        UtbetalingsplanRepository(connection).lagre(utbetalingsplan)
+        UtbetalingRepository(connection).lagre(utbetalingsplan)
         return utbetalingsplan
     }
 

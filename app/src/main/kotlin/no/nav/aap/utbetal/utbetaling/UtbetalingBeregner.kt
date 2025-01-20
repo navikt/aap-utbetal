@@ -1,8 +1,9 @@
-package no.nav.aap.utbetal.utbetalingsplan
+package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 
 data class NesteUtbetaling(
     val nesteUtbetaling: Periode,
@@ -11,10 +12,10 @@ data class NesteUtbetaling(
 )
 
 class UtbetalingBeregner {
-    fun beregnUtbetaling(utbetalingsplan: Utbetalingsplan, nesteUtbetaling: Periode): NesteUtbetaling {
-        val perioderSomErEndretFørNesteUtbetaling = utbetalingsplan.perioder
+    fun beregnUtbetaling(utbetaling: Utbetaling, nesteUtbetaling: Periode): NesteUtbetaling {
+        val perioderSomErEndretFørNesteUtbetaling = utbetaling.perioder
             .filter { it.utbetalingsperiodeType == UtbetalingsperiodeType.ENDRET && it.periode.tom < nesteUtbetaling.fom }
-        val utbetalingsperioderNesteUtbetaling = Tidslinje(utbetalingsplan.perioder.map { Segment<Utbetalingsperiode>(it.periode, it) })
+        val utbetalingsperioderNesteUtbetaling = Tidslinje(utbetaling.perioder.map { Segment<Utbetalingsperiode>(it.periode, it) })
             // Klipp ut perioder ut perioden det skal utbetales for
             .disjoint(nesteUtbetaling)
             // Oppdater periodene med i Utbetalingsperiode objektene

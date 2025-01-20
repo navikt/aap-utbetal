@@ -2,18 +2,19 @@ package no.nav.aap.utbetaling
 
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
+import java.time.LocalDateTime
 
-data class UtbetalingsplanDto(
-    val behandlingsreferanse: UUID,
-    val forrigeBehandlingsreferanse: UUID? = null,
+data class UtbetalingDto(
+    val utbetalingOversendt: LocalDateTime,
+    val utbetalingBekreftet: LocalDateTime? = null,
+    val utbetalingStatus: UtbetalingStatus,
     val perioder: List<UtbetalingsperiodeDto>
 )
 
-enum class Endringstype {
-    UENDRET,
-    ENDRET,
-    NY
+enum class UtbetalingStatus {
+    OPPRETTET,
+    BEKREFTET,
+    FEILET
 }
 
 data class UtbetalingsperiodeDto(
@@ -28,6 +29,12 @@ data class UtbetalingsperiodeDto(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
-    val endringstype: Endringstype,
+    val utbetalingsperiodeType: UtbetalingsperiodeType,
 )
+
+enum class UtbetalingsperiodeType {
+    NY,
+    ENDRET,
+    UENDRET
+}
 

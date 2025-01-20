@@ -1,25 +1,28 @@
-package no.nav.aap.utbetal.utbetalingsplan
+package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
+import no.nav.aap.utbetaling.UtbetalingStatus
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
+import java.time.LocalDateTime
 
 class UtbetalingsplanBeregner {
 
-    fun tilkjentYtelseTilUtbetalingsplan(sakUtbetalingId: Long, forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetalingsplan {
+    fun tilkjentYtelseTilUtbetalingsplan(sakUtbetalingId: Long, forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetaling {
         val forrigeTidslinje = forrigeTilkjentYtelse?.tilTidslinje() ?: Tidslinje()
         val nyTidslinje = nyTilkjentYtelse.tilTidslinje()
 
         val utbetalingerTidslinje = forrigeTidslinje.kombiner(nyTidslinje, prioriterHøyreSideCrossJoinMedEndring())
         val utbetalingsperioder = utbetalingerTidslinje.segmenter().map { it.verdi }
-        return Utbetalingsplan(
-            forrigeBehandlingsreferanse = nyTilkjentYtelse.forrigeBehandlingsreferanse,
-            behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-            perioder = utbetalingsperioder,
+        return Utbetaling(
+            sakUtbetalingId = sakUtbetalingId,
             tilkjentYtelseId = nyTilkjentYtelse.id!!,
-            sakUtbetalingId = sakUtbetalingId
+            utbetalingOversendt = LocalDateTime.now(),
+            utbetalingStatus = UtbetalingStatus.OPPRETTET,
+            perioder = utbetalingsperioder,
         )
     }
 
@@ -37,16 +40,31 @@ class UtbetalingsplanBeregner {
                 if (venstre == høyre) {
                     return@OUTER_JOIN Segment(
                         periode,
-                        Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.UENDRET)
+                        Utbetalingsperiode(
+                            periode = periode,
+                            detaljer = høyre.verdi,
+                            utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET
+                        )
                     )
                 }
                 return@OUTER_JOIN Segment(
                     periode,
-                    Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.ENDRET)
+                    Utbetalingsperiode(
+                        periode = periode,
+                        detaljer = høyre.verdi,
+                        utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET
+                    )
                 )
             }
             if (høyre != null) {
-                return@OUTER_JOIN Segment(periode, Utbetalingsperiode(periode, høyre.verdi, UtbetalingsperiodeType.NY))
+                return@OUTER_JOIN Segment(
+                    periode,
+                    Utbetalingsperiode(
+                        periode = periode,
+                        detaljer = høyre.verdi,
+                        utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                    )
+                )
             } else {
                 if (venstre == null)  {
                     return@OUTER_JOIN null

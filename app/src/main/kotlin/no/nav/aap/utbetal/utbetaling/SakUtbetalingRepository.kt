@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.utbetalingsplan
+package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection

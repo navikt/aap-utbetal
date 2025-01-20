@@ -17,9 +17,9 @@ import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
-import no.nav.aap.utbetaling.Endringstype
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
-import no.nav.aap.utbetaling.UtbetalingsplanDto
+import no.nav.aap.utbetaling.UtbetalingDto
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
@@ -63,15 +63,15 @@ class ApiTest {
 
         val simulertePerioder = utbetalingsplan!!.perioder
         assertThat(simulertePerioder).hasSize(4)
-        simulertePerioder.sjekkPeriode(0, 500L, Endringstype.UENDRET)
-        simulertePerioder.sjekkPeriode(1, 250, Endringstype.ENDRET)
-        simulertePerioder.sjekkPeriode(2, 500L, Endringstype.UENDRET)
-        simulertePerioder.sjekkPeriode(3, 500L, Endringstype.NY)
+        simulertePerioder.sjekkPeriode(0, 500L, UtbetalingsperiodeType.UENDRET)
+        simulertePerioder.sjekkPeriode(1, 250, UtbetalingsperiodeType.ENDRET)
+        simulertePerioder.sjekkPeriode(2, 500L, UtbetalingsperiodeType.UENDRET)
+        simulertePerioder.sjekkPeriode(3, 500L, UtbetalingsperiodeType.NY)
     }
 
-    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, endringstype: Endringstype) {
+    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, utbetalingsperiodeType: UtbetalingsperiodeType) {
         assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
-        assertThat(this[index].endringstype).isEqualTo(endringstype)
+        assertThat(this[index].utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
@@ -103,7 +103,7 @@ class ApiTest {
         )
     }
 
-    private fun simulerUtbetaling(tilkjentYtelse: TilkjentYtelseDto): UtbetalingsplanDto? {
+    private fun simulerUtbetaling(tilkjentYtelse: TilkjentYtelseDto): UtbetalingDto? {
         return client.post(
             URI.create("http://localhost:8080/simulering"),
             PostRequest(body = tilkjentYtelse)
@@ -139,7 +139,7 @@ class ApiTest {
             initDatasource(dbConfig).transaction {
                 it.execute("DELETE FROM TILKJENT_PERIODE")
                 it.execute("DELETE FROM TILKJENT_YTELSE")
-                it.execute("DELETE FROM UTBETALING_PERIODE")
+                it.execute("DELETE FROM UTBETALINGSPERIODE")
                 it.execute("DELETE FROM UTBETALING")
                 it.execute("DELETE FROM SAK_UTBETALING")
             }

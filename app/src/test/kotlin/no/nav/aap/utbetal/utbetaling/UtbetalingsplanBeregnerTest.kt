@@ -8,9 +8,7 @@ import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
-import no.nav.aap.utbetal.utbetalingsplan.Utbetalingsperiode
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsperiodeType
-import no.nav.aap.utbetal.utbetalingsplan.UtbetalingsplanBeregner
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertTrue
