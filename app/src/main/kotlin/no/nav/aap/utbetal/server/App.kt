@@ -33,6 +33,7 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.utbetaling.hent
 import no.nav.aap.utbetal.tilkjentytelse.registrerTilkjentYtelse
 import org.slf4j.LoggerFactory
@@ -95,7 +96,7 @@ fun Application.motor(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        jobber = listOf(OverførTilØkonomiJobbUtfører)
+        jobber = listOf(OverførTilØkonomiJobbUtfører, SjekkKvitteringFraØkonomiUtfører)
     )
 
     dataSource.transaction { dbConnection ->

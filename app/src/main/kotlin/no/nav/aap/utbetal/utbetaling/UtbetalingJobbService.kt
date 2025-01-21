@@ -13,19 +13,20 @@ class UtbetalingJobbService(private val connection: DBConnection) {
 
     private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
 
-    fun opprettUtbetalingJobb(behandlingsreferanse: UUID) {
+    fun opprettUtbetalingJobb(saksnummer: String, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
         FlytJobbRepository(connection).leggTil(
             JobbInput(OverførTilØkonomiJobbUtfører)
+                .medParameter("saksnummer", saksnummer)
                 .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
         )
     }
 
-    fun opprettSjekkKvitteringJobb(behandlingsreferanse: UUID) {
-        log.info("Oppretter jobb for å sjekke status på utbetaling for behandlingsreferanse: $behandlingsreferanse")
+    fun opprettSjekkKvitteringJobb(utbetalingId: Long) {
+        log.info("Oppretter jobb for å sjekke status på utbetaling: $utbetalingId")
         FlytJobbRepository(connection).leggTil(
             JobbInput(SjekkKvitteringFraØkonomiUtfører)
-                .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
+                .medParameter("utbetalingId", utbetalingId.toString())
         )
     }
 

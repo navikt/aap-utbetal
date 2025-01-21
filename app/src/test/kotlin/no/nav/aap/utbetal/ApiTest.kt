@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.Client
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
+import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
@@ -36,37 +37,18 @@ import kotlin.test.Test
 class ApiTest {
 
     @Test
-    fun `Ta imot tilkjent ytelse fra førstegangsbehandling`() {
-        val tilkjentYtelse = opprettTilkjentYtelse(26, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        postTilkjentYtelse(tilkjentYtelse)
-    }
-
-    @Test
-    @Ignore
-    fun `Simuler utbetaling i revurdering`() {
+    fun `Utbetal etter førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
 
-        var nesteTilkjentYtelse = opprettTilkjentYtelse(4, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        nesteTilkjentYtelse = nesteTilkjentYtelse.copy(
-            forrigeBehandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
-            behandlingsreferanse = UUID.randomUUID(),
-            perioder = listOf(
-                nesteTilkjentYtelse.perioder[0],
-                nesteTilkjentYtelse.perioder[1].copy(detaljer = tilkjentYtelse.perioder[1].detaljer.copy(redusertDagsats = BigDecimal(250))),
-                nesteTilkjentYtelse.perioder[2],
-                nesteTilkjentYtelse.perioder[3]
-            )
-        )
-
-        val utbetalingsplan = simulerUtbetaling(nesteTilkjentYtelse)
-
+        /*
         val simulertePerioder = utbetalingsplan!!.perioder
         assertThat(simulertePerioder).hasSize(4)
-        simulertePerioder.sjekkPeriode(0, 500L, UtbetalingsperiodeType.UENDRET)
-        simulertePerioder.sjekkPeriode(1, 250, UtbetalingsperiodeType.ENDRET)
-        simulertePerioder.sjekkPeriode(2, 500L, UtbetalingsperiodeType.UENDRET)
-        simulertePerioder.sjekkPeriode(3, 500L, UtbetalingsperiodeType.NY)
+        simulertePerioder.sjekkPeriode(0, 500L, UtbetalingsperiodeType.NY)
+        simulertePerioder.sjekkPeriode(1, 500L, UtbetalingsperiodeType.NY)
+        simulertePerioder.sjekkPeriode(2, 500L, UtbetalingsperiodeType.NY)
+
+         */
     }
 
     private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, utbetalingsperiodeType: UtbetalingsperiodeType) {

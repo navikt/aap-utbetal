@@ -9,7 +9,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.Utbetaling
-import no.nav.aap.utbetal.utbetaling.UtbetalingsplanBeregner
+import no.nav.aap.utbetal.utbetaling.UtbetalingBeregner
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,10 +24,9 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
         log.info("Overfører til økonomi for behandling: $behandlingsreferanse")
 
-        opprettUtbetalingsplan(Saksnummer(saksnummer), UUID.fromString(behandlingsreferanse))
+        val utbetaling = opprettUtbetalingsplan(Saksnummer(saksnummer), UUID.fromString(behandlingsreferanse))
         // TODO: kall helved-utbetaling med utbetalingsplan
-        // TODO: oppdater status på utbetalingsstaus til SENDT
-        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(UUID.fromString(behandlingsreferanse))
+        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.id!!)
     }
 
     private fun opprettUtbetalingsplan(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
@@ -38,9 +37,9 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         }
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
-        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(sakUtbetaling.id!!, forrigeTilkjentYtelse, nyTilkjentYtelse)
-        UtbetalingRepository(connection).lagre(utbetalingsplan)
-        return utbetalingsplan
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, forrigeTilkjentYtelse, nyTilkjentYtelse)
+        val utbetalingId = UtbetalingRepository(connection).lagre(utbetaling)
+        return utbetaling.copy(id = utbetalingId)
     }
 
 

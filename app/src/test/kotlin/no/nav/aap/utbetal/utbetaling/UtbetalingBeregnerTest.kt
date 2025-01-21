@@ -17,7 +17,21 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 
-class UtbetalingsplanBeregnerTest {
+class UtbetalingBeregnerTest {
+
+    @Test
+    fun `Bare nye perioder`() {
+        val start = LocalDate.of(2025, 1, 1)
+        val ty = opprettTilkjentYtelse(start, 1000, 1100, 1200)
+
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, null, ty)
+
+        val perioder = utbetaling.perioder
+        assertThat(perioder.size).isEqualTo(3)
+        verifiserNyPeriode(perioder[0], 1000)
+        verifiserNyPeriode(perioder[1], 1100)
+        verifiserNyPeriode(perioder[2], 1200)
+    }
 
     @Test
     fun `En endret og en ny periode`() {
@@ -25,10 +39,10 @@ class UtbetalingsplanBeregnerTest {
         val ty1 = opprettTilkjentYtelse(start, 1000, 1000, 1000)
         val ty2 = opprettTilkjentYtelse(start, 1000, 600, 1000, 500)
 
-        val utbetalingsplan = UtbetalingsplanBeregner().tilkjentYtelseTilUtbetalingsplan(1, ty1, ty2)
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty1, ty2)
 
-        val perioder = utbetalingsplan.perioder
-        Assertions.assertThat(perioder.size).isEqualTo(4)
+        val perioder = utbetaling.perioder
+        assertThat(perioder.size).isEqualTo(4)
         verifiserUendretPeriode(perioder[0], 1000)
         verifiserEndretPeriode(perioder[1], 600)
         verifiserUendretPeriode(perioder[2], 1000)

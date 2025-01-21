@@ -14,7 +14,7 @@ import java.util.UUID
 
 class UtbetalingRepository(private val connection: DBConnection) {
 
-    fun lagre(utbetaling: Utbetaling) {
+    fun lagre(utbetaling: Utbetaling): Long {
         var insertUtbetalingSql = """
             INSERT INTO UTBETALING
                 (SAK_UTBETALING_ID, TILKJENT_YTELSE_ID, UTBETALING_OVERSENDT, UTBETALING_STATUS) 
@@ -31,14 +31,15 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
 
         lagre(utbetalingId, utbetaling.perioder)
+        return utbetalingId
     }
 
     private fun lagre(utbetalingId: Long, utbetalingsperioder: List<Utbetalingsperiode>) {
         val insertUtbetalingsperiodeSql = """
             INSERT INTO UTBETALINGSPERIODE
                 (
-                    PERIODE,
                     UTBETALING_ID,
+                    PERIODE,
                     DAGSATS,           
                     GRUNNLAG,          
                     GRADERING,         
@@ -50,7 +51,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     REDUSERT_DAGSATS,
                     UTBETALINGSPERIODE_TYPE
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         connection.executeBatch(insertUtbetalingsperiodeSql, utbetalingsperioder) {
@@ -151,6 +152,16 @@ class UtbetalingRepository(private val connection: DBConnection) {
                         redusertDagsats = Beløp(row.getBigDecimal("REDUSERT_DAGSATS")),
                     )
                 )
+            }
+        }
+    }
+
+    fun oppdaterStatus(utbetalingId: Long, status: UtbetalingStatus) {
+        val oppdaterStatusSql = "UPDATE UTBETALING SET UTBETALING_STATUS = ? WHERE id = ?"
+        connection.execute(oppdaterStatusSql) {
+            setParams {
+                setString(1, status.name)
+                setLong(2, utbetalingId)
             }
         }
     }
