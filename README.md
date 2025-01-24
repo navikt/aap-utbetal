@@ -10,7 +10,6 @@ APIene er dokumentert med Swagger: http://localhost:8080/swagger-ui/index.html
 ```mermaid
 graph TD
     Behandlingsflyt--Oppdaterer med tilkjent ytelse<br/> ved vedtak-->Utbetal((Utbetal))
-    Utbetal--Åpen behandling?-->Behandlingsflyt
     Selvbetjening--Hent utbetalinger-->Utbetal
     Saksbehandling--Hent utbetalinger<br/> og status-->Utbetal
     Saksbehandling--Hent simulering-->Utbetal
@@ -22,6 +21,56 @@ graph TD
     Utbetal--Sjekker status<br/> for utbetaling-->Helved-utbetaling
     Utbetal--Start utbetaling ved<br/> åpen behandling-->Helved-utbetaling
 ```
+
+### Scenarioer
+
+#### Scenario #1: Vedtak på førstegangsbehandling
+
+```mermaid
+sequenceDiagram
+Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak)
+Utbetal->>Database: Opprett rad i SAK_UTBETALING
+Utbetal->>Database: Lagre tilkjent ytelse
+Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(utbetalingId)
+Utbetalmotor->>Database: Lagre overfør utbetaling task(utbetalingId)
+```
+
+#### Scenario #2: Vedtak på revurdering
+```mermaid
+sequenceDiagram
+    Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak)
+    Utbetal->>Database: Lagre tilkjent ytelse
+```
+
+#### Scenario #3: Overfør utbetaling til Helved-utbetaling
+
+```mermaid
+sequenceDiagram
+Utbetalmotor->>Utbetal: Start overfør utbetaling(utbetalingId)
+Utbetal->>Database: Hent siste tilkjent ytelse
+Utbetal->>Utbetal: Opprett utbetaling
+Utbetal->>Database: Lagre utbetaling
+Database-->>Utbetal: UtbetalingId
+Utbetal->>Database: Hent utbetaling(utbetalingId)
+Utbetal->>Utbetal: Lag Helved utbetaling
+Utbetal->>HelvedUtbetaling: Send utbetaling
+Utbetal->>Database: Oppdater status til SENDT(utbetalingId)
+Utbetal->>Utbetalmotor: Opprett hent kvittering task(utbetalingId)
+Utbetalmotor->>Database: Lagre hent kvittering task
+```
+
+#### Scenario #4: Behandle kvittering
+
+TODO
+
+#### Scenario #5: Finn nye utbetalinger som skal oversides
+
+TODO
+
+#### Scenario #6: Hent kvitteringer for utbetaling og oppdater database
+
+TODO
+
 
 ### Lokalt utviklingsmiljø:
 
