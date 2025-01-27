@@ -51,7 +51,6 @@ Utbetal->>Database: Hent siste tilkjent ytelse
 Utbetal->>Utbetal: Opprett utbetaling
 Utbetal->>Database: Lagre utbetaling
 Database-->>Utbetal: UtbetalingId
-Utbetal->>Database: Hent utbetaling(utbetalingId)
 Utbetal->>Utbetal: Lag Helved utbetaling
 Utbetal->>HelvedUtbetaling: Send utbetaling
 Utbetal->>Database: Oppdater status til SENDT(utbetalingId)
