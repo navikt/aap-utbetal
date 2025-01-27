@@ -31,14 +31,14 @@ sequenceDiagram
 Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak)
 Utbetal->>Database: Opprett rad i SAK_UTBETALING
 Utbetal->>Database: Lagre tilkjent ytelse
-Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(utbetalingId)
-Utbetalmotor->>Database: Lagre overfør utbetaling task(utbetalingId)
+Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(saksnummer)
+
 ```
 
 #### Scenario #2: Vedtak på revurdering
 ```mermaid
 sequenceDiagram
-    Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak)
+    Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak i revurdering)
     Utbetal->>Database: Lagre tilkjent ytelse
 ```
 
@@ -46,7 +46,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-Utbetalmotor->>Utbetal: Start overfør utbetaling(utbetalingId)
+Utbetalmotor->>Utbetal: Start overfør utbetaling(saksnummer)
 Utbetal->>Database: Hent siste tilkjent ytelse
 Utbetal->>Utbetal: Opprett utbetaling
 Utbetal->>Database: Lagre utbetaling
@@ -55,22 +55,35 @@ Utbetal->>Database: Hent utbetaling(utbetalingId)
 Utbetal->>Utbetal: Lag Helved utbetaling
 Utbetal->>HelvedUtbetaling: Send utbetaling
 Utbetal->>Database: Oppdater status til SENDT(utbetalingId)
+Utbetal->>Database: Sett dato for neste utbetaling i SAK_UTBETALING
 Utbetal->>Utbetalmotor: Opprett hent kvittering task(utbetalingId)
-Utbetalmotor->>Database: Lagre hent kvittering task
 ```
 
-#### Scenario #4: Behandle kvittering
 
-TODO
+#### Scenario #4: Finn nye utbetalinger som skal overføres
 
-#### Scenario #5: Finn nye utbetalinger som skal oversides
+```mermaid
+sequenceDiagram
+Utbetalmotor->>Utbetal: Trigger daglig opprettelse av utbetalinger
+Utbetal->>Utbetal: Finn alle saker hvor utbetalingsdato er passert
+Utbetal->>Utbetalmotor: Opprett tasker for alle saker som trenger utbetaling(saksnummer)
+```
 
-TODO
+#### Scenario #5: Behandle kvittering
 
+```mermaid
+sequenceDiagram
+Utbetalmotor->>Utbetal: Hent alle utbetalinger som mangler kvittering (trigges hvert 15. min.)
+Utbetal->>Utbetalmotor: Lag task for hver utbetaling som mangler kvittering(utbetalingId)
+```
 #### Scenario #6: Hent kvitteringer for utbetaling og oppdater database
 
-TODO
-
+```mermaid
+sequenceDiagram
+Utbetalmotor->>Utbetal: Sjekk kvittering (utbetalingId)
+Utbetal->>Helved-utbetaling: Sjekk status for utbetaling (utbetalingId)
+Utbetal->>Database: Oppdater status på utbetaling dersom endret
+```
 
 ### Lokalt utviklingsmiljø:
 
