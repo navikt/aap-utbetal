@@ -1,5 +1,6 @@
 # aap-utbetal
 
+Applikasjon som sørger for at tilkjent ytelse fra behandlingsflyt blir omgjort til utbetalinger som sendt til oppdrag via helved-utbetaling.
 
 ### API-dokumentasjon
 
