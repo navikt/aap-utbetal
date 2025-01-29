@@ -40,6 +40,7 @@ Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(saksnummer)
 ```mermaid
 sequenceDiagram
     Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak i revurdering)
+    Utbetal->>Database: Hent rad fra SAK_UTBETALING
     Utbetal->>Database: Lagre tilkjent ytelse
 ```
 

@@ -18,7 +18,9 @@ fun NormalOpenAPIRoute.registrerTilkjentYtelse(dataSource: DataSource, prometheu
         prometheus.httpCallCounter("/tilkjentytelse").increment()
         dataSource.transaction { connection ->
             TilkjentYtelseService(connection).lagre(tilkjentYtelseDto.tilTilkjentYtelse())
-            UtbetalingJobbService(connection).opprettUtbetalingJobb(tilkjentYtelseDto.saksnummer, tilkjentYtelseDto.behandlingsreferanse)
+            if (tilkjentYtelseDto.forrigeBehandlingsreferanse == null) {
+                UtbetalingJobbService(connection).opprettUtbetalingJobb(tilkjentYtelseDto.saksnummer, tilkjentYtelseDto.behandlingsreferanse)
+            }
         }
         respondWithStatus(HttpStatusCode.OK)
     }
