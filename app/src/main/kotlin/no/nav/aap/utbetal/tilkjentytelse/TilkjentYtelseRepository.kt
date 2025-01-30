@@ -11,7 +11,7 @@ import java.util.UUID
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
-    fun lagre(tilkjentYtelse: TilkjentYtelse) {
+    fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
                 (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF)
@@ -27,6 +27,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
 
         lagre(tilkjentYtelseId, tilkjentYtelse.perioder)
+
+        return tilkjentYtelseId
     }
 
 
@@ -98,6 +100,30 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
         return tilkjentYtelse?.copy(perioder = hentTilkjentePerioder(tilkjentYtelse.id!!))
     }
+
+    fun finnSisteTilkjentYtelse(saksnummer: Saksnummer): Long? {
+        val finnSisteTilkjentYtelseSql = """
+            SELECT
+                ID
+            FROM 
+                TILKJENT_YTELSE
+            WHERE
+                SAKSNUMMER = ? AND
+                BEHANDLING_REF NOT IN (
+                    SELECT FORRIGE_BEHANDLING_REF FROM TILKJENT_YTELSE WHERE SAKSNUMMER = ? AND FORRIGE_BEHANDLING_REF IS NOT NULL
+                )
+        """.trimIndent()
+
+        return connection.queryFirstOrNull<Long>(finnSisteTilkjentYtelseSql) {
+            setParams {
+                setString(1, saksnummer.toString())
+                setString(2, saksnummer.toString())
+            }
+            setRowMapper { row -> row.getLong("ID") }
+        }
+    }
+
+
 
     private fun hentTilkjentePerioder(tilkjentYtelseId: Long): List<TilkjentYtelsePeriode> {
         val selectTilkjentePerioder = """
