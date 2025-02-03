@@ -30,6 +30,7 @@ data class UtbetalingsperiodeDto(
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
     val utbetalingsperiodeType: UtbetalingsperiodeType,
+    val ventedagerSamordning: Boolean
 )
 
 enum class UtbetalingsperiodeType {

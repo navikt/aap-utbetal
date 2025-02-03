@@ -13,5 +13,6 @@ data class YtelseDetaljer(
     val grunnbeløp: Beløp,
     val antallBarn: Int,
     val barnetilleggsats: Beløp,
-    val barnetillegg: Beløp
+    val barnetillegg: Beløp,
+    val ventedagerSamordning: Boolean,
 )

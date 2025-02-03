@@ -46,9 +46,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     GRUNNLAGSFAKTOR,
                     BARNETILLEGGSATS,
                     REDUSERT_DAGSATS,
-                    TILKJENT_YTELSE_ID
+                    TILKJENT_YTELSE_ID,
+                    VENTEDAGER_SAMORDNING
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
 
@@ -65,6 +66,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setBigDecimal(9, it.detaljer.barnetilleggsats.verdi())
                 setBigDecimal(10, it.detaljer.redusertDagsats.verdi())
                 setLong(11, tilkjentYtelseId)
+                setBoolean(12, it.detaljer.ventedagerSamordning)
             }
         }
     }
@@ -137,7 +139,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 BARNETILLEGG,  
                 GRUNNLAGSFAKTOR,
                 BARNETILLEGGSATS,
-                REDUSERT_DAGSATS
+                REDUSERT_DAGSATS,
+                VENTEDAGER_SAMORDNING
             FROM TILKJENT_PERIODE
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
@@ -161,6 +164,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                         grunnlagsfaktor = GUnit(row.getBigDecimal("GRUNNLAGSFAKTOR")),
                         barnetilleggsats = Beløp(row.getBigDecimal("BARNETILLEGGSATS")),
                         redusertDagsats = Beløp(row.getBigDecimal("REDUSERT_DAGSATS")),
+                        ventedagerSamordning = row.getBoolean("VENTEDAGER_SAMORDNING"),
                     )
                 )
             }

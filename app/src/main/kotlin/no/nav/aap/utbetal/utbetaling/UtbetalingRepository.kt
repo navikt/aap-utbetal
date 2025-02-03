@@ -49,9 +49,10 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     GRUNNLAGSFAKTOR,
                     BARNETILLEGGSATS,
                     REDUSERT_DAGSATS,
-                    UTBETALINGSPERIODE_TYPE
+                    UTBETALINGSPERIODE_TYPE,
+                    VENTEDAGER_SAMORDNING
                 )
-                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         connection.executeBatch(insertUtbetalingsperiodeSql, utbetalingsperioder) {
@@ -68,6 +69,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 setBigDecimal(10, it.detaljer.barnetilleggsats.verdi())
                 setBigDecimal(11, it.detaljer.redusertDagsats.verdi())
                 setString(12, it.utbetalingsperiodeType.name)
+                setBoolean(13, it.detaljer.ventedagerSamordning)
             }
         }
 
@@ -123,7 +125,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 BARNETILLEGG,  
                 GRUNNLAGSFAKTOR,
                 BARNETILLEGGSATS,
-                REDUSERT_DAGSATS
+                REDUSERT_DAGSATS,
+                VENTEDAGER_SAMORDNING
             FROM
                 UTBETALINGSPERIODE
             WHERE
@@ -150,6 +153,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                         grunnlagsfaktor = GUnit(row.getBigDecimal("GRUNNLAGSFAKTOR")),
                         barnetilleggsats = Beløp(row.getBigDecimal("BARNETILLEGGSATS")),
                         redusertDagsats = Beløp(row.getBigDecimal("REDUSERT_DAGSATS")),
+                        ventedagerSamordning = row.getBoolean(("VENTEDAGER_SAMORDNING")),
                     )
                 )
             }

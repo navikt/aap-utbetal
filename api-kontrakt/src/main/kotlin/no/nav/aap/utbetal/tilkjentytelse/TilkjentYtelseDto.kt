@@ -26,5 +26,6 @@ data class TilkjentYtelseDetaljerDto(
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal
+    val barnetillegg: BigDecimal,
+    val ventedagerSamordning: Boolean = false
 )

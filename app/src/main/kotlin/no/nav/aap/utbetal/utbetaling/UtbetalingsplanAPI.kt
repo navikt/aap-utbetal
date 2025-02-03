@@ -43,5 +43,6 @@ private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
         antallBarn = this.detaljer.antallBarn,
         barnetilleggsats = this.detaljer.barnetilleggsats.verdi(),
         barnetillegg = this.detaljer.barnetillegg.verdi(),
-        utbetalingsperiodeType = this.utbetalingsperiodeType
+        utbetalingsperiodeType = this.utbetalingsperiodeType,
+        ventedagerSamordning = this.detaljer.ventedagerSamordning,
     )

@@ -22,6 +22,7 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
                 antallBarn = detaljerDto.antallBarn,
                 barnetilleggsats = Beløp(detaljerDto.barnetilleggsats),
                 barnetillegg = Beløp(detaljerDto.barnetillegg),
+                ventedagerSamordning = detaljerDto.ventedagerSamordning,
             )
         )
     }
