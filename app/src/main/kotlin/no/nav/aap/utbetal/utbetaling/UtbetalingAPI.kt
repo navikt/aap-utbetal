@@ -13,8 +13,8 @@ import no.nav.aap.utbetaling.UtbetalingDto
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.hent(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
-    route("/utbetalingsplaner").post<Unit, List<UtbetalingDto>, HentUtbetalingerDto> { _, utbetalingsplanDto ->
-        prometheus.httpCallCounter("/utbetalingsplan").increment()
+    route("/utbetalinger").post<Unit, List<UtbetalingDto>, HentUtbetalingerDto> { _, utbetalingsplanDto ->
+        prometheus.httpCallCounter("/utbetalinger").increment()
         val utbetalingsplan = dataSource.transaction(readOnly = true) { connection ->
             UtbetalingRepository(connection).hent(utbetalingsplanDto.behandlingsreferanse)
         }
