@@ -24,12 +24,12 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
         log.info("Overfører til økonomi for behandling: $behandlingsreferanse")
 
-        val utbetaling = opprettUtbetalingsplan(Saksnummer(saksnummer), UUID.fromString(behandlingsreferanse))
-        // TODO: kall helved-utbetaling med utbetalingsplan
+        val utbetaling = opprettUtbetaling(Saksnummer(saksnummer), UUID.fromString(behandlingsreferanse))
+        // TODO: kall helved-utbetaling med utbetaling
         UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.id!!)
     }
 
-    private fun opprettUtbetalingsplan(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
+    private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse)
         if (nyTilkjentYtelse == null) {

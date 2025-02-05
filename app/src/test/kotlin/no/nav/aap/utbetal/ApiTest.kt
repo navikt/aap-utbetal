@@ -9,19 +9,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
-import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
-import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
-import no.nav.aap.utbetaling.UtbetalingsperiodeType
-import no.nav.aap.utbetaling.UtbetalingsperiodeDto
-import no.nav.aap.utbetaling.UtbetalingDto
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -31,29 +25,14 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.test.Ignore
 import kotlin.test.Test
 
 class ApiTest {
 
     @Test
-    fun `Utbetal etter førstegangsbehandling`() {
+    fun `Tilkjent ytelse etter førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
-
-        /*
-        val simulertePerioder = utbetalingsplan!!.perioder
-        assertThat(simulertePerioder).hasSize(4)
-        simulertePerioder.sjekkPeriode(0, 500L, UtbetalingsperiodeType.NY)
-        simulertePerioder.sjekkPeriode(1, 500L, UtbetalingsperiodeType.NY)
-        simulertePerioder.sjekkPeriode(2, 500L, UtbetalingsperiodeType.NY)
-
-         */
-    }
-
-    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, utbetalingsperiodeType: UtbetalingsperiodeType) {
-        assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
-        assertThat(this[index].utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
@@ -81,13 +60,6 @@ class ApiTest {
     private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {
         return client.post(
             URI.create("http://localhost:8080/tilkjentytelse"),
-            PostRequest(body = tilkjentYtelse)
-        )
-    }
-
-    private fun simulerUtbetaling(tilkjentYtelse: TilkjentYtelseDto): UtbetalingDto? {
-        return client.post(
-            URI.create("http://localhost:8080/simulering"),
             PostRequest(body = tilkjentYtelse)
         )
     }
