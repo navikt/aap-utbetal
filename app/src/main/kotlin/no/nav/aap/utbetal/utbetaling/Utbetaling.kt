@@ -5,9 +5,11 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class Utbetaling(
     val id: Long? = null,
+    val utbetalingRef: UUID,
     val sakUtbetalingId: Long,
     val tilkjentYtelseId: Long,
     val utbetalingOversendt: LocalDateTime,

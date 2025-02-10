@@ -17,16 +17,17 @@ class UtbetalingRepository(private val connection: DBConnection) {
     fun lagre(utbetaling: Utbetaling): Long {
         var insertUtbetalingSql = """
             INSERT INTO UTBETALING
-                (SAK_UTBETALING_ID, TILKJENT_YTELSE_ID, UTBETALING_OVERSENDT, UTBETALING_STATUS) 
-                VALUES (?, ?, ?, ?)
+                (UTBETALING_REF, SAK_UTBETALING_ID, TILKJENT_YTELSE_ID, UTBETALING_OVERSENDT, UTBETALING_STATUS) 
+                VALUES (?, ?, ?, ?, ?)
         """.trimIndent()
 
         val utbetalingId = connection.executeReturnKey(insertUtbetalingSql) {
             setParams {
-                setLong(1, utbetaling.sakUtbetalingId)
-                setLong(2, utbetaling.tilkjentYtelseId)
-                setLocalDateTime(3, LocalDateTime.now())
-                setString(4, "SENDT")
+                setUUID(1, utbetaling.utbetalingRef)
+                setLong(2, utbetaling.sakUtbetalingId)
+                setLong(3, utbetaling.tilkjentYtelseId)
+                setLocalDateTime(4, LocalDateTime.now())
+                setString(5, "SENDT")
             }
         }
 
@@ -80,6 +81,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val hentUtbetalingSql = """
             SELECT 
                 U.ID,
+                U.UTBETALING_REF,
                 U.SAK_UTBETALING_ID,
                 U.TILKJENT_YTELSE_ID,
                 U.UTBETALING_OVERSENDT,
@@ -100,6 +102,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 val utbetaling = Utbetaling(
                     id = row.getLong("ID"),
+                    utbetalingRef = row.getUUID("UTBETALING_REF"),
                     sakUtbetalingId = row.getLong("SAK_UTBETALING_ID"),
                     tilkjentYtelseId = row.getLong("TILKJENT_YTELSE_ID"),
                     utbetalingOversendt = row.getLocalDateTime("UTBETALING_OVERSENDT"),

@@ -8,6 +8,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
+import java.util.UUID
 
 class UtbetalingBeregner {
 
@@ -18,6 +19,7 @@ class UtbetalingBeregner {
         val utbetalingerTidslinje = forrigeTidslinje.kombiner(nyTidslinje, prioriterHøyreSideCrossJoinMedEndring())
         val utbetalingsperioder = utbetalingerTidslinje.segmenter().map { it.verdi }
         return Utbetaling(
+            utbetalingRef = UUID.randomUUID(),
             sakUtbetalingId = sakUtbetalingId,
             tilkjentYtelseId = nyTilkjentYtelse.id!!,
             utbetalingOversendt = LocalDateTime.now(),
