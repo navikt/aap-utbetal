@@ -8,7 +8,7 @@ data class Utbetaling(
     val behandlingId: String,
     val personident: String,
     val vedtakstidspunkt: LocalDateTime,
-    val stønad: String = "AAP",
+    val stønad: String = "AAP_UNDER_ARBEIDSAVKLARING",
     val beslutterId: String,
     val saksbehandlerId: String,
     val periodeType: String = "UKEDAG",
@@ -18,7 +18,7 @@ data class Utbetaling(
 data class Utbetalingsperiode(
     val fom: LocalDate,
     val tom: LocalDate,
-    val beløp: Int,
+    val beløp: UInt,
     val betalendeEnhet: String? = null,
-    val fastsattDagsats: Int,
+    val fastsattDagsats: UInt? = null,
 )
