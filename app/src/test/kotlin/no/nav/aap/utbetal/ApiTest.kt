@@ -54,7 +54,7 @@ class ApiTest {
             )
         }
         val saksnummer = Random().nextInt(999999999).toString()
-        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, perioder)
+        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, "12345612345", perioder)
     }
 
     private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {

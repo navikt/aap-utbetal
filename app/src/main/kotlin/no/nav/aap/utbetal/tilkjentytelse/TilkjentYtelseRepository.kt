@@ -14,8 +14,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
-                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF)
-                VALUES(?, ? ,?)
+                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT)
+                VALUES(?, ? ,?, ?)
         """.trimIndent()
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
@@ -23,6 +23,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setString(1, tilkjentYtelse.saksnummer.toString())
                 setUUID(2, tilkjentYtelse.behandlingsreferanse)
                 setUUID(3, tilkjentYtelse.forrigeBehandlingsreferanse)
+                setString(4, tilkjentYtelse.personIdent)
             }
         }
 
@@ -78,7 +79,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 ID,
                 SAKSNUMMER,
                 BEHANDLING_REF,
-                FORRIGE_BEHANDLING_REF
+                FORRIGE_BEHANDLING_REF,
+                PERSON_IDENT
             FROM 
                 TILKJENT_YTELSE
             WHERE
@@ -96,6 +98,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
+                    personIdent = row.getString("PERSON_IDENT"),
                     listOf()
                 )
             }

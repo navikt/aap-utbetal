@@ -30,6 +30,7 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
         saksnummer = Saksnummer(this.saksnummer),
         behandlingsreferanse = this.behandlingsreferanse,
         forrigeBehandlingsreferanse = this.forrigeBehandlingsreferanse,
+        personIdent = this.personIdent,
         perioder = perioder
     )
 }

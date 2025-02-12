@@ -76,6 +76,7 @@ class UtbetalingBeregnerTest {
             saksnummer = Saksnummer("123"),
             behandlingsreferanse = UUID.randomUUID(),
             forrigeBehandlingsreferanse = null,
+            personIdent = "12345612345",
             perioder = perioder)
     }
 

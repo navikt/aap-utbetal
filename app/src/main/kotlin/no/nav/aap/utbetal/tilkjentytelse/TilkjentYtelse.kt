@@ -10,6 +10,7 @@ data class TilkjentYtelse(
     val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
     val forrigeBehandlingsreferanse: UUID? = null,
+    val personIdent: String,
     val perioder: List<TilkjentYtelsePeriode>
 )
 

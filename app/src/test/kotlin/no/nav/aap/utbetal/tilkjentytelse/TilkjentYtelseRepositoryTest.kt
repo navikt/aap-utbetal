@@ -123,6 +123,7 @@ class TilkjentYtelseRepositoryTest {
             saksnummer = saksnummer,
             behandlingsreferanse = behandlingRef,
             forrigeBehandlingsreferanse = forrigeBehandlingRef,
+            personIdent = "12345123456",
             perioder = perioder)
     }
 
