@@ -13,6 +13,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
 import org.assertj.core.api.Assertions.assertThat
+import java.time.LocalDateTime
 
 class HelvedUtbetalingOppretterTest {
 
@@ -77,6 +78,9 @@ class HelvedUtbetalingOppretterTest {
             behandlingsreferanse = behandlingRef,
             forrigeBehandlingsreferanse = forrigeBehandlingRef,
             personIdent = "12345612345",
+            vedtakstidspunkt = LocalDateTime.now(),
+            beslutterId = "testbruker1",
+            saksbehandlerId = "testbruker2",
             perioder = listOf(periode)
         )
     }

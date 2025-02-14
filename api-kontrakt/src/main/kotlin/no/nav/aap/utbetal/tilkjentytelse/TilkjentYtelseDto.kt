@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class TilkjentYtelseDto(
@@ -9,6 +10,9 @@ data class TilkjentYtelseDto(
     val behandlingsreferanse: UUID,
     val forrigeBehandlingsreferanse: UUID? = null,
     val personIdent: String,
+    val vedtakstidspunkt: LocalDateTime,
+    val beslutterId: String,
+    val saksbehandlerId: String,
     val perioder: List<TilkjentYtelsePeriodeDto>
 )
 

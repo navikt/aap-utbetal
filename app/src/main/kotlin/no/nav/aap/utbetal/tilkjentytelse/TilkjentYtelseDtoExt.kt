@@ -31,6 +31,9 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
         behandlingsreferanse = this.behandlingsreferanse,
         forrigeBehandlingsreferanse = this.forrigeBehandlingsreferanse,
         personIdent = this.personIdent,
+        vedtakstidspunkt = this.vedtakstidspunkt,
+        beslutterId = this.beslutterId,
+        saksbehandlerId = this.saksbehandlerId,
         perioder = perioder
     )
 }

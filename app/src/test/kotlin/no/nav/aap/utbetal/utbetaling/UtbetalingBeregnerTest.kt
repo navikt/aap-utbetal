@@ -9,12 +9,12 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 class UtbetalingBeregnerTest {
@@ -77,6 +77,9 @@ class UtbetalingBeregnerTest {
             behandlingsreferanse = UUID.randomUUID(),
             forrigeBehandlingsreferanse = null,
             personIdent = "12345612345",
+            vedtakstidspunkt = LocalDateTime.now(),
+            beslutterId = "testbruker1",
+            saksbehandlerId = "testbruker2",
             perioder = perioder)
     }
 

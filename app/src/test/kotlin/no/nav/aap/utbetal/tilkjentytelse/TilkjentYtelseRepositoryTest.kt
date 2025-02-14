@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -124,6 +125,9 @@ class TilkjentYtelseRepositoryTest {
             behandlingsreferanse = behandlingRef,
             forrigeBehandlingsreferanse = forrigeBehandlingRef,
             personIdent = "12345123456",
+            vedtakstidspunkt = LocalDateTime.now(),
+            beslutterId = "testbruker1",
+            saksbehandlerId = "testbruker2",
             perioder = perioder)
     }
 

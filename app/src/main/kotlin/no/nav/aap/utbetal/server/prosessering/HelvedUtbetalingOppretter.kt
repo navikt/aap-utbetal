@@ -26,9 +26,9 @@ class HelvedUtbetalingOppretter {
             sakId = tilkjentYtelse.saksnummer.toString(),
             behandlingId = utbetalingId.toString(),
             personident = tilkjentYtelse.personIdent,
-            vedtakstidspunkt = LocalDateTime.now(), //TODO
-            beslutterId = "TODO",
-            saksbehandlerId = "TODO",
+            vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt,
+            beslutterId = tilkjentYtelse.beslutterId,
+            saksbehandlerId = tilkjentYtelse.saksbehandlerId,
             perioder = klippetYtelseTidslinjeUtenHelger.tilUtbetalingsperioder()
         )
     }

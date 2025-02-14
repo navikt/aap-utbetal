@@ -14,8 +14,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
-                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT)
-                VALUES(?, ? ,?, ?)
+                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT, VEDTAKSTIDSPUNKT, BESLUTTER_ID, SAKSBEHANDLER_ID)
+                VALUES(?, ? ,?, ?, ?, ?, ?)
         """.trimIndent()
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
@@ -24,6 +24,9 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setUUID(2, tilkjentYtelse.behandlingsreferanse)
                 setUUID(3, tilkjentYtelse.forrigeBehandlingsreferanse)
                 setString(4, tilkjentYtelse.personIdent)
+                setLocalDateTime(5, tilkjentYtelse.vedtakstidspunkt)
+                setString(6, tilkjentYtelse.beslutterId)
+                setString(7, tilkjentYtelse.saksbehandlerId)
             }
         }
 
@@ -80,7 +83,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 SAKSNUMMER,
                 BEHANDLING_REF,
                 FORRIGE_BEHANDLING_REF,
-                PERSON_IDENT
+                PERSON_IDENT,
+                VEDTAKSTIDSPUNKT,
+                BESLUTTER_ID,
+                SAKSBEHANDLER_ID
             FROM 
                 TILKJENT_YTELSE
             WHERE
@@ -99,6 +105,9 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
                     personIdent = row.getString("PERSON_IDENT"),
+                    vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
+                    beslutterId = row.getString("BESLUTTER_ID"),
+                    saksbehandlerId = row.getString("SAKSBEHANDLER_ID"),
                     listOf()
                 )
             }

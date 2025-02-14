@@ -28,6 +28,7 @@ import java.math.BigDecimal
 import java.net.URI
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.system.measureTimeMillis
@@ -76,7 +77,7 @@ class StressTest {
             )
         }
         val saksnummer = Random().nextInt(999999999).toString()
-        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, "12345612345", perioder)
+        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, "12345612345", LocalDateTime.now(), "testbruker1", "testbruker2", perioder)
     }
 
     private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {
