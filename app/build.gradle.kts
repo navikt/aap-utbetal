@@ -11,7 +11,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.aap.utbetaling.server.AppKt")
+    mainClass.set("no.nav.aap.utbetal.server.AppKt")
 }
 
 dependencies {
