@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
+import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.utbetal.server.DbConfig
@@ -19,14 +20,18 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import java.io.BufferedWriter
+import java.io.FileWriter
 import java.math.BigDecimal
 import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.test.Test
+import kotlin.test.fail
 
 class ApiTest {
 
@@ -34,6 +39,29 @@ class ApiTest {
     fun `Tilkjent ytelse etter førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
+    }
+
+    @Test
+    fun `Ekporter openapi typer til json`() {
+        val openApiDoc =
+            requireNotNull(
+                client.get(
+                    URI.create("http://localhost:8080/openapi.json"),
+                    GetRequest()
+                ) { body, _ ->
+                    String(body.readAllBytes(), StandardCharsets.UTF_8)
+                }
+            )
+
+        try {
+            val writer = BufferedWriter(FileWriter("../openapi.json"))
+            writer.write(openApiDoc)
+
+            writer.close()
+        } catch (_: Exception) {
+            fail()
+        }
+
     }
 
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
