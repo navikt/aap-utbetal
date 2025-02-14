@@ -94,7 +94,7 @@ class ApiTest {
     }
 
     companion object {
-        private val postgres = no.nav.aap.utbetal.postgreSQLContainer()
+        private val postgres = postgreSQLContainer()
         private val fakes = Fakes(azurePort = 8081)
 
         private val dbConfig = DbConfig(
