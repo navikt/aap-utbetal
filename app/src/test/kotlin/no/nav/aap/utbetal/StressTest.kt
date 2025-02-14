@@ -99,10 +99,8 @@ class StressTest {
         private val fakes = Fakes(azurePort = 8081)
 
         private val dbConfig = DbConfig(
-            host = "test",
-            port = "test",
+            jdbcUrL = postgres.jdbcUrl,
             database = postgres.databaseName,
-            url = postgres.jdbcUrl,
             username = postgres.username,
             password = postgres.password
         )

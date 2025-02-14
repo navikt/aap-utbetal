@@ -120,19 +120,17 @@ fun Application.motor(dataSource: DataSource): Motor {
 
 
 class DbConfig(
-    val host: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_HOST"),
-    val port: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PORT"),
+    val jdbcUrL: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_JDBC_URL"),
     val database: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_DATABASE"),
-    val url: String = "jdbc:postgresql://$host:$port/$database",
     val username: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_USERNAME"),
     val password: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PASSWORD")
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.url
+    jdbcUrl = dbConfig.jdbcUrL
     username = dbConfig.username
     password = dbConfig.password
-    maximumPoolSize = 10 + (ANTALL_WORKERS*2)
+    maximumPoolSize = 10 + (ANTALL_WORKERS * 2)
     minimumIdle = 1
     driverClassName = "org.postgresql.Driver"
     connectionTestQuery = "SELECT 1"
