@@ -1,0 +1,80 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+
+metadata:
+    name: utbetal
+    namespace: aap
+    labels:
+        team: aap
+        sub: utbetal
+
+spec:
+    ingresses:
+        - https://aap-utbetal.intern.dev.nav.no
+    image: {{image}}
+    strategy:
+        type: Recreate
+    port: 8080
+    replicas:
+        max: 1
+        min: 1
+    resources:
+        limits:
+            memory: 512Mi
+        requests:
+            cpu: 500m
+            memory: 512Mi
+    observability:
+        autoInstrumentation:
+            enabled: true
+            runtime: "java"
+        logging:
+            destinations:
+                - id: elastic
+                - id: loki
+    prometheus:
+        enabled: true
+        path: /actuator/metrics
+    azure:
+        application:
+            enabled: true
+            allowAllUsers: true
+            claims:
+                extra:
+                    - "NAVident"
+                    - "azp_name"
+    liveness:
+        path: /actuator/live
+        initialDelay: 5
+        periodSeconds: 5
+        failureThreshold: 5
+    readiness:
+        path: /actuator/ready
+        initialDelay: 5
+        periodSeconds: 5
+        failureThreshold: 5
+    secureLogs:
+        enabled: true
+    accessPolicy:
+        inbound:
+            rules:
+                - application: behandlingsflyt
+                - application: paw-patrol
+                - application: azure-token-generator # Ikke i prod :)
+                  namespace: aura
+                  cluster: dev-gcp
+        outbound:
+            rules:
+                - application: utsjekk
+                  namespace: helved
+    env:
+        - name: INTEGRASJON_UTSJEKK_URL
+          value: http://utsjekk.helved
+        - name: INTEGRASJON_UTSJEKK_SCOPE
+          value: http://utsjekk.helved.svc.cluster.local
+    gcp:
+        sqlInstances:
+            - type: POSTGRES_16
+              tier: db-f1-micro
+              databases:
+                  - name: utbetal
