@@ -32,7 +32,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/navikt/aap-oppgave")
+            url = uri("https://maven.pkg.github.com/navikt/aap-utbetal")
             credentials {
                 username = "x-access-token"
                 // Ligger tilgjengelig i Github Actions

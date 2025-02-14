@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
-group = "no.nav.aap"
+group = "no.nav.aap.utbetal"
 version = project.findProperty("version")?.toString() ?: "0.0.0"
 
 repositories {
