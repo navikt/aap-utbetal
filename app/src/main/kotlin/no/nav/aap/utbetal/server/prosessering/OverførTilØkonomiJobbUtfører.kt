@@ -31,12 +31,9 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
 
     private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
-        val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse)
-        if (nyTilkjentYtelse == null) {
-            throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
-        }
-        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
+        val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
+        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
         val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, forrigeTilkjentYtelse, nyTilkjentYtelse)
         val utbetalingId = UtbetalingRepository(connection).lagre(utbetaling)
         return utbetaling.copy(id = utbetalingId)
