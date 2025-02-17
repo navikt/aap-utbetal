@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.klient.helved
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
@@ -6,14 +6,15 @@ import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.Utbetalingsperiode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.UUID
-import kotlin.test.Test
-import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDateTime
+import java.util.UUID
 
 class HelvedUtbetalingOppretterTest {
 
@@ -24,12 +25,14 @@ class HelvedUtbetalingOppretterTest {
             behandlingRef = UUID.randomUUID(),
             forrigeBehandlingRef = null,
             beløp = Beløp(1000),
-            periode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025,1, 31))
+            periode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31))
         )
 
-        val utbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(1L, tilkjentYtelse, Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21)))
+        val utbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(1L, tilkjentYtelse,
+            Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21))
+        )
 
-        assertThat(utbetaling.perioder).hasSize(10)
+        Assertions.assertThat(utbetaling.perioder).hasSize(10)
         val perioder = utbetaling.perioder
         perioder.sjekkBeløp(0, LocalDate.of(2025, 1, 8), 1000.toUInt())
         perioder.sjekkBeløp(1, LocalDate.of(2025, 1, 9), 1000.toUInt())
@@ -45,10 +48,10 @@ class HelvedUtbetalingOppretterTest {
 
     fun List<Utbetalingsperiode>.sjekkBeløp(index: Int, dato: LocalDate, beløp: UInt) {
         val periode = this[index]
-        assertThat(periode.fom).isEqualTo(dato)
-        assertThat(periode.tom).isEqualTo(dato)
-        assertThat(this[index].beløp).isEqualTo(beløp)
-        assertThat(this[index].fastsattDagsats).isEqualTo(beløp)
+        Assertions.assertThat(periode.fom).isEqualTo(dato)
+        Assertions.assertThat(periode.tom).isEqualTo(dato)
+        Assertions.assertThat(this[index].beløp).isEqualTo(beløp)
+        Assertions.assertThat(this[index].fastsattDagsats).isEqualTo(beløp)
     }
 
     private fun opprettTilkjentYtelse(
@@ -61,10 +64,10 @@ class HelvedUtbetalingOppretterTest {
         val periode = TilkjentYtelsePeriode(
             periode = periode,
             YtelseDetaljer(
-                gradering = Prosent.`0_PROSENT`,
+                gradering = Prosent.Companion.`0_PROSENT`,
                 dagsats = beløp,
                 grunnlag = beløp,
-                grunnbeløp = Beløp(100000L) ,
+                grunnbeløp = Beløp(100000L),
                 antallBarn = 0,
                 barnetillegg = Beløp(0L),
                 grunnlagsfaktor = GUnit("0.008"),

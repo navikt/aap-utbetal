@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.klienter.helved
 
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
@@ -7,11 +7,10 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.felles.finnHelger
-import no.nav.aap.utbetal.klienter.helved.Utbetaling
-import no.nav.aap.utbetal.klienter.helved.Utbetalingsperiode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.util.Base64
+import java.util.UUID
 
 class HelvedUtbetalingOppretter {
 
@@ -24,7 +23,7 @@ class HelvedUtbetalingOppretter {
 
         return Utbetaling(
             sakId = tilkjentYtelse.saksnummer.toString(),
-            behandlingId = utbetalingId.toString(),
+            behandlingId = tilkjentYtelse.behandlingsreferanse.toBase64(),
             personident = tilkjentYtelse.personIdent,
             vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt,
             beslutterId = tilkjentYtelse.beslutterId,
@@ -88,4 +87,7 @@ class HelvedUtbetalingOppretter {
             }
         }
     }
+
+
+
 }
