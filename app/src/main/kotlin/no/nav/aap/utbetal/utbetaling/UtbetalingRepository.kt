@@ -129,7 +129,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 GRUNNLAGSFAKTOR,
                 BARNETILLEGGSATS,
                 REDUSERT_DAGSATS,
-                VENTEDAGER_SAMORDNING
+                VENTEDAGER_SAMORDNING,
+                UTBETALINGSPERIODE_TYPE
             FROM
                 UTBETALINGSPERIODE
             WHERE
