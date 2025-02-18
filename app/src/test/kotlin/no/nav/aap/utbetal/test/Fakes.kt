@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 
 class Fakes() : AutoCloseable{
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    private val azure = FakeServer(module = { azureFake() })
+    private val azure = FakeServer(module = { azureFake() }, port = 8081)
     private val helvedUtbetaling = FakeServer(module = {helvedUtbetalingFake()})
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
