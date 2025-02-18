@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 fun main() {
     val postgres = postgreSQLContainer()
 
-    val fakes = Fakes(azurePort = 8081)
+    val fakes = Fakes()
 
     // Starter server
     embeddedServer(Netty, port = 8080) {
