@@ -63,7 +63,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     commonKtorModule(prometheus, AzureConfig(), InfoModel(title = "AAP - Utbetling",
         description = """
                 For å teste API i dev, besøk
-                <a href="https://azure-token-generator.intern.dev.nav.no/api/obo?aud=dev-gcp:aap:utbetal">Token Generator</a> for å få token.
+                <a href="https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-gcp:aap:utbetal">Token Generator</a> for å få token.
                 
                 For å test lokalt:
                 <pre>curl -s -XPOST http://localhost:8081/token  | jq -r '.access_token' | pbcopy</pre>
