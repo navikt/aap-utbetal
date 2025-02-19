@@ -9,12 +9,10 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import java.time.LocalDate
-import java.util.Base64
-import java.util.UUID
 
 class HelvedUtbetalingOppretter {
 
-    fun opprettUtbetaling(utbetalingId: Long, tilkjentYtelse: TilkjentYtelse, periode: Periode): Utbetaling {
+    fun opprettUtbetaling(tilkjentYtelse: TilkjentYtelse, periode: Periode): Utbetaling {
         val helger = periode.finnHelger()
         val ytelseTidslinje = tilkjentYtelse.tilTidslinje()
         val klippetYtelseTidslinje = ytelseTidslinje.disjoint(periode)
@@ -87,7 +85,5 @@ class HelvedUtbetalingOppretter {
             }
         }
     }
-
-
 
 }

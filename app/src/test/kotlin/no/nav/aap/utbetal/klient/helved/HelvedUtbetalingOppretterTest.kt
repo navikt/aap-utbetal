@@ -28,8 +28,9 @@ class HelvedUtbetalingOppretterTest {
             periode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31))
         )
 
-        val utbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(1L, tilkjentYtelse,
-            Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21))
+        val utbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(
+            tilkjentYtelse = tilkjentYtelse,
+            periode = Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21))
         )
 
         Assertions.assertThat(utbetaling.perioder).hasSize(10)

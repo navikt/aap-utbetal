@@ -14,8 +14,8 @@ import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
+import no.nav.aap.utbetal.tilkjentytelse.FørstegangTilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import no.nav.aap.utbetaling.UtbetalingsperiodeDto
@@ -58,7 +58,7 @@ class StressTest {
         Assertions.assertThat(this[index].utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
     }
 
-    private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
+    private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): FørstegangTilkjentYtelseDto {
         val perioder = (0 until antallPerioder).map {
             TilkjentYtelsePeriodeDto(
                 fom = startDato.plusWeeks(it * 2L),
@@ -77,10 +77,19 @@ class StressTest {
             )
         }
         val saksnummer = Random().nextInt(999999999).toString()
-        return TilkjentYtelseDto("$saksnummer", UUID.randomUUID(), null, "12345612345", LocalDateTime.now(), "testbruker1", "testbruker2", perioder)
+        return FørstegangTilkjentYtelseDto(
+            saksnummer = "$saksnummer",
+            behandlingsreferanse = UUID.randomUUID(),
+            personIdent = "12345612345",
+            vedtakstidspunkt = LocalDateTime.now(),
+            førstegangsutbetalingFom = perioder.first().fom,
+            førstegangsutbetalingTom = perioder.last().tom,
+            beslutterId = "testbruker1",
+            saksbehandlerId = "testbruker2",
+            perioder = perioder)
     }
 
-    private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {
+    private fun postTilkjentYtelse(tilkjentYtelse: FørstegangTilkjentYtelseDto): Unit? {
         return client.post(
             URI.create("http://localhost:8080/tilkjentytelse"),
             PostRequest(body = tilkjentYtelse)
