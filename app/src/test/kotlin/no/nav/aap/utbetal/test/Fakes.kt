@@ -15,8 +15,8 @@ class Fakes() : AutoCloseable{
         System.setProperty("azure.app.client.secret", "")
         System.setProperty("azure.openid.config.jwks.uri", "http://localhost:${azure.port()}/jwks")
         System.setProperty("azure.openid.config.issuer", "behandlingsflyt")
-        System.setProperty("integrasjon.helved-utbetaling.url", "http://localhost:${helvedUtbetaling.port()}/")
-        System.setProperty("integrasjon.helved-utbetaling.scope", "helvedUtbetaling")
+        System.setProperty("integrasjon.utsjekk.url", "http://localhost:${helvedUtbetaling.port()}/")
+        System.setProperty("integrasjon.utsjekk.scope", "helvedUtbetaling")
     }
 
     override fun close() {

@@ -14,10 +14,10 @@ class UtbetalingKlient {
 
     private val log = LoggerFactory.getLogger(UtbetalingKlient::class.java)
 
-    private val url = URI.create(requiredConfigForKey("integrasjon.helved-utbetaling.url"))
+    private val url = URI.create(requiredConfigForKey("integrasjon.utsjekk.url"))
 
     private val config = ClientConfig(
-        scope = requiredConfigForKey("integrasjon.helved-utbetaling.scope"),
+        scope = requiredConfigForKey("integrasjon.utsjekk.scope"),
     )
 
     private val client = RestClient.withDefaultResponseHandler(
