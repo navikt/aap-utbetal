@@ -71,7 +71,7 @@ spec:
         - name: INTEGRASJON_UTSJEKK_URL
           value: http://utsjekk.helved
         - name: INTEGRASJON_UTSJEKK_SCOPE
-          value: http://utsjekk.helved.svc.cluster.local
+          value: api://dev-gcp.helved.utsjekk/.default
     gcp:
         sqlInstances:
             - type: POSTGRES_16
