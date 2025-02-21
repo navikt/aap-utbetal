@@ -3,12 +3,29 @@ package no.nav.aap.utbetal.klienter.helved
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.get
 import no.nav.aap.komponenter.httpklient.httpclient.post
+import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.UUID
+
+data class OppdragStatusDto(
+    val status: OppdragStatus,
+    val feilmelding: String? = null
+)
+
+enum class OppdragStatus {
+    LAGT_PÅ_KØ,
+    KVITTERT_OK,
+    KVITTERT_MED_MANGLER,
+    KVITTERT_FUNKSJONELL_FEIL,
+    KVITTERT_TEKNISK_FEIL,
+    KVITTERT_UKJENT,
+    OK_UTEN_UTBETALING,
+}
 
 class UtbetalingKlient {
 
@@ -41,5 +58,12 @@ class UtbetalingKlient {
         val request = PostRequest(body = utbetaling)
         client.post<Utbetaling, Unit>(iverksettUrl, request)
     }
+
+    fun hentStatus(utbetalingRef: UUID): OppdragStatusDto {
+        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef/status"))
+        val request = GetRequest()
+        return client.get<OppdragStatusDto>(iverksettUrl, request)!!
+    }
+
 
 }

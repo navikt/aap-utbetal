@@ -10,7 +10,7 @@ import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.Utbetalingsperiode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,7 +33,7 @@ class HelvedUtbetalingOppretterTest {
             periode = Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21))
         )
 
-        Assertions.assertThat(utbetaling.perioder).hasSize(10)
+        assertThat(utbetaling.perioder).hasSize(10)
         val perioder = utbetaling.perioder
         perioder.sjekkBeløp(0, LocalDate.of(2025, 1, 8), 1000.toUInt())
         perioder.sjekkBeløp(1, LocalDate.of(2025, 1, 9), 1000.toUInt())
@@ -49,10 +49,10 @@ class HelvedUtbetalingOppretterTest {
 
     fun List<Utbetalingsperiode>.sjekkBeløp(index: Int, dato: LocalDate, beløp: UInt) {
         val periode = this[index]
-        Assertions.assertThat(periode.fom).isEqualTo(dato)
-        Assertions.assertThat(periode.tom).isEqualTo(dato)
-        Assertions.assertThat(this[index].beløp).isEqualTo(beløp)
-        Assertions.assertThat(this[index].fastsattDagsats).isEqualTo(beløp)
+        assertThat(periode.fom).isEqualTo(dato)
+        assertThat(periode.tom).isEqualTo(dato)
+        assertThat(this[index].beløp).isEqualTo(beløp)
+        assertThat(this[index].fastsattDagsats).isEqualTo(beløp)
     }
 
     private fun opprettTilkjentYtelse(

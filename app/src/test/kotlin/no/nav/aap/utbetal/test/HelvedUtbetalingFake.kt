@@ -8,6 +8,21 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 
+private data class OppdragStatusDto(
+    val status: OppdragStatus,
+    val feilmelding: String? = null
+)
+
+private enum class OppdragStatus {
+    LAGT_PÅ_KØ,
+    KVITTERT_OK,
+    KVITTERT_MED_MANGLER,
+    KVITTERT_FUNKSJONELL_FEIL,
+    KVITTERT_TEKNISK_FEIL,
+    KVITTERT_UKJENT,
+    OK_UTEN_UTBETALING,
+}
+
 fun Application.helvedUtbetalingFake() {
 
     routing {
@@ -17,8 +32,10 @@ fun Application.helvedUtbetalingFake() {
         put("/utbetalinger/{uid}") {
             call.respond(status = HttpStatusCode.NoContent, "Endret utbetaling er mottatt")
         }
-        get("/utbetaling/{uid}/status") {
-            call.respond(status = HttpStatusCode.OK, "SENDT_TIL_OPPDRAG")
+        get("/utbetalinger/{uid}/status") {
+            val uid = call.parameters["uid"]
+            println("Finn utbetaling for $uid")
+            call.respond(status = HttpStatusCode.OK, OppdragStatusDto(status = OppdragStatus.KVITTERT_OK))
         }
     }
 
