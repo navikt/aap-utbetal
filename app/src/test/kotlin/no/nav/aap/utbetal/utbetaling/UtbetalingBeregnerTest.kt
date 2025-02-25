@@ -10,7 +10,6 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -49,21 +48,21 @@ class UtbetalingBeregnerTest {
         verifiserNyPeriode(perioder[3], 500)
     }
 
-    private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) =
+    private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.UENDRET, utbetalingsperiode, beløp)
 
 
-    private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) =
+    private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.ENDRET, utbetalingsperiode, beløp)
 
 
-    private fun verifiserNyPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Long) =
+    private fun verifiserNyPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.NY, utbetalingsperiode, beløp)
 
 
-    private fun verifiserPeriode(utbetalingsperiodeType: UtbetalingsperiodeType, utbetalingsperiode: Utbetalingsperiode, beløp: Long) {
-        assertTrue(utbetalingsperiode.utbetalingsperiodeType == utbetalingsperiodeType)
-        assertThat(utbetalingsperiode.detaljer.dagsats).isEqualTo(Beløp(beløp))
+    private fun verifiserPeriode(utbetalingsperiodeType: UtbetalingsperiodeType, utbetalingsperiode: Utbetalingsperiode, beløp: Int) {
+        assertThat(utbetalingsperiode.utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
+        assertThat(utbetalingsperiode.beløp).isEqualTo(beløp.toUInt())
     }
 
 

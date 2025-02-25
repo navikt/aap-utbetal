@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.utbetaling
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
@@ -44,7 +45,8 @@ class UtbetalingBeregner {
                         periode,
                         Utbetalingsperiode(
                             periode = periode,
-                            detaljer = høyre.verdi,
+                            beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
                             utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET
                         )
                     )
@@ -53,7 +55,8 @@ class UtbetalingBeregner {
                     periode,
                     Utbetalingsperiode(
                         periode = periode,
-                        detaljer = høyre.verdi,
+                        beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                        fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
                         utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET
                     )
                 )
@@ -63,7 +66,8 @@ class UtbetalingBeregner {
                     periode,
                     Utbetalingsperiode(
                         periode = periode,
-                        detaljer = høyre.verdi,
+                        beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                        fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
                         utbetalingsperiodeType = UtbetalingsperiodeType.NY
                     )
                 )
@@ -76,5 +80,7 @@ class UtbetalingBeregner {
             }
         }
     }
+
+    private fun Beløp.tilUInt() = verdi.toBigInteger().toInt().toUInt()
 
 }

@@ -1,0 +1,38 @@
+
+DROP TABLE UTBETALINGSPERIODE;
+DROP TABLE UTBETALING;
+
+-- Plan for utbetaling
+CREATE TABLE UTBETALING
+(
+    ID                      BIGSERIAL           NOT NULL PRIMARY KEY,
+    UTBETALING_REF          uuid                NOT NULL,
+    SAK_UTBETALING_ID       BIGINT              NOT NULL REFERENCES SAK_UTBETALING (ID),
+    TILKJENT_YTELSE_ID      BIGINT              NOT NULL REFERENCES TILKJENT_YTELSE (ID),
+    UTBETALING_OPPRETTET    TIMESTAMP           NOT NULL,
+    UTBETALING_ENDRET       TIMESTAMP,
+    UTBETALING_STATUS       VARCHAR(20)         NOT NULL
+);
+
+-- Periode for en utbetaling
+CREATE TABLE UTBETALINGSPERIODE
+(
+    ID                      BIGSERIAL       NOT NULL PRIMARY KEY,
+    UTBETALING_ID           BIGINT          NOT NULL REFERENCES UTBETALING (ID),
+    PERIODE                 DATERANGE       NOT NULL,
+    BELOP                   INT             NOT NULL,
+    FASTSATT_DAGSATS        INT             NOT NULL,
+    UTBETALINGSPERIODE_TYPE VARCHAR(20)     NOT NULL
+
+);
+
+
+CREATE TABLE UTBETALING_AVVENT
+(
+    ID                      BIGSERIAL       NOT NULL PRIMARY KEY,
+    UTBETALING_ID           BIGINT          NOT NULL,
+    PERIODE                 DATERANGE       NOT NULL,
+    OVERFORES               DATE            NOT NULL,
+    ARSAK                   VARCHAR(20),
+    FEILREGISTRERING        BOOLEAN         NOT NULL
+);

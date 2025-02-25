@@ -1,7 +1,7 @@
 package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
@@ -15,13 +15,14 @@ data class Utbetaling(
     val utbetalingOversendt: LocalDateTime,
     val utbetalingBekreftet: LocalDateTime? = null,
     val utbetalingStatus: UtbetalingStatus,
-    val perioder: List<Utbetalingsperiode>
+    val perioder: List<Utbetalingsperiode>,
+    val avvent: Avvent? = null,
 )
 
 data class Utbetalingsperiode(
     val id: Long? = null,
     val periode: Periode,
-    val detaljer: YtelseDetaljer,
+    val beløp: UInt,
+    val fastsattDagsats: UInt,
     val utbetalingsperiodeType: UtbetalingsperiodeType
 )
-

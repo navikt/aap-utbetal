@@ -34,15 +34,7 @@ private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
     UtbetalingsperiodeDto(
         fom = this.periode.fom,
         tom = this.periode.tom,
-        redusertDagsats = this.detaljer.redusertDagsats.verdi(),
-        dagsats = this.detaljer.dagsats.verdi(),
-        gradering = this.detaljer.gradering.prosentverdi(),
-        grunnlag = this.detaljer.grunnlag.verdi(),
-        grunnlagsfaktor = this.detaljer.grunnlagsfaktor.verdi(),
-        grunnbeløp = this.detaljer.grunnbeløp.verdi(),
-        antallBarn = this.detaljer.antallBarn,
-        barnetilleggsats = this.detaljer.barnetilleggsats.verdi(),
-        barnetillegg = this.detaljer.barnetillegg.verdi(),
-        utbetalingsperiodeType = this.utbetalingsperiodeType,
-        ventedagerSamordning = this.detaljer.ventedagerSamordning,
+        beløp = this.beløp,
+        fastsattDagsats = this.fastsattDagsats,
+        utbetalingsperiodeType = this.utbetalingsperiodeType
     )

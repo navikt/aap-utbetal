@@ -1,6 +1,5 @@
 package no.nav.aap.utbetaling
 
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -20,17 +19,9 @@ enum class UtbetalingStatus {
 data class UtbetalingsperiodeDto(
     val fom: LocalDate,
     val tom: LocalDate,
-    val redusertDagsats: BigDecimal,
-    val dagsats: BigDecimal,
-    val gradering: Int,
-    val grunnlag: BigDecimal,
-    val grunnlagsfaktor: BigDecimal,
-    val grunnbeløp: BigDecimal,
-    val antallBarn: Int,
-    val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal,
-    val utbetalingsperiodeType: UtbetalingsperiodeType,
-    val ventedagerSamordning: Boolean
+    val beløp: UInt,
+    val fastsattDagsats: UInt,
+    val utbetalingsperiodeType: UtbetalingsperiodeType
 )
 
 enum class UtbetalingsperiodeType {

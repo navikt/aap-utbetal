@@ -53,11 +53,6 @@ class StressTest {
         println("Oppretter 1000 utbetalingsjobber: $msOpprettUtbetalingsjobber")
     }
 
-    private fun List<UtbetalingsperiodeDto>.sjekkPeriode(index :Int, beløp: Long, utbetalingsperiodeType: UtbetalingsperiodeType) {
-        Assertions.assertThat(this[index].redusertDagsats).isEqualTo(Beløp(beløp).verdi())
-        Assertions.assertThat(this[index].utbetalingsperiodeType).isEqualTo(utbetalingsperiodeType)
-    }
-
     private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): FørstegangTilkjentYtelseDto {
         val perioder = (0 until antallPerioder).map {
             TilkjentYtelsePeriodeDto(
