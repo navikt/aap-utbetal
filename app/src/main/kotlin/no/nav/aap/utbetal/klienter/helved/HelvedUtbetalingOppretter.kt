@@ -1,70 +1,39 @@
 package no.nav.aap.utbetal.klienter.helved
 
-import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
-import no.nav.aap.komponenter.tidslinje.Tidslinje
-import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.utbetal.felles.YtelseDetaljer
-import no.nav.aap.utbetal.felles.finnHelger
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import java.time.LocalDate
 
 class HelvedUtbetalingOppretter {
 
-    fun opprettUtbetaling(tilkjentYtelse: TilkjentYtelse, periode: Periode): Utbetaling {
-        val helger = periode.finnHelger()
-        val ytelseTidslinje = tilkjentYtelse.tilTidslinje()
-        val klippetYtelseTidslinje = ytelseTidslinje.disjoint(periode)
-        val helgerTidslinje = helger.tilTidslinje()
-        val klippetYtelseTidslinjeUtenHelger = klippetYtelseTidslinje.kombiner(helgerTidslinje, StandardSammenslåere.minus())
+    fun opprettUtbetaling(utbetaling: no.nav.aap.utbetal.utbetaling.Utbetaling): Utbetaling {
 
         return Utbetaling(
-            sakId = tilkjentYtelse.saksnummer.toString(),
-            behandlingId = tilkjentYtelse.behandlingsreferanse.toBase64(),
-            personident = tilkjentYtelse.personIdent,
-            vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt,
-            beslutterId = tilkjentYtelse.beslutterId,
-            saksbehandlerId = tilkjentYtelse.saksbehandlerId,
-            perioder = klippetYtelseTidslinjeUtenHelger.tilUtbetalingsperioder()
+            sakId = utbetaling.saksnummer.toString(),
+            behandlingId = utbetaling.behandlingsreferanse.toBase64(),
+            personident = utbetaling.personIdent,
+            vedtakstidspunkt = utbetaling.vedtakstidspunkt,
+            beslutterId = utbetaling.beslutterId,
+            saksbehandlerId = utbetaling.saksbehandlerId,
+            perioder = utbetaling.perioder.tilUtbetalingsperioder()
         )
     }
 
-    private fun Tidslinje<YtelseDetaljer>.tilUtbetalingsperioder(): List<Utbetalingsperiode> {
+    private fun List<no.nav.aap.utbetal.utbetaling.Utbetalingsperiode>.tilUtbetalingsperioder(): List<Utbetalingsperiode> {
         val utbetalingsperioder = mutableListOf<Utbetalingsperiode>()
-        this.forEach { periode ->
-            val detaljer = periode.verdi
-            (periode.fom()..periode.tom()).iterator().forEach { dato ->
+        this.forEach { utbetalingsperiode ->
+            val periode = utbetalingsperiode.periode
+            (periode.fom..periode.tom).iterator().forEach { dato ->
                 utbetalingsperioder.add(
                     Utbetalingsperiode(
                         fom = dato,
                         tom = dato,
-                        beløp = detaljer.redusertDagsats.toUint(),
-                        fastsattDagsats = detaljer.dagsats.toUint(),
+                        beløp = utbetalingsperiode.beløp,
+                        fastsattDagsats = utbetalingsperiode.fastsattDagsats,
                     )
                 )
             }
         }
         return utbetalingsperioder
     }
-
-    private fun TilkjentYtelse.tilTidslinje() =
-        Tidslinje(this.perioder.map { periode ->
-            Segment<YtelseDetaljer>(
-                periode.periode,
-                periode.detaljer
-            )
-        })
-
-    private fun List<Periode>.tilTidslinje() =
-        Tidslinje(this.map { periode ->
-            Segment<Unit>(
-                periode,
-                Unit
-            )
-        })
-
-    private fun Beløp.toUint() = verdi.toInt().toUInt()
 
     private operator fun ClosedRange<LocalDate>.iterator() : Iterator<LocalDate>{
         return object: Iterator<LocalDate> {

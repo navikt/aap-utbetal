@@ -2,14 +2,11 @@ package no.nav.aap.utbetal.klient.helved
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.komponenter.verdityper.GUnit
-import no.nav.aap.komponenter.verdityper.Prosent
-import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.Utbetalingsperiode
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
+import no.nav.aap.utbetal.utbetaling.Utbetaling
+import no.nav.aap.utbetaling.UtbetalingStatus
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -20,21 +17,44 @@ class HelvedUtbetalingOppretterTest {
 
     @Test
     fun `Vanlig 14 dagers utbetaling`() {
-        val tilkjentYtelse = opprettTilkjentYtelse(
+        val utbetaling = Utbetaling(
             saksnummer = Saksnummer("123"),
-            behandlingRef = UUID.randomUUID(),
-            forrigeBehandlingRef = null,
-            beløp = Beløp(1000),
-            periode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31))
+            behandlingsreferanse = UUID.randomUUID(),
+            utbetalingRef = UUID.randomUUID(),
+            sakUtbetalingId = 123L,
+            tilkjentYtelseId = 456L,
+            personIdent = "12345612345",
+            vedtakstidspunkt = LocalDateTime.now(),
+            beslutterId = "abc1234",
+            saksbehandlerId = "abc4321",
+            utbetalingOversendt = LocalDateTime.now(),
+            utbetalingStatus = UtbetalingStatus.OPPRETTET,
+            perioder = listOf(
+                no.nav.aap.utbetal.utbetaling.Utbetalingsperiode(
+                    periode = Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 10)),
+                    beløp = 1000.toUInt(),
+                    fastsattDagsats = 1000.toUInt(),
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                ),
+                no.nav.aap.utbetal.utbetaling.Utbetalingsperiode(
+                    periode = Periode(LocalDate.of(2025, 1, 13), LocalDate.of(2025, 1, 17)),
+                    beløp = 1000.toUInt(),
+                    fastsattDagsats = 1000.toUInt(),
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                ),
+                no.nav.aap.utbetal.utbetaling.Utbetalingsperiode(
+                    periode = Periode(LocalDate.of(2025, 1, 20), LocalDate.of(2025, 1, 21)),
+                    beløp = 1000.toUInt(),
+                    fastsattDagsats = 1000.toUInt(),
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                )
+            )
         )
 
-        val utbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(
-            tilkjentYtelse = tilkjentYtelse,
-            periode = Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 21))
-        )
+        val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
-        assertThat(utbetaling.perioder).hasSize(10)
-        val perioder = utbetaling.perioder
+        assertThat(helvedUtbetaling.perioder).hasSize(10)
+        val perioder = helvedUtbetaling.perioder
         perioder.sjekkBeløp(0, LocalDate.of(2025, 1, 8), 1000.toUInt())
         perioder.sjekkBeløp(1, LocalDate.of(2025, 1, 9), 1000.toUInt())
         perioder.sjekkBeløp(2, LocalDate.of(2025, 1, 10), 1000.toUInt())
@@ -53,40 +73,6 @@ class HelvedUtbetalingOppretterTest {
         assertThat(periode.tom).isEqualTo(dato)
         assertThat(this[index].beløp).isEqualTo(beløp)
         assertThat(this[index].fastsattDagsats).isEqualTo(beløp)
-    }
-
-    private fun opprettTilkjentYtelse(
-        saksnummer: Saksnummer,
-        behandlingRef: UUID,
-        forrigeBehandlingRef: UUID?,
-        beløp: Beløp,
-        periode: Periode
-    ): TilkjentYtelse {
-        val periode = TilkjentYtelsePeriode(
-            periode = periode,
-            YtelseDetaljer(
-                gradering = Prosent.Companion.`0_PROSENT`,
-                dagsats = beløp,
-                grunnlag = beløp,
-                grunnbeløp = Beløp(100000L),
-                antallBarn = 0,
-                barnetillegg = Beløp(0L),
-                grunnlagsfaktor = GUnit("0.008"),
-                barnetilleggsats = Beløp(36L),
-                redusertDagsats = beløp,
-                ventedagerSamordning = false,
-            )
-        )
-        return TilkjentYtelse(
-            saksnummer = saksnummer,
-            behandlingsreferanse = behandlingRef,
-            forrigeBehandlingsreferanse = forrigeBehandlingRef,
-            personIdent = "12345612345",
-            vedtakstidspunkt = LocalDateTime.now(),
-            beslutterId = "testbruker1",
-            saksbehandlerId = "testbruker2",
-            perioder = listOf(periode)
-        )
     }
 
 }

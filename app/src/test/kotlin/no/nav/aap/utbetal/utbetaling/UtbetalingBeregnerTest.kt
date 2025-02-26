@@ -23,29 +23,34 @@ class UtbetalingBeregnerTest {
         val start = LocalDate.of(2025, 1, 1)
         val ty = opprettTilkjentYtelse(start, 1000, 1100, 1200)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, null, ty)
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, null, Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 14)))
 
         val perioder = utbetaling.perioder
         assertThat(perioder.size).isEqualTo(3)
         verifiserNyPeriode(perioder[0], 1000)
-        verifiserNyPeriode(perioder[1], 1100)
-        verifiserNyPeriode(perioder[2], 1200)
+        verifiserNyPeriode(perioder[1], 1000)
+        verifiserNyPeriode(perioder[2], 1000)
     }
 
     @Test
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
-        val ty1 = opprettTilkjentYtelse(start, 1000, 1000, 1000)
-        val ty2 = opprettTilkjentYtelse(start, 1000, 600, 1000, 500)
+        val forrigeTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 600, 500)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty1, ty2)
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, forrigeTilkjentYtelse, Periode(LocalDate.of(2025, 1, 15), LocalDate.of(2025, 2, 25)))
 
         val perioder = utbetaling.perioder
-        assertThat(perioder.size).isEqualTo(4)
+        assertThat(perioder.size).isEqualTo(9)
         verifiserUendretPeriode(perioder[0], 1000)
-        verifiserEndretPeriode(perioder[1], 600)
+        verifiserUendretPeriode(perioder[1], 1000)
         verifiserUendretPeriode(perioder[2], 1000)
-        verifiserNyPeriode(perioder[3], 500)
+        verifiserEndretPeriode(perioder[3], 600)
+        verifiserEndretPeriode(perioder[4], 600)
+        verifiserEndretPeriode(perioder[5], 600)
+        verifiserNyPeriode(perioder[6], 500)
+        verifiserNyPeriode(perioder[7], 500)
+        verifiserNyPeriode(perioder[8], 500)
     }
 
     private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =

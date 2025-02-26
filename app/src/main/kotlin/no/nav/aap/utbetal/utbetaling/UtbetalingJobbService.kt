@@ -4,11 +4,12 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
+import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 
 class UtbetalingJobbService(private val connection: DBConnection) {
 
@@ -17,13 +18,21 @@ class UtbetalingJobbService(private val connection: DBConnection) {
     fun opprettUtbetalingJobb(saksnummer: String, behandlingsreferanse: UUID, periode: Periode) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
         FlytJobbRepository(connection).leggTil(
-            JobbInput(OverførTilØkonomiJobbUtfører)
+            JobbInput(OpprettUtbetalingUtfører)
                 .medParameter("saksnummer", saksnummer)
                 .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
                 .medParameter("fom", periode.fom.toString())
                 .medParameter("tom", periode.tom.toString())
         )
     }
+
+    fun overførUtbetalingJobb(utbetalingId: Long) {
+        log.info("Oppretter jobb for å overføre utbetaling til økonomi for utbetalingId: $utbetalingId")
+        FlytJobbRepository(connection).leggTil(
+            JobbInput(OverførTilØkonomiJobbUtfører).medParameter("utbetalingId", utbetalingId.toString())
+        )
+    }
+
 
     fun opprettSjekkKvitteringJobb(utbetalingId: Long) {
         log.info("Oppretter jobb for å sjekke status på utbetaling: $utbetalingId")

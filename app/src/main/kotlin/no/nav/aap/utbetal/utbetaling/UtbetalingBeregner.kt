@@ -2,9 +2,12 @@ package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
 import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
@@ -13,20 +16,37 @@ import java.util.UUID
 
 class UtbetalingBeregner {
 
-    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, forrigeTilkjentYtelse: TilkjentYtelse?, nyTilkjentYtelse: TilkjentYtelse): Utbetaling {
-        val forrigeTidslinje = forrigeTilkjentYtelse?.tilTidslinje() ?: Tidslinje()
-        val nyTidslinje = nyTilkjentYtelse.tilTidslinje()
+    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, periode: Periode): Utbetaling {
+        val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periode)
+        val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periode) else Tidslinje<YtelseDetaljer>()
 
-        val utbetalingerTidslinje = forrigeTidslinje.kombiner(nyTidslinje, prioriterHøyreSideCrossJoinMedEndring())
+        // Konverter til utbetalingsperioder og legg på utbetalingsperiodeType
+        val utbetalingerTidslinje = klippetForrigeTilkjentYtelseTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring())
         val utbetalingsperioder = utbetalingerTidslinje.segmenter().map { it.verdi }
         return Utbetaling(
+            saksnummer = nyTilkjentYtelse.saksnummer,
+            behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
             utbetalingRef = UUID.randomUUID(),
             sakUtbetalingId = sakUtbetalingId,
             tilkjentYtelseId = nyTilkjentYtelse.id!!,
+            personIdent = nyTilkjentYtelse.personIdent,
+            vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
+            beslutterId = nyTilkjentYtelse.beslutterId,
+            saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
             utbetalingOversendt = LocalDateTime.now(),
             utbetalingStatus = UtbetalingStatus.OPPRETTET,
             perioder = utbetalingsperioder,
         )
+    }
+
+
+    private fun klippPeriodeOgFjernHelger(tilkjentYtelse: TilkjentYtelse, periode: Periode): Tidslinje<YtelseDetaljer> {
+
+        val helger = periode.finnHelger()
+        val ytelseTidslinje = tilkjentYtelse.tilTidslinje()
+        val klippetYtelseTidslinje = ytelseTidslinje.disjoint(periode)
+        val helgerTidslinje = helger.tilTidslinje()
+        return klippetYtelseTidslinje.kombiner(helgerTidslinje, StandardSammenslåere.minus())
     }
 
     private fun TilkjentYtelse.tilTidslinje() =
@@ -34,6 +54,14 @@ class UtbetalingBeregner {
             Segment<YtelseDetaljer>(
                 periode.periode,
                 periode.detaljer
+            )
+        })
+
+    private fun List<Periode>.tilTidslinje() =
+        Tidslinje(this.map { periode ->
+            Segment<Unit>(
+                periode,
+                Unit
             )
         })
 

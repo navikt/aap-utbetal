@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.utbetaling.UtbetalingStatus
@@ -85,9 +86,15 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val hentUtbetalingSql = """
             SELECT 
                 ID,
+                SAKSNUMMER,
+                BEHANDLING_REF,
                 UTBETALING_REF,
                 SAK_UTBETALING_ID,
                 TILKJENT_YTELSE_ID,
+                PERSON_IDENT,
+                VEDTAKSTIDSPUNKT,
+                BESLUTTER_IDENT,
+                SAKSBEHANDLER_IDENT,
                 UTBETALING_OVERSENDT,
                 UTBETALING_BEKREFTET,
                 UTBETALING_STATUS
@@ -106,16 +113,21 @@ class UtbetalingRepository(private val connection: DBConnection) {
     private fun mapUtbetaling(row: Row): Utbetaling {
         val utbetaling = Utbetaling(
             id = row.getLong("ID"),
+            saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
+            behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
             utbetalingRef = row.getUUID("UTBETALING_REF"),
             sakUtbetalingId = row.getLong("SAK_UTBETALING_ID"),
             tilkjentYtelseId = row.getLong("TILKJENT_YTELSE_ID"),
+            personIdent = row.getString("PERSON_IDENT"),
+            vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
+            beslutterId = row.getString("BESLUTTER_IDENT"),
+            saksbehandlerId = row.getString("SAKSBEHANDLER_IDENT"),
             utbetalingOversendt = row.getLocalDateTime("UTBETALING_OVERSENDT"),
             utbetalingBekreftet = row.getLocalDateTimeOrNull("UTBETALING_BEKREFTET"),
             utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
             perioder = listOf()
         )
-        utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
-        return utbetaling
+        return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
     }
 
     private fun hentUtbetalingsperioder(utbetalingId: Long): List<Utbetalingsperiode> {

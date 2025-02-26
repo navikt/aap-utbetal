@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetaling.UtbetalingStatus
@@ -9,9 +10,15 @@ import java.util.UUID
 
 data class Utbetaling(
     val id: Long? = null,
+    val saksnummer: Saksnummer,
+    val behandlingsreferanse: UUID,
     val utbetalingRef: UUID,
     val sakUtbetalingId: Long,
     val tilkjentYtelseId: Long,
+    val personIdent: String,
+    val vedtakstidspunkt: LocalDateTime,
+    val beslutterId: String,
+    val saksbehandlerId: String,
     val utbetalingOversendt: LocalDateTime,
     val utbetalingBekreftet: LocalDateTime? = null,
     val utbetalingStatus: UtbetalingStatus,
