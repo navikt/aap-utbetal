@@ -7,7 +7,7 @@ val utsjekkVersion = "1.0_20241216161508_0b702d7"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.1.0"
+    id("io.ktor.plugin") version "3.1.1"
 }
 
 application {
