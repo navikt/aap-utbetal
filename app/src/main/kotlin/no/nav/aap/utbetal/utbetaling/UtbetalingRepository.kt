@@ -13,17 +13,35 @@ class UtbetalingRepository(private val connection: DBConnection) {
     fun lagre(utbetaling: Utbetaling): Long {
         var insertUtbetalingSql = """
             INSERT INTO UTBETALING
-                (UTBETALING_REF, SAK_UTBETALING_ID, TILKJENT_YTELSE_ID, UTBETALING_OVERSENDT, UTBETALING_STATUS) 
-                VALUES (?, ?, ?, ?, ?)
+                (
+                    SAKSNUMMER,
+                    BEHANDLING_REF,
+                    UTBETALING_REF,
+                    SAK_UTBETALING_ID,
+                    TILKJENT_YTELSE_ID,
+                    PERSON_IDENT,
+                    VEDTAKSTIDSPUNKT,
+                    BESLUTTER_IDENT,
+                    SAKSBEHANDLER_IDENT,
+                    UTBETALING_OPPRETTET,
+                    UTBETALING_STATUS
+                ) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val utbetalingId = connection.executeReturnKey(insertUtbetalingSql) {
             setParams {
-                setUUID(1, utbetaling.utbetalingRef)
-                setLong(2, utbetaling.sakUtbetalingId)
-                setLong(3, utbetaling.tilkjentYtelseId)
-                setLocalDateTime(4, LocalDateTime.now())
-                setString(5, "SENDT")
+                setString(1, utbetaling.saksnummer.toString())
+                setUUID(2, utbetaling.behandlingsreferanse)
+                setUUID(3, utbetaling.utbetalingRef)
+                setLong(4, utbetaling.sakUtbetalingId)
+                setLong(5, utbetaling.tilkjentYtelseId)
+                setString(6, utbetaling.personIdent)
+                setLocalDateTime(7, utbetaling.vedtakstidspunkt)
+                setString(8, utbetaling.beslutterId)
+                setString(9, utbetaling.saksbehandlerId)
+                setLocalDateTime(10, LocalDateTime.now())
+                setString(11, UtbetalingStatus.OPPRETTET.name)
             }
         }
 
@@ -60,11 +78,17 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val hentUtbetalingerSql = """
             SELECT 
                 U.ID,
+                U.SAKSNUMMER,
+                U.BEHANDLING_REF,
                 U.UTBETALING_REF,
                 U.SAK_UTBETALING_ID,
                 U.TILKJENT_YTELSE_ID,
-                U.UTBETALING_OVERSENDT,
-                U.UTBETALING_BEKREFTET,
+                U.PERSON_IDENT,
+                U.VEDTAKSTIDSPUNKT,
+                U.BESLUTTER_IDENT,
+                U.SAKSBEHANDLER_IDENT,
+                U.UTBETALING_OPPRETTET,
+                U.UTBETALING_ENDRET,
                 U.UTBETALING_STATUS
             FROM 
                 UTBETALING U,
@@ -95,8 +119,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 VEDTAKSTIDSPUNKT,
                 BESLUTTER_IDENT,
                 SAKSBEHANDLER_IDENT,
-                UTBETALING_OVERSENDT,
-                UTBETALING_BEKREFTET,
+                UTBETALING_OPPRETTET,
+                UTBETALING_ENDRET,
                 UTBETALING_STATUS
             FROM 
                 UTBETALING
@@ -122,8 +146,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
             vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
             beslutterId = row.getString("BESLUTTER_IDENT"),
             saksbehandlerId = row.getString("SAKSBEHANDLER_IDENT"),
-            utbetalingOversendt = row.getLocalDateTime("UTBETALING_OVERSENDT"),
-            utbetalingBekreftet = row.getLocalDateTimeOrNull("UTBETALING_BEKREFTET"),
+            utbetalingOversendt = row.getLocalDateTime("UTBETALING_OPPRETTET"),
+            utbetalingEndret = row.getLocalDateTimeOrNull("UTBETALING_ENDRET"),
             utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
             perioder = listOf()
         )

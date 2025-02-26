@@ -45,7 +45,7 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return OverførTilØkonomiJobbUtfører(connection)
+            return OpprettUtbetalingUtfører(connection)
         }
 
         override fun type(): String {

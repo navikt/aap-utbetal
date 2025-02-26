@@ -32,6 +32,7 @@ import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.tilkjentytelse.førstegangsTilkjentYtelse
@@ -107,7 +108,7 @@ fun Application.motor(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        jobber = listOf(OverførTilØkonomiJobbUtfører, SjekkKvitteringFraØkonomiUtfører)
+        jobber = listOf(OpprettUtbetalingUtfører, OverførTilØkonomiJobbUtfører, SjekkKvitteringFraØkonomiUtfører)
     )
 
     dataSource.transaction { dbConnection ->

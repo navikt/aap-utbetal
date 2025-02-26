@@ -35,11 +35,11 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         }
 
         override fun navn(): String {
-            return "Overfør tilkjent ytelse til økonomi"
+            return "Overfør til økonomi"
         }
 
         override fun beskrivelse(): String {
-            return "Overfør tilkjent ytelse til økonomi"
+            return "Overfør til økonomi"
         }
     }
 }

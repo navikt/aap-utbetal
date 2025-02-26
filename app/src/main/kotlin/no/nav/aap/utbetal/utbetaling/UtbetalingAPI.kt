@@ -24,7 +24,7 @@ fun NormalOpenAPIRoute.hent(dataSource: DataSource, prometheus: PrometheusMeterR
 private fun Utbetaling.tilUtbetalingDto(): UtbetalingDto {
     return UtbetalingDto(
         utbetalingOversendt = this.utbetalingOversendt,
-        utbetalingBekreftet = this.utbetalingBekreftet,
+        utbetalingBekreftet = this.utbetalingEndret,
         utbetalingStatus = this.utbetalingStatus,
         perioder = this.perioder.map { it.tilUtbetalingsperiodeDto() }
     )

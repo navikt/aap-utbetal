@@ -20,7 +20,7 @@ data class Utbetaling(
     val beslutterId: String,
     val saksbehandlerId: String,
     val utbetalingOversendt: LocalDateTime,
-    val utbetalingBekreftet: LocalDateTime? = null,
+    val utbetalingEndret: LocalDateTime? = null,
     val utbetalingStatus: UtbetalingStatus,
     val perioder: List<Utbetalingsperiode>,
     val avvent: Avvent? = null,
