@@ -56,7 +56,7 @@ class UtbetalingKlient {
         log.info("Iverksett utbetaling for saksnummer ${utbetaling.sakId}, behandingId ${utbetaling.behandlingId} (${utbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef"))
         val request = PostRequest(body = utbetaling)
-        client.post<Utbetaling, Unit>(iverksettUrl, request)
+        client.post<Utbetaling, Unit>(iverksettUrl, request) { _, _ -> }
     }
 
     fun hentStatus(utbetalingRef: UUID): OppdragStatusDto {

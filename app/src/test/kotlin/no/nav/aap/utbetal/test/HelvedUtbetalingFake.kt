@@ -27,10 +27,10 @@ fun Application.helvedUtbetalingFake() {
 
     routing {
         post("/utbetalinger/{uid}") {
-            call.respond(status = HttpStatusCode.Created, "Utbetalingen er mottatt")
+            call.respond(HttpStatusCode.Created)
         }
         put("/utbetalinger/{uid}") {
-            call.respond(status = HttpStatusCode.NoContent, "Endret utbetaling er mottatt")
+            call.respond(HttpStatusCode.NoContent)
         }
         get("/utbetalinger/{uid}/status") {
             val uid = call.parameters["uid"]
