@@ -20,7 +20,6 @@ class HelvedUtbetalingOppretterTest {
         val utbetaling = Utbetaling(
             saksnummer = Saksnummer("123"),
             behandlingsreferanse = UUID.randomUUID(),
-            utbetalingRef = UUID.randomUUID(),
             sakUtbetalingId = 123L,
             tilkjentYtelseId = 456L,
             personIdent = "12345612345",

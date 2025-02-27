@@ -16,7 +16,6 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 (
                     SAKSNUMMER,
                     BEHANDLING_REF,
-                    UTBETALING_REF,
                     SAK_UTBETALING_ID,
                     TILKJENT_YTELSE_ID,
                     PERSON_IDENT,
@@ -26,22 +25,21 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     UTBETALING_OPPRETTET,
                     UTBETALING_STATUS
                 ) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val utbetalingId = connection.executeReturnKey(insertUtbetalingSql) {
             setParams {
                 setString(1, utbetaling.saksnummer.toString())
                 setUUID(2, utbetaling.behandlingsreferanse)
-                setUUID(3, utbetaling.utbetalingRef)
-                setLong(4, utbetaling.sakUtbetalingId)
-                setLong(5, utbetaling.tilkjentYtelseId)
-                setString(6, utbetaling.personIdent)
-                setLocalDateTime(7, utbetaling.vedtakstidspunkt)
-                setString(8, utbetaling.beslutterId)
-                setString(9, utbetaling.saksbehandlerId)
-                setLocalDateTime(10, LocalDateTime.now())
-                setString(11, UtbetalingStatus.OPPRETTET.name)
+                setLong(3, utbetaling.sakUtbetalingId)
+                setLong(4, utbetaling.tilkjentYtelseId)
+                setString(5, utbetaling.personIdent)
+                setLocalDateTime(6, utbetaling.vedtakstidspunkt)
+                setString(7, utbetaling.beslutterId)
+                setString(8, utbetaling.saksbehandlerId)
+                setLocalDateTime(9, LocalDateTime.now())
+                setString(10, UtbetalingStatus.OPPRETTET.name)
             }
         }
 
@@ -112,7 +110,6 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 ID,
                 SAKSNUMMER,
                 BEHANDLING_REF,
-                UTBETALING_REF,
                 SAK_UTBETALING_ID,
                 TILKJENT_YTELSE_ID,
                 PERSON_IDENT,
@@ -138,9 +135,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val utbetaling = Utbetaling(
             id = row.getLong("ID"),
             saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
-            behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
-            utbetalingRef = row.getUUID("UTBETALING_REF"),
-            sakUtbetalingId = row.getLong("SAK_UTBETALING_ID"),
+            behandlingsreferanse = row.getUUID("BEHANDLING_REF"), sakUtbetalingId = row.getLong("SAK_UTBETALING_ID"),
             tilkjentYtelseId = row.getLong("TILKJENT_YTELSE_ID"),
             personIdent = row.getString("PERSON_IDENT"),
             vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),

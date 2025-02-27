@@ -26,7 +26,6 @@ class UtbetalingBeregner {
         return Utbetaling(
             saksnummer = nyTilkjentYtelse.saksnummer,
             behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-            utbetalingRef = UUID.randomUUID(),
             sakUtbetalingId = sakUtbetalingId,
             tilkjentYtelseId = nyTilkjentYtelse.id!!,
             personIdent = nyTilkjentYtelse.personIdent,

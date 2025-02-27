@@ -12,7 +12,6 @@ data class Utbetaling(
     val id: Long? = null,
     val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
-    val utbetalingRef: UUID,
     val sakUtbetalingId: Long,
     val tilkjentYtelseId: Long,
     val personIdent: String,

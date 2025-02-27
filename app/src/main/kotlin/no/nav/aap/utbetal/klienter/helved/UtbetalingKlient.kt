@@ -4,13 +4,11 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.get
-import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
 import java.net.URI
-import java.util.UUID
 
 data class OppdragStatusDto(
     val status: OppdragStatus,
@@ -52,15 +50,15 @@ class UtbetalingKlient {
     }
     */
 
-    fun iverksett(utbetalingRef: UUID, utbetaling: Utbetaling) {
-        log.info("Iverksett utbetaling for saksnummer ${utbetaling.sakId}, behandingId ${utbetaling.behandlingId} (${utbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
-        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef"))
-        val request = PostRequest(body = utbetaling)
+    fun iverksett(utbetalingId: Long, helvedUtbetaling: Utbetaling) {
+        log.info("Iverksett utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingId $utbetalingId")
+        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingId"))
+        val request = PostRequest(body = helvedUtbetaling)
         client.post<Utbetaling, Unit>(iverksettUrl, request) { _, _ -> }
     }
 
-    fun hentStatus(utbetalingRef: UUID): OppdragStatusDto {
-        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef/status"))
+    fun hentStatus(utbetalingId: Long): OppdragStatusDto {
+        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingId/status"))
         val request = GetRequest()
         return client.get<OppdragStatusDto>(iverksettUrl, request)!!
     }
