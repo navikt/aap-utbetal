@@ -55,9 +55,10 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     PERIODE,
                     BELOP,           
                     FASTSATT_DAGSATS,
-                    UTBETALINGSPERIODE_TYPE
+                    UTBETALINGSPERIODE_TYPE,
+                    UTBETALINGSDATO
                 )
-                VALUES (?, ?::daterange, ?, ?, ?)
+                VALUES (?, ?::daterange, ?, ?, ?, ?)
         """.trimIndent()
 
         connection.executeBatch(insertUtbetalingsperiodeSql, utbetalingsperioder) {
@@ -67,6 +68,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 setInt(3, it.beløp.toInt())
                 setInt(4, it.fastsattDagsats.toInt())
                 setString(5, it.utbetalingsperiodeType.name)
+                setLocalDate(6, it.utbetalingsdato)
             }
         }
 
@@ -156,7 +158,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 PERIODE,
                 BELOP,
                 FASTSATT_DAGSATS,
-                UTBETALINGSPERIODE_TYPE
+                UTBETALINGSPERIODE_TYPE,
+                UTBETALINGSDATO
             FROM
                 UTBETALINGSPERIODE
             WHERE
@@ -174,7 +177,9 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     periode = row.getPeriode("PERIODE"),
                     beløp = row.getInt("BELOP").toUInt(),
                     fastsattDagsats = row.getInt("FASTSATT_DAGSATS").toUInt(),
-                    utbetalingsperiodeType = UtbetalingsperiodeType.valueOf(row.getString("UTBETALINGSPERIODE_TYPE"))
+                    utbetalingsperiodeType = UtbetalingsperiodeType.valueOf(row.getString("UTBETALINGSPERIODE_TYPE")),
+                    utbetalingsdato = row.getLocalDate("UTBETALINGSDATO")
+
                 )
             }
         }

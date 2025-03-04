@@ -1,7 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
@@ -15,14 +14,12 @@ class UtbetalingJobbService(private val connection: DBConnection) {
 
     private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
 
-    fun opprettUtbetalingJobb(saksnummer: String, behandlingsreferanse: UUID, periode: Periode) {
+    fun opprettUtbetalingJobb(saksnummer: String, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
         FlytJobbRepository(connection).leggTil(
             JobbInput(OpprettUtbetalingUtfører)
                 .medParameter("saksnummer", saksnummer)
                 .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
-                .medParameter("fom", periode.fom.toString())
-                .medParameter("tom", periode.tom.toString())
         )
     }
 

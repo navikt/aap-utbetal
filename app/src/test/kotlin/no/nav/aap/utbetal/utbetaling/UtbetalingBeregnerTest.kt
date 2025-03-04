@@ -23,7 +23,7 @@ class UtbetalingBeregnerTest {
         val start = LocalDate.of(2025, 1, 1)
         val ty = opprettTilkjentYtelse(start, 1000, 1100, 1200)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, null, Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 14)))
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, null, LocalDate.of(2025, 1, 14))
 
         val perioder = utbetaling.perioder
         assertThat(perioder.size).isEqualTo(3)
@@ -38,19 +38,22 @@ class UtbetalingBeregnerTest {
         val forrigeTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 1000)
         val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 600, 500)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, forrigeTilkjentYtelse, Periode(LocalDate.of(2025, 1, 15), LocalDate.of(2025, 2, 25)))
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, forrigeTilkjentYtelse, LocalDate.of(2025, 2, 25))
 
         val perioder = utbetaling.perioder
-        assertThat(perioder.size).isEqualTo(9)
+        assertThat(perioder.size).isEqualTo(12)
         verifiserUendretPeriode(perioder[0], 1000)
         verifiserUendretPeriode(perioder[1], 1000)
         verifiserUendretPeriode(perioder[2], 1000)
-        verifiserEndretPeriode(perioder[3], 600)
-        verifiserEndretPeriode(perioder[4], 600)
-        verifiserEndretPeriode(perioder[5], 600)
-        verifiserNyPeriode(perioder[6], 500)
-        verifiserNyPeriode(perioder[7], 500)
-        verifiserNyPeriode(perioder[8], 500)
+        verifiserUendretPeriode(perioder[3], 1000)
+        verifiserUendretPeriode(perioder[4], 1000)
+        verifiserUendretPeriode(perioder[5], 1000)
+        verifiserEndretPeriode(perioder[6], 600)
+        verifiserEndretPeriode(perioder[7], 600)
+        verifiserEndretPeriode(perioder[8], 600)
+        verifiserNyPeriode(perioder[9], 500)
+        verifiserNyPeriode(perioder[10], 500)
+        verifiserNyPeriode(perioder[11], 500)
     }
 
     private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
@@ -101,6 +104,7 @@ class UtbetalingBeregnerTest {
                 barnetilleggsats = Beløp(36L),
                 redusertDagsats = beløp,
                 ventedagerSamordning = false,
+                utbetalingsdato = tom.plusDays(1),
             )
         )
 }

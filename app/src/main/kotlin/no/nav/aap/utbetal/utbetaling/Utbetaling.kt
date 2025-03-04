@@ -5,6 +5,7 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -30,5 +31,6 @@ data class Utbetalingsperiode(
     val periode: Periode,
     val beløp: UInt,
     val fastsattDagsats: UInt,
-    val utbetalingsperiodeType: UtbetalingsperiodeType
+    val utbetalingsperiodeType: UtbetalingsperiodeType,
+    val utbetalingsdato: LocalDate,
 )

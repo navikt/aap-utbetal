@@ -7,21 +7,7 @@ import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 
-fun FørstegangTilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
-    val perioder = perioder.tilTilkjentYtelsePeriode()
-    return TilkjentYtelse(
-        saksnummer = Saksnummer(this.saksnummer),
-        behandlingsreferanse = this.behandlingsreferanse,
-        forrigeBehandlingsreferanse = null,
-        personIdent = this.personIdent,
-        vedtakstidspunkt = this.vedtakstidspunkt,
-        beslutterId = this.beslutterId,
-        saksbehandlerId = this.saksbehandlerId,
-        perioder = perioder
-    )
-}
-
-fun OppdatertTilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
+fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
     val perioder = perioder.tilTilkjentYtelsePeriode()
     return TilkjentYtelse(
         saksnummer = Saksnummer(this.saksnummer),
@@ -51,6 +37,7 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
                 barnetilleggsats = Beløp(detaljerDto.barnetilleggsats),
                 barnetillegg = Beløp(detaljerDto.barnetillegg),
                 ventedagerSamordning = detaljerDto.ventedagerSamordning,
+                utbetalingsdato = detaljerDto.utbetalingsdato,
             )
         )
     }

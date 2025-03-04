@@ -35,8 +35,7 @@ import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
-import no.nav.aap.utbetal.tilkjentytelse.førstegangsTilkjentYtelse
-import no.nav.aap.utbetal.tilkjentytelse.oppdatertTilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.hent
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -93,8 +92,7 @@ internal fun Application.server(dbConfig: DbConfig) {
     routing {
         authenticate(AZURE) {
             apiRouting {
-                førstegangsTilkjentYtelse(dataSource, prometheus)
-                oppdatertTilkjentYtelse(dataSource, prometheus)
+                tilkjentYtelse(dataSource, prometheus)
                 hent(dataSource, prometheus)
                 motorApi(dataSource)
             }

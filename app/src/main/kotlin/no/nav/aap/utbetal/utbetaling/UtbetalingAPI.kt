@@ -36,5 +36,6 @@ private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
         tom = this.periode.tom,
         beløp = this.beløp,
         fastsattDagsats = this.fastsattDagsats,
-        utbetalingsperiodeType = this.utbetalingsperiodeType
+        utbetalingsperiodeType = this.utbetalingsperiodeType,
+        utbetalingsdato = this.utbetalingsdato
     )

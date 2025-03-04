@@ -5,23 +5,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class FørstegangTilkjentYtelseDto(
+data class TilkjentYtelseDto(
     val saksnummer: String,
     val behandlingsreferanse: UUID,
-    val personIdent: String,
-    val vedtakstidspunkt: LocalDateTime,
-    val førstegangsutbetalingFom: LocalDate,
-    val førstegangsutbetalingTom: LocalDate,
-    val beslutterId: String,
-    val saksbehandlerId: String,
-    val perioder: List<TilkjentYtelsePeriodeDto>
-)
-
-
-data class OppdatertTilkjentYtelseDto(
-    val saksnummer: String,
-    val behandlingsreferanse: UUID,
-    val forrigeBehandlingsreferanse: UUID,
+    val forrigeBehandlingsreferanse: UUID? = null,
     val personIdent: String,
     val vedtakstidspunkt: LocalDateTime,
     val beslutterId: String,
@@ -45,5 +32,6 @@ data class TilkjentYtelseDetaljerDto(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
-    val ventedagerSamordning: Boolean = false
+    val ventedagerSamordning: Boolean = false,
+    val utbetalingsdato: LocalDate
 )

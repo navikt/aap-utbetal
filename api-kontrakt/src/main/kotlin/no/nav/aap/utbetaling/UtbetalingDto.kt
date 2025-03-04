@@ -21,7 +21,8 @@ data class UtbetalingsperiodeDto(
     val tom: LocalDate,
     val beløp: UInt,
     val fastsattDagsats: UInt,
-    val utbetalingsperiodeType: UtbetalingsperiodeType
+    val utbetalingsperiodeType: UtbetalingsperiodeType,
+    val utbetalingsdato: LocalDate
 )
 
 enum class UtbetalingsperiodeType {

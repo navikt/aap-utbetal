@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 

@@ -17,27 +17,23 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
     override fun utfør(input: JobbInput) {
         val saksnummer = input.parameter("saksnummer")
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
-        val fom = LocalDate.parse(input.parameter("fom"))
-        val tom = LocalDate.parse(input.parameter("tom"))
-        val periode = Periode(fom ,tom)
 
         val utbetalingId = opprettUtbetaling(
             saksnummer = Saksnummer(saksnummer),
-            behandlingsreferanse = UUID.fromString(behandlingsreferanse),
-            periode = periode
+            behandlingsreferanse = UUID.fromString(behandlingsreferanse)
         )
 
         UtbetalingJobbService(connection).overførUtbetalingJobb(utbetalingId)
     }
 
-    private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID, periode: Periode): Long {
+    private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID): Long {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
 
 
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, forrigeTilkjentYtelse, periode)
+        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, forrigeTilkjentYtelse, LocalDate.now().minusDays(1)) //TODO: Blir i dag minus en dag riktig?
 
         return UtbetalingRepository(connection).lagre(utbetaling)
     }

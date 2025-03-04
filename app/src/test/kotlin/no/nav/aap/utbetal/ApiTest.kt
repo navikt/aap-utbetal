@@ -14,8 +14,8 @@ import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
-import no.nav.aap.utbetal.tilkjentytelse.FørstegangTilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
@@ -64,7 +64,7 @@ class ApiTest {
 
     }
 
-    private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): FørstegangTilkjentYtelseDto {
+    private fun opprettTilkjentYtelse(antallPerioder: Int, beløp: BigDecimal, startDato: LocalDate): TilkjentYtelseDto {
         val perioder = (0 until antallPerioder).map {
             TilkjentYtelsePeriodeDto(
                 fom = startDato.plusWeeks(it * 2L),
@@ -79,21 +79,22 @@ class ApiTest {
                     grunnlagsfaktor = BigDecimal.valueOf(0.008),
                     barnetilleggsats = BigDecimal.valueOf(36L),
                     redusertDagsats = beløp,
+                    utbetalingsdato = startDato.plusWeeks(it * 2L).plusDays(14)
                 )
             )
         }
         val saksnummer = Random().nextInt(999999999).toString()
-        return FørstegangTilkjentYtelseDto(
+        return TilkjentYtelseDto(
             saksnummer = "$saksnummer",
             behandlingsreferanse = UUID.randomUUID(),
             personIdent = "12345612345",
             vedtakstidspunkt = LocalDateTime.now(),
-            førstegangsutbetalingFom = perioder.first().fom,
-            førstegangsutbetalingTom = perioder.last().tom,
-            "testbruker1", "testbruker2", perioder)
+            beslutterId = "testbruker1",
+            saksbehandlerId = "testbruker2",
+            perioder = perioder)
     }
 
-    private fun postTilkjentYtelse(tilkjentYtelse: FørstegangTilkjentYtelseDto): Unit? {
+    private fun postTilkjentYtelse(tilkjentYtelse: TilkjentYtelseDto): Unit? {
         return client.post(
             URI.create("http://localhost:8080/tilkjentytelse"),
             PostRequest(body = tilkjentYtelse)

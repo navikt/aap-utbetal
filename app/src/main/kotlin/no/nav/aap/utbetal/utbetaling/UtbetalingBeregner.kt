@@ -11,14 +11,16 @@ import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class UtbetalingBeregner {
 
-    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, periode: Periode): Utbetaling {
-        val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periode)
-        val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periode) else Tidslinje<YtelseDetaljer>()
+    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdag: LocalDate): Utbetaling {
+        val periodeSomSkalSendes = finnPeriode(nyTilkjentYtelse, forrigeTilkjentYtelse, sisteUtbetalingsdag)
+        val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periodeSomSkalSendes)
+        val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periodeSomSkalSendes) else Tidslinje<YtelseDetaljer>()
 
         // Konverter til utbetalingsperioder og legg på utbetalingsperiodeType
         val utbetalingerTidslinje = klippetForrigeTilkjentYtelseTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring())
@@ -36,6 +38,13 @@ class UtbetalingBeregner {
             utbetalingStatus = UtbetalingStatus.OPPRETTET,
             perioder = utbetalingsperioder,
         )
+    }
+
+
+    private fun finnPeriode(nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdato: LocalDate): Periode {
+        //TODO: midlertidig kode
+        val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
+        return Periode(min!!,sisteUtbetalingsdato)
     }
 
 
@@ -74,7 +83,8 @@ class UtbetalingBeregner {
                             periode = periode,
                             beløp = høyre.verdi.redusertDagsats.tilUInt(),
                             fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                            utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET
+                            utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET,
+                            utbetalingsdato = høyre.verdi.utbetalingsdato
                         )
                     )
                 }
@@ -84,7 +94,8 @@ class UtbetalingBeregner {
                         periode = periode,
                         beløp = høyre.verdi.redusertDagsats.tilUInt(),
                         fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                        utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET
+                        utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
+                        utbetalingsdato = høyre.verdi.utbetalingsdato
                     )
                 )
             }
@@ -95,7 +106,8 @@ class UtbetalingBeregner {
                         periode = periode,
                         beløp = høyre.verdi.redusertDagsats.tilUInt(),
                         fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                        utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                        utbetalingsperiodeType = UtbetalingsperiodeType.NY,
+                        utbetalingsdato = høyre.verdi.utbetalingsdato
                     )
                 )
             } else {

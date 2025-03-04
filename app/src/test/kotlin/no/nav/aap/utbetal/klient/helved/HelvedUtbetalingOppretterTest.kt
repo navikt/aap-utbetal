@@ -33,19 +33,22 @@ class HelvedUtbetalingOppretterTest {
                     periode = Periode(LocalDate.of(2025, 1, 8), LocalDate.of(2025, 1, 10)),
                     beløp = 1000.toUInt(),
                     fastsattDagsats = 1000.toUInt(),
-                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY,
+                    utbetalingsdato = LocalDate.of(2025, 1, 22),
                 ),
                 no.nav.aap.utbetal.utbetaling.Utbetalingsperiode(
                     periode = Periode(LocalDate.of(2025, 1, 13), LocalDate.of(2025, 1, 17)),
                     beløp = 1000.toUInt(),
                     fastsattDagsats = 1000.toUInt(),
-                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY,
+                    utbetalingsdato = LocalDate.of(2025, 1, 22),
                 ),
                 no.nav.aap.utbetal.utbetaling.Utbetalingsperiode(
                     periode = Periode(LocalDate.of(2025, 1, 20), LocalDate.of(2025, 1, 21)),
                     beløp = 1000.toUInt(),
                     fastsattDagsats = 1000.toUInt(),
-                    utbetalingsperiodeType = UtbetalingsperiodeType.NY
+                    utbetalingsperiodeType = UtbetalingsperiodeType.NY,
+                    utbetalingsdato = LocalDate.of(2025, 1, 22),
                 )
             )
         )

@@ -22,7 +22,9 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
         UtbetalingKlient().iverksett(utbetaling.id!!, helvedUtbetaling)
-        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.id)
+
+//TODO: skal vi sjekke kvitteringer?
+//        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.id)
     }
 
     companion object: Jobb {
