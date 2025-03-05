@@ -1,9 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val ktorVersion = "3.1.1"
-val komponenterVersjon = "1.0.159"
-val behandlingsflytVersjon= "0.0.155"
-val utsjekkVersion = "1.0_20241216161508_0b702d7"
+val komponenterVersjon = "1.0.169"
+val behandlingsflytVersjon= "0.0.184"
 
 plugins {
     id("utbetal.conventions")
@@ -27,9 +26,6 @@ dependencies {
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
     implementation("no.nav:ktor-openapi-generator:1.0.81")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
-    implementation("no.nav.utsjekk.kontrakter:iverksett:$utsjekkVersion")
-    implementation("no.nav.utsjekk.kontrakter:felles:$utsjekkVersion")
-    implementation("no.nav.utsjekk.kontrakter:oppdrag:$utsjekkVersion")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
