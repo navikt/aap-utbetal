@@ -50,7 +50,8 @@ class HelvedUtbetalingOppretterTest {
                     utbetalingsperiodeType = UtbetalingsperiodeType.NY,
                     utbetalingsdato = LocalDate.of(2025, 1, 22),
                 )
-            )
+            ),
+            utbetalingRef = UUID.randomUUID(),
         )
 
         val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)

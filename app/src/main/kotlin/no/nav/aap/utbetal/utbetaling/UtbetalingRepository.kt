@@ -23,9 +23,10 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     BESLUTTER_IDENT,
                     SAKSBEHANDLER_IDENT,
                     UTBETALING_OPPRETTET,
-                    UTBETALING_STATUS
+                    UTBETALING_STATUS,
+                    UTBETALING_REF
                 ) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val utbetalingId = connection.executeReturnKey(insertUtbetalingSql) {
@@ -40,6 +41,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 setString(8, utbetaling.saksbehandlerId)
                 setLocalDateTime(9, LocalDateTime.now())
                 setString(10, UtbetalingStatus.OPPRETTET.name)
+                setUUID(11, utbetaling.utbetalingRef)
             }
         }
 
@@ -120,7 +122,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 SAKSBEHANDLER_IDENT,
                 UTBETALING_OPPRETTET,
                 UTBETALING_ENDRET,
-                UTBETALING_STATUS
+                UTBETALING_STATUS,
+                UTBETALING_REF
             FROM 
                 UTBETALING
             WHERE
@@ -146,7 +149,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
             utbetalingOversendt = row.getLocalDateTime("UTBETALING_OPPRETTET"),
             utbetalingEndret = row.getLocalDateTimeOrNull("UTBETALING_ENDRET"),
             utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
-            perioder = listOf()
+            perioder = listOf(),
+            utbetalingRef = row.getUUID("UTBETALING_REF")
         )
         return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
     }
@@ -185,20 +189,20 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun oppdaterStatus(utbetalingId: Long, status: UtbetalingStatus) {
+    fun oppdaterStatus(utbetalingRef: UUID, status: UtbetalingStatus) {
         val oppdaterStatusSql = """
             UPDATE 
                 UTBETALING 
             SET 
                 UTBETALING_STATUS = ? 
             WHERE 
-                id = ?
+                UTBETALING_REF = ?
         """
 
         connection.execute(oppdaterStatusSql) {
             setParams {
                 setString(1, status.name)
-                setLong(2, utbetalingId)
+                setUUID(2, utbetalingRef)
             }
             setResultValidator { require(it == 1) }
         }

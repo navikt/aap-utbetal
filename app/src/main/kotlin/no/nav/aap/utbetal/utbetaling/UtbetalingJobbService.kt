@@ -31,11 +31,11 @@ class UtbetalingJobbService(private val connection: DBConnection) {
     }
 
 
-    fun opprettSjekkKvitteringJobb(utbetalingId: Long) {
-        log.info("Oppretter jobb for å sjekke status på utbetaling: $utbetalingId")
+    fun opprettSjekkKvitteringJobb(utbetalingRef: UUID) {
+        log.info("Oppretter jobb for å sjekke status på utbetaling: $utbetalingRef")
         FlytJobbRepository(connection).leggTil(
             JobbInput(SjekkKvitteringFraØkonomiUtfører)
-                .medParameter("utbetalingId", utbetalingId.toString())
+                .medParameter("utbetalingRef", utbetalingRef.toString())
         )
     }
 

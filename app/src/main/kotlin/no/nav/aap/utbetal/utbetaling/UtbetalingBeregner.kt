@@ -37,6 +37,7 @@ class UtbetalingBeregner {
             utbetalingOversendt = LocalDateTime.now(),
             utbetalingStatus = UtbetalingStatus.OPPRETTET,
             perioder = utbetalingsperioder,
+            utbetalingRef = UUID.randomUUID(),
         )
     }
 
