@@ -8,6 +8,7 @@ import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -22,6 +23,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
         UtbetalingKlient().iverksett(utbetaling.utbetalingRef, helvedUtbetaling)
+        UtbetalingRepository(connection).oppdaterStatus(utbetaling.utbetalingRef, UtbetalingStatus.SENDT)
 
 //TODO: skal vi sjekke kvitteringer?
 //        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.utbetalingRef)

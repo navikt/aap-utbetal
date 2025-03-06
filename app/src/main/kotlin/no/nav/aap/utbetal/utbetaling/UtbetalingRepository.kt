@@ -40,7 +40,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 setString(7, utbetaling.beslutterId)
                 setString(8, utbetaling.saksbehandlerId)
                 setLocalDateTime(9, LocalDateTime.now())
-                setString(10, UtbetalingStatus.OPPRETTET.name)
+                setString(10, utbetaling.utbetalingStatus.name)
                 setUUID(11, utbetaling.utbetalingRef)
             }
         }

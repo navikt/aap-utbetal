@@ -8,9 +8,12 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingBeregner
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
-import no.nav.aap.utbetal.utbetaling.UtbetalingRepository import java.time.LocalDate
+import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetaling.UtbetalingStatus
+import java.time.LocalDate
 import java.util.UUID
 
 class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfører {
@@ -18,15 +21,17 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
         val saksnummer = input.parameter("saksnummer")
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
 
-        val utbetalingId = opprettUtbetaling(
+        val utbetaling = opprettUtbetaling(
             saksnummer = Saksnummer(saksnummer),
             behandlingsreferanse = UUID.fromString(behandlingsreferanse)
         )
 
-        UtbetalingJobbService(connection).overførUtbetalingJobb(utbetalingId)
+        if (utbetaling.utbetalingStatus != UtbetalingStatus.INGEN_PERIODER) {
+            UtbetalingJobbService(connection).overførUtbetalingJobb(utbetaling.id!!)
+        }
     }
 
-    private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID): Long {
+    private fun opprettUtbetaling(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetaling {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
         val forrigeTilkjentYtelse = nyTilkjentYtelse.forrigeBehandlingsreferanse?.let {tilkjentYtelseRepo.hent(it)}
@@ -35,9 +40,9 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
         val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, forrigeTilkjentYtelse, LocalDate.now().minusDays(1)) //TODO: Blir i dag minus en dag riktig?
 
-        return UtbetalingRepository(connection).lagre(utbetaling)
+        val utbetalingId = UtbetalingRepository(connection).lagre(utbetaling)
+        return utbetaling.copy(id = utbetalingId)
     }
-
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
