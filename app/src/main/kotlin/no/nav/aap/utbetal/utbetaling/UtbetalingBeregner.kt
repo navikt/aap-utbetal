@@ -18,13 +18,17 @@ import java.util.UUID
 class UtbetalingBeregner {
 
     fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdag: LocalDate): Utbetaling {
-        val periodeSomSkalSendes = finnPeriode(nyTilkjentYtelse, forrigeTilkjentYtelse, sisteUtbetalingsdag)
-        val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periodeSomSkalSendes)
-        val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periodeSomSkalSendes) else Tidslinje<YtelseDetaljer>()
+        val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse, forrigeTilkjentYtelse, sisteUtbetalingsdag)
+        val utbetalingsperioder = if (periodeSomSkalSendes == null) {
+            listOf()
+        } else {
+            val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periodeSomSkalSendes)
+            val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periodeSomSkalSendes) else Tidslinje<YtelseDetaljer>()
 
-        // Konverter til utbetalingsperioder og legg på utbetalingsperiodeType
-        val utbetalingerTidslinje = klippetForrigeTilkjentYtelseTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring())
-        val utbetalingsperioder = utbetalingerTidslinje.segmenter().map { it.verdi }
+            // Konverter til utbetalingsperioder og legg på utbetalingsperiodeType
+            val utbetalingerTidslinje = klippetForrigeTilkjentYtelseTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring())
+            utbetalingerTidslinje.segmenter().map { it.verdi }
+        }
         return Utbetaling(
             saksnummer = nyTilkjentYtelse.saksnummer,
             behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
@@ -35,17 +39,21 @@ class UtbetalingBeregner {
             beslutterId = nyTilkjentYtelse.beslutterId,
             saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
             utbetalingOversendt = LocalDateTime.now(),
-            utbetalingStatus = UtbetalingStatus.OPPRETTET,
+            utbetalingStatus = if (utbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
             perioder = utbetalingsperioder,
             utbetalingRef = UUID.randomUUID(),
         )
     }
 
 
-    private fun finnPeriode(nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdato: LocalDate): Periode {
+    private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdato: LocalDate): Periode? {
         //TODO: midlertidig kode
         val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
-        return Periode(min!!,sisteUtbetalingsdato)
+        return if (min == null || min.isAfter(sisteUtbetalingsdato)) {
+            null
+        } else {
+            Periode(min, sisteUtbetalingsdato)
+        }
     }
 
 
