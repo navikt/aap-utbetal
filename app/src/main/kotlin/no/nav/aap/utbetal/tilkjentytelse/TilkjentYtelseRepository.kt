@@ -172,7 +172,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     detaljer = YtelseDetaljer(
                         dagsats = Beløp(row.getBigDecimal("DAGSATS")),
                         grunnlag = Beløp(row.getBigDecimal("GRUNNLAG")),
-                        gradering = Prosent.fraDesimal(row.getBigDecimal("GRADERING")),
+                        gradering = Prosent(row.getInt("GRADERING")),
                         grunnbeløp = Beløp(row.getBigDecimal("GRUNNBELOP")),
                         antallBarn = row.getInt("ANTALL_BARN"),
                         barnetillegg = Beløp(row.getBigDecimal("BARNETILLEGG")),
