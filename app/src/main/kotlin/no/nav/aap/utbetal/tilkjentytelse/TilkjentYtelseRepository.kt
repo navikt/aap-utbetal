@@ -63,7 +63,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setPeriode(1, it.periode)
                 setBigDecimal(2, it.detaljer.dagsats.verdi())
                 setBigDecimal(3, it.detaljer.grunnlag.verdi())
-                setBigDecimal(4, BigDecimal.valueOf(it.detaljer.gradering.prosentverdi().toLong()))
+                setInt(4, it.detaljer.gradering.prosentverdi())
                 setBigDecimal(5, it.detaljer.grunnbeløp.verdi())
                 setInt(6, it.detaljer.antallBarn)
                 setBigDecimal(7, it.detaljer.barnetillegg.verdi())

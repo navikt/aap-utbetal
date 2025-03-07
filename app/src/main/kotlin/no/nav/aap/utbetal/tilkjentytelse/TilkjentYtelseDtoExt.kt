@@ -28,7 +28,7 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
             periode = Periode(periodeDto.fom, periodeDto.tom),
             detaljer = YtelseDetaljer(
                 redusertDagsats = Beløp(detaljerDto.redusertDagsats),
-                gradering = Prosent.fraDesimal(detaljerDto.gradering),
+                gradering = Prosent(detaljerDto.gradering),
                 dagsats = Beløp(detaljerDto.dagsats),
                 grunnlag = Beløp(detaljerDto.grunnlag),
                 grunnlagsfaktor = GUnit(detaljerDto.grunnlagsfaktor),

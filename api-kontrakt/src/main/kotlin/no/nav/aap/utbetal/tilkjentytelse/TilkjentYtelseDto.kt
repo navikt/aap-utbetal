@@ -24,7 +24,7 @@ data class TilkjentYtelsePeriodeDto(
 
 data class TilkjentYtelseDetaljerDto(
     val redusertDagsats: BigDecimal,
-    val gradering: BigDecimal,
+    val gradering: Int,
     val dagsats: BigDecimal,
     val grunnlag: BigDecimal,
     val grunnlagsfaktor: BigDecimal,

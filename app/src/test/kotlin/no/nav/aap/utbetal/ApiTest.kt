@@ -70,7 +70,7 @@ class ApiTest {
                 fom = startDato.plusWeeks(it * 2L),
                 tom = startDato.plusWeeks(it * 2L).plusDays(13),
                 TilkjentYtelseDetaljerDto(
-                    gradering = BigDecimal.valueOf(0L),
+                    gradering = 100,
                     dagsats = beløp,
                     grunnlag = beløp,
                     grunnbeløp = BigDecimal.valueOf(100000L) ,
