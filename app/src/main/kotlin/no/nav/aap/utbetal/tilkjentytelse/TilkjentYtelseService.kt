@@ -20,8 +20,13 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
             sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
         } else {
-            sakUtbetalingRepo.hent(tilkjentYtelse.saksnummer)?.id
-                ?: throw IllegalStateException("Det skal finnes en rad i SAK_UTBETALING for saksnummer: ${tilkjentYtelse.saksnummer}")
+            val sakUtbetaling = sakUtbetalingRepo.hent(tilkjentYtelse.saksnummer)
+            if (sakUtbetaling != null) {
+                sakUtbetaling.id!!
+            } else {
+                // Opprett SakUtbetaling dersom den ikke finnes.
+                sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
+            }
         }
         TilkjentYtelseRepository(connection).lagre(tilkjentYtelse)
         return sakUtbetalingId
