@@ -9,13 +9,17 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
+private val log: Logger = LoggerFactory.getLogger("POST /tilkjentytelse")
 
 fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
 
     route("/tilkjentytelse").post<Unit, Unit, TilkjentYtelseDto> { _, dto ->
         prometheus.httpCallCounter("/tilkjentytelse").increment()
+        log.info("Tilkjent ytelse: {}", dto)
         dataSource.transaction { connection ->
             TilkjentYtelseService(connection).lagre(dto.tilTilkjentYtelse())
             UtbetalingJobbService(connection).opprettUtbetalingJobb(
