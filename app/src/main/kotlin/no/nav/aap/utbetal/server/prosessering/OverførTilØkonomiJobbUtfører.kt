@@ -30,10 +30,10 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
             log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
             UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
         }
-        UtbetalingRepository(connection).oppdaterStatus(utbetaling.utbetalingRef, UtbetalingStatus.SENDT)
+        UtbetalingRepository(connection).oppdaterStatus(utbetalingId, UtbetalingStatus.SENDT)
 
 //TODO: skal vi sjekke kvitteringer?
-//        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.utbetalingRef)
+//        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetalingId)
     }
 
     private fun Utbetaling.harNyePerioder() =

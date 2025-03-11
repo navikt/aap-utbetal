@@ -189,20 +189,20 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun oppdaterStatus(utbetalingRef: UUID, status: UtbetalingStatus) {
+    fun oppdaterStatus(utbetalingId: Long, status: UtbetalingStatus) {
         val oppdaterStatusSql = """
             UPDATE 
                 UTBETALING 
             SET 
                 UTBETALING_STATUS = ? 
             WHERE 
-                UTBETALING_REF = ?
+                ID = ?
         """
 
         connection.execute(oppdaterStatusSql) {
             setParams {
                 setString(1, status.name)
-                setUUID(2, utbetalingRef)
+                setLong(2, utbetalingId)
             }
             setResultValidator { require(it == 1) }
         }

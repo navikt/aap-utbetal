@@ -7,16 +7,15 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
-import java.util.UUID
 
 class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): JobbUtfører {
 
     override fun utfør(input: JobbInput) {
-        val utbetalingRefString = input.parameter("utbetalingRef")
-        val utbetalingRef = UUID.fromString(utbetalingRefString)
-        val status = UtbetalingKlient().hentStatus(utbetalingRef)
+        val utbetalingId = input.parameter("utbetalingId").toLong()
+        val utbetaling = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+        val status = UtbetalingKlient().hentStatus(utbetaling.utbetalingRef)
         //TODO: håndter status
-        UtbetalingRepository(connection).oppdaterStatus(utbetalingRef, UtbetalingStatus.BEKREFTET)
+        UtbetalingRepository(connection).oppdaterStatus(utbetalingId, UtbetalingStatus.BEKREFTET)
     }
 
     companion object: Jobb {
