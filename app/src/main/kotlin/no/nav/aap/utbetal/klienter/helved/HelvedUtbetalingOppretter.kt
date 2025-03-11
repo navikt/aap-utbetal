@@ -22,14 +22,16 @@ class HelvedUtbetalingOppretter {
         this.forEach { utbetalingsperiode ->
             val periode = utbetalingsperiode.periode
             (periode.fom..periode.tom).iterator().forEach { dato ->
-                utbetalingsperioder.add(
-                    Utbetalingsperiode(
-                        fom = dato,
-                        tom = dato,
-                        beløp = utbetalingsperiode.beløp,
-                        fastsattDagsats = utbetalingsperiode.fastsattDagsats,
+                if (utbetalingsperiode.beløp > 0.toUInt()) {
+                    utbetalingsperioder.add(
+                        Utbetalingsperiode(
+                            fom = dato,
+                            tom = dato,
+                            beløp = utbetalingsperiode.beløp,
+                            fastsattDagsats = utbetalingsperiode.fastsattDagsats,
+                        )
                     )
-                )
+                }
             }
         }
         return utbetalingsperioder
