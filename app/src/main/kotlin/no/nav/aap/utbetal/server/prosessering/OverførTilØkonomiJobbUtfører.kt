@@ -6,9 +6,11 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
+import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
+import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -18,16 +20,25 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
 
     override fun utfør(input: JobbInput) {
         val utbetalingId = input.parameter("utbetalingId").toLong()
-        log.info("Overfører til økonomi for utbetalingId: $utbetalingId")
         val utbetaling = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
         val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
-        UtbetalingKlient().iverksett(utbetaling.utbetalingRef, helvedUtbetaling)
+        if (utbetaling.harNyePerioder()) {
+            log.info("Overfører nye periode til økonomi for utbetalingId: $utbetalingId")
+            UtbetalingKlient().iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
+        } else {
+            log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
+            UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+        }
         UtbetalingRepository(connection).oppdaterStatus(utbetaling.utbetalingRef, UtbetalingStatus.SENDT)
 
 //TODO: skal vi sjekke kvitteringer?
 //        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetaling.utbetalingRef)
     }
+
+    private fun Utbetaling.harNyePerioder() =
+        perioder.any { it.utbetalingsperiodeType == UtbetalingsperiodeType.NY }
+
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {

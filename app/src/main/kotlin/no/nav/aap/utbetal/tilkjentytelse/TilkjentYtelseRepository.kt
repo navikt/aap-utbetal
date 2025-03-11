@@ -6,8 +6,13 @@ import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
-import java.math.BigDecimal
 import java.util.UUID
+
+data class TilkjentYtelseLight(
+    val id: Long,
+    val behandlingRef: UUID,
+    val forrigeBehandlingRef: UUID?
+)
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
@@ -139,7 +144,37 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
+    fun finnRekkefølgeTilkjentYtelse(saksnummer: Saksnummer): List<TilkjentYtelseLight> {
+        val sql = """
+            WITH RECURSIVE sorted_rows AS (
+                SELECT id, behandling_ref, forrige_behandling_ref, 1 AS depth
+                FROM tilkjent_ytelse
+                WHERE forrige_behandling_ref IS NULL and saksnummer = ?
+            
+                UNION ALL
+            
+                SELECT ty.id, ty.behandling_ref, ty.forrige_behandling_ref, sr.depth +1
+                FROM tilkjent_ytelse ty
+                JOIN sorted_rows sr ON ty.forrige_behandling_ref = sr.behandling_ref
+            )
+            SELECT id, behandling_ref, forrige_behandling_ref
+            FROM sorted_rows
+            ORDER BY depth
+        """.trimIndent()
 
+        return connection.queryList(sql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+            setRowMapper { row ->
+                TilkjentYtelseLight(
+                    id = row.getLong("ID"),
+                    behandlingRef = row.getUUID("BEHANDLING_REF"),
+                    forrigeBehandlingRef = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
+                )
+            }
+        }
+    }
 
     private fun hentTilkjentePerioder(tilkjentYtelseId: Long): List<TilkjentYtelsePeriode> {
         val selectTilkjentePerioder = """

@@ -1,6 +1,8 @@
 package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
@@ -23,9 +25,13 @@ class UtbetalingBeregnerTest {
         val start = LocalDate.of(2025, 1, 1)
         val ty = opprettTilkjentYtelse(start, 1000, 1100, 1200)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, null, LocalDate.of(2025, 1, 14))
+        val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje, LocalDate.of(2025, 1, 14))
 
-        val perioder = utbetaling.perioder
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
+        val nyUtbetaling = utbetalinger.nyUtbetaling
+
+        val perioder = nyUtbetaling.perioder
         assertThat(perioder.size).isEqualTo(3)
         verifiserNyPeriode(perioder[0], 1000)
         verifiserNyPeriode(perioder[1], 1000)
@@ -35,30 +41,22 @@ class UtbetalingBeregnerTest {
     @Test
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
-        val forrigeTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 1000)
+        val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
         val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 600, 500)
 
-        val utbetaling = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, forrigeTilkjentYtelse, LocalDate.of(2025, 2, 25))
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.of(2025, 2, 25))
 
-        val perioder = utbetaling.perioder
-        assertThat(perioder.size).isEqualTo(12)
-        verifiserUendretPeriode(perioder[0], 1000)
-        verifiserUendretPeriode(perioder[1], 1000)
-        verifiserUendretPeriode(perioder[2], 1000)
-        verifiserUendretPeriode(perioder[3], 1000)
-        verifiserUendretPeriode(perioder[4], 1000)
-        verifiserUendretPeriode(perioder[5], 1000)
-        verifiserEndretPeriode(perioder[6], 600)
-        verifiserEndretPeriode(perioder[7], 600)
-        verifiserEndretPeriode(perioder[8], 600)
-        verifiserNyPeriode(perioder[9], 500)
-        verifiserNyPeriode(perioder[10], 500)
-        verifiserNyPeriode(perioder[11], 500)
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
+        val endringUtbetalingPerioder = utbetalinger.endringUtbetalinger[0].perioder
+        assertThat(endringUtbetalingPerioder).hasSize(3)
+        verifiserEndretPeriode(endringUtbetalingPerioder[0], 600)
+        verifiserEndretPeriode(endringUtbetalingPerioder[1], 600)
+        verifiserEndretPeriode(endringUtbetalingPerioder[2], 600)
+        val nyUtbetalingPerioder = utbetalinger.nyUtbetaling.perioder
+        verifiserNyPeriode(nyUtbetalingPerioder[0], 500)
+        verifiserNyPeriode(nyUtbetalingPerioder[1], 500)
+        verifiserNyPeriode(nyUtbetalingPerioder[2], 500)
     }
-
-    private fun verifiserUendretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
-        verifiserPeriode(UtbetalingsperiodeType.UENDRET, utbetalingsperiode, beløp)
-
 
     private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.ENDRET, utbetalingsperiode, beløp)
@@ -107,4 +105,30 @@ class UtbetalingBeregnerTest {
                 utbetalingsdato = tom.plusDays(1),
             )
         )
+
+
+    private fun opprettTidslinjeUtbetalinger(startDato: LocalDate, vararg beløpListe: Int): Tidslinje<UtbetalingData> {
+        val segmenter = mutableListOf<Segment<UtbetalingData>>()
+        val perioder = beløpListe.mapIndexed { i, beløp ->
+            lagUtbetalingData(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), beløp)
+        }
+        perioder.forEach {
+            segmenter.add(Segment<UtbetalingData>(it.first, it.second))
+        }
+        return Tidslinje<UtbetalingData>(initSegmenter = segmenter)
+
+    }
+
+    private fun lagUtbetalingData(fom: LocalDate, tom: LocalDate, beløp: Int) =
+        Pair(
+            Periode(fom, tom),
+            UtbetalingData(
+                utbetalingRef = UUID.randomUUID(),
+                beløp = beløp.toUInt(),
+                fastsattDagsats = beløp.toUInt(),
+                utbetalingsdato = tom.plusDays(1)
+
+            )
+        )
+
 }

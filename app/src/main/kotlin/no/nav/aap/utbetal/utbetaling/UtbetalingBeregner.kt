@@ -15,21 +15,36 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+data class UtbetalingsperiodeMedReferanse(
+    val utbetalingRef: UUID,
+    val utbetalingsperiode: Utbetalingsperiode
+)
+
+data class Utbetalinger(
+    val endringUtbetalinger: List<Utbetaling>,
+    val nyUtbetaling: Utbetaling
+) {
+    fun alle(): List<Utbetaling> {
+        return endringUtbetalinger + nyUtbetaling
+    }
+}
+
 class UtbetalingBeregner {
 
-    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdag: LocalDate): Utbetaling {
-        val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse, forrigeTilkjentYtelse, sisteUtbetalingsdag)
+    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, tidligereUtbetalingerTidslinje: Tidslinje<UtbetalingData>, sisteUtbetalingsdag: LocalDate): Utbetalinger {
+        val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse, sisteUtbetalingsdag)
+        val nyUtbetalingRef = UUID.randomUUID()
         val utbetalingsperioder = if (periodeSomSkalSendes == null) {
             listOf()
         } else {
             val klippetNyTilkjentYtelseTidslinje = klippPeriodeOgFjernHelger(nyTilkjentYtelse, periodeSomSkalSendes)
-            val klippetForrigeTilkjentYtelseTidslinje = if (forrigeTilkjentYtelse != null) klippPeriodeOgFjernHelger(forrigeTilkjentYtelse, periodeSomSkalSendes) else Tidslinje<YtelseDetaljer>()
 
             // Konverter til utbetalingsperioder og legg på utbetalingsperiodeType
-            val utbetalingerTidslinje = klippetForrigeTilkjentYtelseTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring())
+            val utbetalingerTidslinje = tidligereUtbetalingerTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef))
             utbetalingerTidslinje.segmenter().map { it.verdi }
         }
-        return Utbetaling(
+        val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}
+        val utbetalingMedNyePerioder = Utbetaling(
             saksnummer = nyTilkjentYtelse.saksnummer,
             behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
             sakUtbetalingId = sakUtbetalingId,
@@ -39,16 +54,45 @@ class UtbetalingBeregner {
             beslutterId = nyTilkjentYtelse.beslutterId,
             saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
             utbetalingOversendt = LocalDateTime.now(),
-            utbetalingStatus = if (utbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
-            perioder = utbetalingsperioder,
-            utbetalingRef = UUID.randomUUID(),
+            utbetalingStatus = if (nyeUtbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
+            perioder = nyeUtbetalingsperioder,
+            utbetalingRef = nyUtbetalingRef
+        )
+        return Utbetalinger(
+            endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(sakUtbetalingId, nyTilkjentYtelse),
+            nyUtbetaling = utbetalingMedNyePerioder
         )
     }
 
+    private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
+        val utbetalingRefEndringer = finnUtbetalingerSomSkalSendesSomEndring()
+        return utbetalingRefEndringer.map { utbetalingRef ->
+            val utbetalingsperioder = this.filter {it.utbetalingRef == utbetalingRef} .map {it.utbetalingsperiode}
+            Utbetaling(
+                saksnummer = nyTilkjentYtelse.saksnummer,
+                behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
+                sakUtbetalingId = sakUtbetalingId,
+                tilkjentYtelseId = nyTilkjentYtelse.id!!,
+                personIdent = nyTilkjentYtelse.personIdent,
+                vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
+                beslutterId = nyTilkjentYtelse.beslutterId,
+                saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
+                utbetalingOversendt = LocalDateTime.now(),
+                utbetalingStatus = if (utbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
+                perioder = utbetalingsperioder,
+                utbetalingRef = utbetalingRef
+            )
+        }
+    }
 
-    private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse, forrigeTilkjentYtelse: TilkjentYtelse?, sisteUtbetalingsdato: LocalDate): Periode? {
-        //TODO: midlertidig kode
-        val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
+    private fun List<UtbetalingsperiodeMedReferanse>.finnUtbetalingerSomSkalSendesSomEndring(): Set<UUID> {
+        return this
+            .filter {it.utbetalingsperiode.utbetalingsperiodeType == UtbetalingsperiodeType.ENDRET }
+            .map { utbetaling -> utbetaling.utbetalingRef }
+            .toSet()
+    }
+
+    private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse, sisteUtbetalingsdato: LocalDate): Periode? { val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
         return if (min == null || min.isAfter(sisteUtbetalingsdato)) {
             null
         } else {
@@ -56,9 +100,7 @@ class UtbetalingBeregner {
         }
     }
 
-
     private fun klippPeriodeOgFjernHelger(tilkjentYtelse: TilkjentYtelse, periode: Periode): Tidslinje<YtelseDetaljer> {
-
         val helger = periode.finnHelger()
         val ytelseTidslinje = tilkjentYtelse.tilTidslinje()
         val klippetYtelseTidslinje = ytelseTidslinje.disjoint(periode)
@@ -82,52 +124,65 @@ class UtbetalingBeregner {
             )
         })
 
-    private fun prioriterHøyreSideCrossJoinMedEndring(): JoinStyle.OUTER_JOIN<YtelseDetaljer, YtelseDetaljer, Utbetalingsperiode> {
+    private fun prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef: UUID): JoinStyle.OUTER_JOIN<UtbetalingData, YtelseDetaljer, UtbetalingsperiodeMedReferanse> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (venstre != null && høyre != null) {
-                if (venstre == høyre) {
+                if (sammeBeløp(venstre.verdi, høyre.verdi)) {
                     return@OUTER_JOIN Segment(
                         periode,
-                        Utbetalingsperiode(
-                            periode = periode,
-                            beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                            utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET,
-                            utbetalingsdato = høyre.verdi.utbetalingsdato
+                        UtbetalingsperiodeMedReferanse(
+                            utbetalingRef = venstre.verdi.utbetalingRef,
+                            utbetalingsperiode = Utbetalingsperiode(
+                                periode = periode,
+                                beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                                fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                                utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET,
+                                utbetalingsdato = høyre.verdi.utbetalingsdato
+                            )
                         )
                     )
                 }
                 return@OUTER_JOIN Segment(
                     periode,
-                    Utbetalingsperiode(
-                        periode = periode,
-                        beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                        fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                        utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
-                        utbetalingsdato = høyre.verdi.utbetalingsdato
+                    UtbetalingsperiodeMedReferanse(
+                        utbetalingRef = venstre.verdi.utbetalingRef,
+                        utbetalingsperiode = Utbetalingsperiode(
+                            periode = periode,
+                            beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                            utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
+                            utbetalingsdato = høyre.verdi.utbetalingsdato
+                        )
                     )
+
                 )
             }
             if (høyre != null) {
                 return@OUTER_JOIN Segment(
                     periode,
-                    Utbetalingsperiode(
-                        periode = periode,
-                        beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                        fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
-                        utbetalingsperiodeType = UtbetalingsperiodeType.NY,
-                        utbetalingsdato = høyre.verdi.utbetalingsdato
+                    UtbetalingsperiodeMedReferanse(
+                        utbetalingRef = nyUtbetalingRef,
+                        utbetalingsperiode =  Utbetalingsperiode(
+                            periode = periode,
+                            beløp = høyre.verdi.redusertDagsats.tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                            utbetalingsperiodeType = UtbetalingsperiodeType.NY,
+                            utbetalingsdato = høyre.verdi.utbetalingsdato
+                        )
                     )
+
                 )
             } else {
-                if (venstre == null)  {
-                    return@OUTER_JOIN null
-                } else {
-                    throw IllegalStateException("Periode i forrige behandling finnes ikke i ny behandling: $periode")
-                }
+                return@OUTER_JOIN null
             }
         }
     }
+
+    private fun sammeBeløp(utbetalingData: UtbetalingData, ytelseDetaljer: YtelseDetaljer): Boolean {
+        return utbetalingData.beløp == ytelseDetaljer.redusertDagsats.tilUInt() &&
+                utbetalingData.fastsattDagsats == ytelseDetaljer.redusertDagsats.tilUInt()
+    }
+
 
     private fun Beløp.tilUInt() = verdi.toBigInteger().toInt().toUInt()
 

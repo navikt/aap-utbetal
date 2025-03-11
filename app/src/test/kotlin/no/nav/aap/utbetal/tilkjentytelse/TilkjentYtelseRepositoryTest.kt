@@ -80,6 +80,36 @@ class TilkjentYtelseRepositoryTest {
         assertThat(funnetTilkjentYtelseId).isEqualTo(tilkjentYtelseId4)
     }
 
+    @Test
+    fun `Kan hente tilkjent ytelse i riktig rekkefølge`() {
+        val saksnummer1 = Saksnummer("123")
+        val behandlingRef1 = UUID.randomUUID()
+        val behandlingRef2 = UUID.randomUUID()
+        val behandlingRef3 = UUID.randomUUID()
+        val behandlingRef4 = UUID.randomUUID()
+        val behandlingRef5 = UUID.randomUUID()
+
+        // Fem tilkjent ytelse i litt random rekkefølge
+        lagreTilkjentYtelse(saksnummer1, behandlingRef1, null)
+        lagreTilkjentYtelse(saksnummer1, behandlingRef4, behandlingRef3)
+        lagreTilkjentYtelse(saksnummer1, behandlingRef5, behandlingRef4)
+        lagreTilkjentYtelse(saksnummer1, behandlingRef2, behandlingRef1)
+        lagreTilkjentYtelse(saksnummer1, behandlingRef3, behandlingRef2)
+
+        val tilkjentYtelseListe = InitTestDatabase.dataSource.transaction { connection ->
+            TilkjentYtelseRepository(connection).finnRekkefølgeTilkjentYtelse(saksnummer1)
+        }
+
+        tilkjentYtelseListe.forEachIndexed {index, ty ->
+            if (index == 0) {
+                assertThat(ty.forrigeBehandlingRef).isNull()
+            } else {
+                assertThat(ty.forrigeBehandlingRef).isNotNull()
+                assertThat(ty.forrigeBehandlingRef).isEqualTo(tilkjentYtelseListe[index-1].behandlingRef)
+            }
+        }
+    }
+
     private fun lagreTilkjentYtelse(saksnummer: Saksnummer, behandlingRef: UUID, forrigeBehandlingRef: UUID?): Long {
         return InitTestDatabase.dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagre(
