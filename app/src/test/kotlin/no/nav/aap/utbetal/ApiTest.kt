@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.error.ConflictHttpResponseException
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
@@ -31,6 +32,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 class ApiTest {
@@ -40,6 +42,23 @@ class ApiTest {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
     }
+
+    @Test
+    fun `Dobbel innsending av samme tilkjent ytelse skal gå bra`() {
+        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        postTilkjentYtelse(tilkjentYtelse)
+        postTilkjentYtelse(tilkjentYtelse)
+    }
+
+    @Test
+    fun `Dobbel innsending av neste samme tilkjent ytelse skal gå bra`() {
+        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        postTilkjentYtelse(tilkjentYtelse)
+        assertFailsWith<ConflictHttpResponseException> {
+            postTilkjentYtelse(tilkjentYtelse.copy(vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt.plusDays(1)))
+        }
+    }
+
 
     @Test
     fun `Ekporter openapi typer til json`() {
