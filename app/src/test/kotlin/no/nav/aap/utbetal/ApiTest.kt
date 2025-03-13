@@ -31,6 +31,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
@@ -142,11 +143,13 @@ class ApiTest {
             module(fakes)
         }.start()
 
-        private fun resetDatabase() {
+        @AfterTest
+        fun resetDatabase() {
             @Suppress("SqlWithoutWhere")
             initDatasource(dbConfig).transaction {
                 it.execute("DELETE FROM TILKJENT_PERIODE")
                 it.execute("DELETE FROM TILKJENT_YTELSE")
+                it.execute("DELETE FROM UTBETALING_AVVENT")
                 it.execute("DELETE FROM UTBETALINGSPERIODE")
                 it.execute("DELETE FROM UTBETALING")
                 it.execute("DELETE FROM SAK_UTBETALING")
