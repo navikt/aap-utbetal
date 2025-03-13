@@ -52,13 +52,13 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
 private fun TilkjentYtelse.erLik(tilkjentYtelse: TilkjentYtelse): Boolean {
 
     if (saksnummer != tilkjentYtelse.saksnummer) return false
-    if (vedtakstidspunkt != tilkjentYtelse.vedtakstidspunkt) return false
+    if (vedtakstidspunkt.compareTo(tilkjentYtelse.vedtakstidspunkt) != 0) return false
     if (forrigeBehandlingsreferanse != tilkjentYtelse.forrigeBehandlingsreferanse) return false
+    /*
     if (personIdent != tilkjentYtelse.personIdent) return false
     if (beslutterId != tilkjentYtelse.beslutterId) return false
     if (saksbehandlerId != tilkjentYtelse.saksbehandlerId) return false
     if (perioder.size != tilkjentYtelse.perioder.size) return false
-    /*
     for (index in tilkjentYtelse.perioder.indices) {
         val periode1 = perioder[index]
         val periode2 = tilkjentYtelse.perioder[index]
