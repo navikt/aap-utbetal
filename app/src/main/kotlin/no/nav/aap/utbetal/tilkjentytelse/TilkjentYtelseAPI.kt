@@ -58,6 +58,7 @@ private fun TilkjentYtelse.erLik(tilkjentYtelse: TilkjentYtelse): Boolean {
     if (beslutterId != tilkjentYtelse.beslutterId) return false
     if (saksbehandlerId != tilkjentYtelse.saksbehandlerId) return false
     if (perioder.size != tilkjentYtelse.perioder.size) return false
+    /*
     for (index in tilkjentYtelse.perioder.indices) {
         val periode1 = perioder[index]
         val periode2 = tilkjentYtelse.perioder[index]
@@ -76,6 +77,7 @@ private fun TilkjentYtelse.erLik(tilkjentYtelse: TilkjentYtelse): Boolean {
         if (detaljer1.ventedagerSamordning != detaljer2.ventedagerSamordning) return false
         if (detaljer1.utbetalingsdato != detaljer2.utbetalingsdato) return false
     }
+     */
     return true
 }
 
