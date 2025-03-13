@@ -52,7 +52,7 @@ class ApiTest {
     }
 
     @Test
-    fun `Dobbel innsending av neste samme tilkjent ytelse skal gå bra`() {
+    fun `Dobbel innsending av nesten samme tilkjent ytelse skal kaste exception`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
         assertFailsWith<ConflictHttpResponseException> {
