@@ -4,7 +4,9 @@ Applikasjon som sørger for at tilkjent ytelse fra behandlingsflyt blir omgjort 
 
 ### API-dokumentasjon
 
-APIene er dokumentert med Swagger: http://localhost:8080/swagger-ui/index.html
+APIene er dokumentert med Swagger.
+* Lokalt: http://localhost:8080/swagger-ui/index.html
+* Testmiljø: https://aap-utbetal.intern.dev.nav.no/swagger-ui/index.html
 
 
 ### Kontekstdiagram
