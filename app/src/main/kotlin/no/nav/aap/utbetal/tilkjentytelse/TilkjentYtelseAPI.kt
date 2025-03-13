@@ -12,7 +12,10 @@ import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
+import kotlin.time.Duration
 
 private val log: Logger = LoggerFactory.getLogger("POST /tilkjentytelse")
 
@@ -52,9 +55,8 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
 private fun TilkjentYtelse.erLik(tilkjentYtelse: TilkjentYtelse): Boolean {
 
     if (saksnummer != tilkjentYtelse.saksnummer) return false
-    if (vedtakstidspunkt.compareTo(tilkjentYtelse.vedtakstidspunkt) != 0) return false
+    if (vedtakstidspunkt.avrundet() != tilkjentYtelse.vedtakstidspunkt.avrundet()) return false
     if (forrigeBehandlingsreferanse != tilkjentYtelse.forrigeBehandlingsreferanse) return false
-    /*
     if (personIdent != tilkjentYtelse.personIdent) return false
     if (beslutterId != tilkjentYtelse.beslutterId) return false
     if (saksbehandlerId != tilkjentYtelse.saksbehandlerId) return false
@@ -77,9 +79,10 @@ private fun TilkjentYtelse.erLik(tilkjentYtelse: TilkjentYtelse): Boolean {
         if (detaljer1.ventedagerSamordning != detaljer2.ventedagerSamordning) return false
         if (detaljer1.utbetalingsdato != detaljer2.utbetalingsdato) return false
     }
-     */
     return true
 }
 
 private fun Beløp.avrundet() = verdi.toLong()
+
+private fun LocalDateTime.avrundet() = truncatedTo(ChronoUnit.MILLIS)
 
