@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
-import kotlin.time.Duration
 
 private val log: Logger = LoggerFactory.getLogger("POST /tilkjentytelse")
 
