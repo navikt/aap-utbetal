@@ -19,18 +19,25 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
     private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
 
     override fun utfør(input: JobbInput) {
+        val utbetalingRepo = UtbetalingRepository(connection)
         val utbetalingId = input.parameter("utbetalingId").toLong()
-        val utbetaling = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+        val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
         val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
         if (utbetaling.harNyePerioder()) {
             log.info("Overfører nye periode til økonomi for utbetalingId: $utbetalingId")
             UtbetalingKlient().iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
         } else {
-            log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
-            UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+            if (utbetaling.perioder.isEmpty()) {
+                log.info("Opphør av utbetalingId: $utbetalingId")
+                val heelvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
+                UtbetalingKlient().opphør(utbetaling.utbetalingRef, heelvedUtbetaling)
+            } else {
+                log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
+                UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+            }
         }
-        UtbetalingRepository(connection).oppdaterStatus(utbetalingId, UtbetalingStatus.SENDT)
+        utbetalingRepo.oppdaterStatus(utbetalingId, UtbetalingStatus.SENDT)
 
 //TODO: skal vi sjekke kvitteringer?
 //        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetalingId)

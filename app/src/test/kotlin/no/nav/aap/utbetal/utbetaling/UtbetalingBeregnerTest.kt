@@ -31,7 +31,7 @@ class UtbetalingBeregnerTest {
         assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
         val nyUtbetaling = utbetalinger.nyUtbetaling
 
-        val perioder = nyUtbetaling.perioder
+        val perioder = nyUtbetaling!!.perioder
         assertThat(perioder.size).isEqualTo(3)
         verifiserNyPeriode(perioder[0], 1000)
         verifiserNyPeriode(perioder[1], 1000)
@@ -52,11 +52,25 @@ class UtbetalingBeregnerTest {
         verifiserEndretPeriode(endringUtbetalingPerioder[0], 600)
         verifiserEndretPeriode(endringUtbetalingPerioder[1], 600)
         verifiserEndretPeriode(endringUtbetalingPerioder[2], 600)
-        val nyUtbetalingPerioder = utbetalinger.nyUtbetaling.perioder
+        val nyUtbetalingPerioder = utbetalinger.nyUtbetaling!!.perioder
         verifiserNyPeriode(nyUtbetalingPerioder[0], 500)
         verifiserNyPeriode(nyUtbetalingPerioder[1], 500)
         verifiserNyPeriode(nyUtbetalingPerioder[2], 500)
     }
+
+    @Test
+    fun `Opphør av en periode`() {
+        val start = LocalDate.of(2025, 1, 1)
+        val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 0, 1000)
+
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.of(2025, 2, 25))
+
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
+        assertThat(utbetalinger.endringUtbetalinger.first().perioder).hasSize(0)
+        assertThat(utbetalinger.nyUtbetaling).isNull()
+    }
+
 
     private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.ENDRET, utbetalingsperiode, beløp)

@@ -22,9 +22,12 @@ data class UtbetalingsperiodeMedReferanse(
 
 data class Utbetalinger(
     val endringUtbetalinger: List<Utbetaling>,
-    val nyUtbetaling: Utbetaling
+    val nyUtbetaling: Utbetaling?
 ) {
     fun alle(): List<Utbetaling> {
+        if (nyUtbetaling == null) {
+            return endringUtbetalinger
+        }
         return endringUtbetalinger + nyUtbetaling
     }
 }
@@ -43,31 +46,8 @@ class UtbetalingBeregner {
             val utbetalingerTidslinje = tidligereUtbetalingerTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef))
             utbetalingerTidslinje.segmenter().map { it.verdi }
         }
-        val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}
-        val utbetalingMedNyePerioder = Utbetaling(
-            saksnummer = nyTilkjentYtelse.saksnummer,
-            behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-            sakUtbetalingId = sakUtbetalingId,
-            tilkjentYtelseId = nyTilkjentYtelse.id!!,
-            personIdent = nyTilkjentYtelse.personIdent,
-            vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
-            beslutterId = nyTilkjentYtelse.beslutterId,
-            saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
-            utbetalingOversendt = LocalDateTime.now(),
-            utbetalingStatus = if (nyeUtbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
-            perioder = nyeUtbetalingsperioder,
-            utbetalingRef = nyUtbetalingRef
-        )
-        return Utbetalinger(
-            endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(sakUtbetalingId, nyTilkjentYtelse),
-            nyUtbetaling = utbetalingMedNyePerioder
-        )
-    }
-
-    private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
-        val utbetalingRefEndringer = finnUtbetalingerSomSkalSendesSomEndring()
-        return utbetalingRefEndringer.map { utbetalingRef ->
-            val utbetalingsperioder = this.filter {it.utbetalingRef == utbetalingRef} .map {it.utbetalingsperiode}
+        val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
+        val utbetalingMedNyePerioder = if (nyeUtbetalingsperioder.isNotEmpty()) {
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
@@ -78,7 +58,34 @@ class UtbetalingBeregner {
                 beslutterId = nyTilkjentYtelse.beslutterId,
                 saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
                 utbetalingOversendt = LocalDateTime.now(),
-                utbetalingStatus = if (utbetalingsperioder.isEmpty()) UtbetalingStatus.INGEN_PERIODER else UtbetalingStatus.OPPRETTET,
+                utbetalingStatus = UtbetalingStatus.OPPRETTET,
+                perioder = nyeUtbetalingsperioder,
+                utbetalingRef = nyUtbetalingRef
+            )
+        } else {
+            null
+        }
+        return Utbetalinger(
+            endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(sakUtbetalingId, nyTilkjentYtelse),
+            nyUtbetaling = utbetalingMedNyePerioder
+        )
+    }
+
+    private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
+        val utbetalingRefEndringer = finnUtbetalingerSomSkalSendesSomEndring()
+        return utbetalingRefEndringer.map { utbetalingRef ->
+            val utbetalingsperioder = this.filter {it.utbetalingRef == utbetalingRef} .map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
+            Utbetaling(
+                saksnummer = nyTilkjentYtelse.saksnummer,
+                behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
+                sakUtbetalingId = sakUtbetalingId,
+                tilkjentYtelseId = nyTilkjentYtelse.id!!,
+                personIdent = nyTilkjentYtelse.personIdent,
+                vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
+                beslutterId = nyTilkjentYtelse.beslutterId,
+                saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
+                utbetalingOversendt = LocalDateTime.now(),
+                utbetalingStatus = UtbetalingStatus.OPPRETTET,
                 perioder = utbetalingsperioder,
                 utbetalingRef = utbetalingRef
             )

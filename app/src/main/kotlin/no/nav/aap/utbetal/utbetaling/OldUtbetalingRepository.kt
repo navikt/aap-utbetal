@@ -8,10 +8,9 @@ import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
 import java.util.UUID
 
-class UtbetalingRepository(private val connection: DBConnection) {
+class OldUtbetalingRepository(private val connection: DBConnection) {
 
     fun lagre(utbetaling: Utbetaling): Long {
-        slettTidligereUtbetaling(utbetaling.utbetalingRef)
         var insertUtbetalingSql = """
             INSERT INTO UTBETALING
                 (
@@ -77,38 +76,6 @@ class UtbetalingRepository(private val connection: DBConnection) {
 
     }
 
-    fun hent(saksnummer: Saksnummer): List<Utbetaling> {
-        val hentUtbetalingerSql = """
-            SELECT 
-                ID,
-                SAKSNUMMER,
-                BEHANDLING_REF,
-                UTBETALING_REF,
-                SAK_UTBETALING_ID,
-                TILKJENT_YTELSE_ID,
-                PERSON_IDENT,
-                VEDTAKSTIDSPUNKT,
-                BESLUTTER_IDENT,
-                SAKSBEHANDLER_IDENT,
-                UTBETALING_OPPRETTET,
-                UTBETALING_ENDRET,
-                UTBETALING_STATUS
-            FROM 
-                UTBETALING
-            WHERE
-                SAKSNUMMER = ? AND
-                SLETTET = FALSE
-                
-        """.trimIndent()
-
-        return connection.queryList(hentUtbetalingerSql) {
-            setParams {
-                setString(1, saksnummer.toString())
-            }
-            setRowMapper { mapUtbetaling(it) }
-        }
-    }
-
     fun hent(behandlingsreferanse: UUID): List<Utbetaling> {
         val hentUtbetalingerSql = """
             SELECT 
@@ -160,8 +127,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
             FROM 
                 UTBETALING
             WHERE
-                ID = ? AND
-                SLETTET = FALSE
+                ID = ?
         """.trimIndent()
 
         return connection.queryFirst(hentUtbetalingSql) {
@@ -219,20 +185,6 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     utbetalingsdato = row.getLocalDate("UTBETALINGSDATO")
 
                 )
-            }
-        }
-    }
-
-    private fun slettTidligereUtbetaling(utbetalingRef: UUID) {
-        val logiskSlettGammelUtbetaling = """
-            UPDATE UTBETALING
-            SET SLETTET = TRUE
-            WHERE UTBETALING_REF = ?
-        """.trimIndent()
-
-        connection.execute(logiskSlettGammelUtbetaling) {
-            setParams {
-                setUUID(1, utbetalingRef)
             }
         }
     }

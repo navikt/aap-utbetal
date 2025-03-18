@@ -13,7 +13,6 @@ data class UtbetalingDto(
 enum class UtbetalingStatus {
     OPPRETTET,
     SENDT,
-    INGEN_PERIODER,
     BEKREFTET,
     FEILET
 }

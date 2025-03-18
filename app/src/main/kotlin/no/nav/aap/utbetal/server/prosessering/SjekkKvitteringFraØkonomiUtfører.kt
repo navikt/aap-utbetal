@@ -12,10 +12,11 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
 
     override fun utfør(input: JobbInput) {
         val utbetalingId = input.parameter("utbetalingId").toLong()
-        val utbetaling = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+        val utbetalingRepo = UtbetalingRepository(connection)
+        val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
         val status = UtbetalingKlient().hentStatus(utbetaling.utbetalingRef)
         //TODO: håndter status
-        UtbetalingRepository(connection).oppdaterStatus(utbetalingId, UtbetalingStatus.BEKREFTET)
+        utbetalingRepo.oppdaterStatus(utbetalingId, UtbetalingStatus.BEKREFTET)
     }
 
     companion object: Jobb {
