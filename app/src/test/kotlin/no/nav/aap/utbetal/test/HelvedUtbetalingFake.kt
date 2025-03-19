@@ -7,21 +7,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
+import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
 
-private data class OppdragStatusDto(
-    val status: OppdragStatus,
-    val feilmelding: String? = null
-)
-
-private enum class OppdragStatus {
-    LAGT_PÅ_KØ,
-    KVITTERT_OK,
-    KVITTERT_MED_MANGLER,
-    KVITTERT_FUNKSJONELL_FEIL,
-    KVITTERT_TEKNISK_FEIL,
-    KVITTERT_UKJENT,
-    OK_UTEN_UTBETALING,
-}
 
 fun Application.helvedUtbetalingFake() {
 
@@ -35,7 +22,7 @@ fun Application.helvedUtbetalingFake() {
         get("/utbetalinger/{uid}/status") {
             val uid = call.parameters["uid"]
             println("Finn utbetaling for $uid")
-            call.respond(status = HttpStatusCode.OK, OppdragStatusDto(status = OppdragStatus.KVITTERT_OK))
+            call.respond(status = HttpStatusCode.OK, UtbetalingStatus.OK)
         }
     }
 

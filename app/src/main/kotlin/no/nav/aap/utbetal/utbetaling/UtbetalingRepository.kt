@@ -8,6 +8,11 @@ import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
 import java.util.UUID
 
+data class UtbetalingLight(
+    val id: Long,
+    val utbetalingRef: UUID,
+)
+
 class UtbetalingRepository(private val connection: DBConnection) {
 
     fun lagre(utbetaling: Utbetaling): Long {
@@ -141,6 +146,28 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentAlleSendteUtbetalinger(): List<UtbetalingLight> {
+        val hentAlleSendteUtbetalingerSql = """
+            SELECT 
+                ID,
+                UTBETALING_REF
+            FROM 
+                UTBETALING
+            WHERE
+                UTBETALING_STATUS = 'SENDT' AND
+                SLETTET = FALSE
+        """.trimIndent()
+
+        return connection.queryList(hentAlleSendteUtbetalingerSql) {
+            setRowMapper { row ->
+                UtbetalingLight(
+                    id = row.getLong("ID"),
+                    utbetalingRef = row.getUUID("UTBETALING_REF"),
+                )
+            }
+        }
+    }
+
     fun hentUtbetaling(utbetalingId: Long): Utbetaling {
         val hentUtbetalingSql = """
             SELECT 
@@ -170,7 +197,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun mapUtbetaling(row: Row): Utbetaling {
+    private fun mapUtbetaling(row: Row, medPeriode: Boolean = true): Utbetaling {
         val utbetaling = Utbetaling(
             id = row.getLong("ID"),
             saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
@@ -186,7 +213,10 @@ class UtbetalingRepository(private val connection: DBConnection) {
             perioder = listOf(),
             utbetalingRef = row.getUUID("UTBETALING_REF")
         )
-        return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
+        if (medPeriode) {
+            utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
+        }
+        return utbetaling
     }
 
     private fun hentUtbetalingsperioder(utbetalingId: Long): List<Utbetalingsperiode> {

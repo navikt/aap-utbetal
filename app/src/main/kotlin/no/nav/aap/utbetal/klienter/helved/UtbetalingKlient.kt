@@ -13,18 +13,12 @@ import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.*
 
-data class OppdragStatusDto(
-    val status: OppdragStatus,
-    val feilmelding: String? = null
-)
 
-enum class OppdragStatus {
-    LAGT_PÅ_KØ,
-    KVITTERT_OK,
-    KVITTERT_MED_MANGLER,
-    KVITTERT_FUNKSJONELL_FEIL,
-    KVITTERT_TEKNISK_FEIL,
-    KVITTERT_UKJENT,
+enum class UtbetalingStatus {
+    SENDT_TIL_OPPDRAG,
+    FEILET_MOT_OPPDRAG,
+    OK,
+    IKKE_PÅBEGYNT,
     OK_UTEN_UTBETALING,
 }
 
@@ -80,10 +74,10 @@ class UtbetalingKlient {
         return client.get<Utbetaling>(hentUtbetalingUrl, GetRequest())!!
     }
 
-    fun hentStatus(utbetalingRef: UUID): OppdragStatusDto {
-        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef/status"))
+    fun hentStatus(utbetalingRef: UUID): UtbetalingStatus {
+        val hentStatusUrl = url.resolve(("utbetalinger/$utbetalingRef/status"))
         val request = GetRequest()
-        return client.get<OppdragStatusDto>(iverksettUrl, request)!!
+        return client.get<UtbetalingStatus>(hentStatusUrl, request)!!
     }
 
 

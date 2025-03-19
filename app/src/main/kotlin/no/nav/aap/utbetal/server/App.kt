@@ -106,7 +106,11 @@ fun Application.motor(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
-        jobber = listOf(OpprettUtbetalingUtfører, OverførTilØkonomiJobbUtfører, SjekkKvitteringFraØkonomiUtfører)
+        jobber = listOf(
+            OpprettUtbetalingUtfører,
+            OverførTilØkonomiJobbUtfører,
+            SjekkKvitteringFraØkonomiUtfører
+        )
     )
 
     dataSource.transaction { dbConnection ->
