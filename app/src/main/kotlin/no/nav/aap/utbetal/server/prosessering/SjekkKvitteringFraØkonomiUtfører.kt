@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.httpklient.httpclient.error.IkkeFunnetException
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
@@ -24,8 +25,16 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
         val sendteUtbetalinger = utbetalingRepo.hentAlleSendteUtbetalinger()
         log.info("Fant ${sendteUtbetalinger.size} utbetalinger som mangler kvittering")
         sendteUtbetalinger.forEach { utbetaling ->
-            val status = UtbetalingKlient().hentStatus(utbetaling.utbetalingRef)
+            val status = try {
+                UtbetalingKlient().hentStatus(utbetaling.utbetalingRef)
+            } catch (e: IkkeFunnetException) {
+                null
+            }
             when (status) {
+                null -> {
+                    log.warn("Utbetaling ${utbetaling.utbetalingRef} ikke funnet i helved utbetaling")
+                    utbetalingRepo.oppdaterStatus(utbetaling.id, no.nav.aap.utbetaling.UtbetalingStatus.FEILET)
+                }
                 IKKE_PÅBEGYNT, SENDT_TIL_OPPDRAG -> {
                     log.info("Utbetaling ${utbetaling.utbetalingRef} ikke behandlet: $status")
                 }
