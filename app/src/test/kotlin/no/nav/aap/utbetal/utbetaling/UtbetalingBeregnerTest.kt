@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.*
 
 class UtbetalingBeregnerTest {
@@ -23,10 +24,10 @@ class UtbetalingBeregnerTest {
     @Test
     fun `Bare nye perioder`() {
         val start = LocalDate.of(2025, 1, 1)
-        val ty = opprettTilkjentYtelse(start, 1000, 1100, 1200)
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14), 1000, 1100, 1200)
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje, LocalDate.of(2025, 1, 14))
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
         val nyUtbetaling = utbetalinger.nyUtbetaling
@@ -42,9 +43,9 @@ class UtbetalingBeregnerTest {
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 1000, 600, 500)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25), 1000, 1000, 600, 500)
 
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.of(2025, 2, 25))
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
         val endringUtbetalingPerioder = utbetalinger.endringUtbetalinger[0].perioder
@@ -62,9 +63,9 @@ class UtbetalingBeregnerTest {
     fun `Opphør av en periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(start, 1000, 0, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25), 1000, 0, 1000)
 
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.of(2025, 2, 25))
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
         assertThat(utbetalinger.endringUtbetalinger.first().perioder).hasSize(0)
@@ -86,7 +87,7 @@ class UtbetalingBeregnerTest {
     }
 
 
-    private fun opprettTilkjentYtelse(startDato: LocalDate, vararg beløpListe: Long): TilkjentYtelse {
+    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, vararg beløpListe: Long): TilkjentYtelse {
         val perioder = beløpListe.mapIndexed { i, beløp ->
             lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(beløp))
         }
@@ -96,7 +97,7 @@ class UtbetalingBeregnerTest {
             behandlingsreferanse = UUID.randomUUID(),
             forrigeBehandlingsreferanse = null,
             personIdent = "12345612345",
-            vedtakstidspunkt = LocalDateTime.now(),
+            vedtakstidspunkt = LocalDateTime.of(vedtaksdato, LocalTime.MIDNIGHT.plusHours(8)),
             beslutterId = "testbruker1",
             saksbehandlerId = "testbruker2",
             perioder = perioder)

@@ -34,8 +34,8 @@ data class Utbetalinger(
 
 class UtbetalingBeregner {
 
-    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, tidligereUtbetalingerTidslinje: Tidslinje<UtbetalingData>, sisteUtbetalingsdag: LocalDate): Utbetalinger {
-        val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse, sisteUtbetalingsdag)
+    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, tidligereUtbetalingerTidslinje: Tidslinje<UtbetalingData>): Utbetalinger {
+        val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse)
         val nyUtbetalingRef = UUID.randomUUID()
         val utbetalingsperioder = if (periodeSomSkalSendes == null) {
             listOf()
@@ -99,11 +99,14 @@ class UtbetalingBeregner {
             .toSet()
     }
 
-    private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse, sisteUtbetalingsdato: LocalDate): Periode? { val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
-        return if (min == null || min.isAfter(sisteUtbetalingsdato)) {
+    private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse): Periode? {
+        val sisteUtbetalingsdato = nyTilkjentYtelse.vedtakstidspunkt.toLocalDate()
+        val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
+        val max = nyTilkjentYtelse.perioder.filter { it.periode.tom <= sisteUtbetalingsdato }.maxOfOrNull { it.periode.tom }
+        return if (min == null || max == null || min.isAfter(max)) {
             null
         } else {
-            Periode(min, sisteUtbetalingsdato)
+            Periode(min, max)
         }
     }
 

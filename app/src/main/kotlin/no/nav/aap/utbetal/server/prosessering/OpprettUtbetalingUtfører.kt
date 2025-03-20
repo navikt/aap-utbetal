@@ -16,8 +16,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.Utbetalinger
 import no.nav.aap.utbetal.utbetaling.UtbetalingstidslinjeService
-import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfører {
     override fun utfør(input: JobbInput) {
@@ -41,7 +40,7 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
         val utbetalingRepository = UtbetalingRepository(connection)
         val utbetalingListe = utbetalingRepository.hent(saksnummer)
         val utbetalingTidslinje = byggTidslinje(utbetalingListe)
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.now().minusDays(1)) //TODO: Blir i dag minus en dag riktig?
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje)
         return lagreUtbetalinger(utbetalinger)
     }
 
@@ -68,7 +67,7 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
         val utbetalingRepository = UtbetalingRepository(connection)
         val utbetalingstidslinjeService = UtbetalingstidslinjeService(tilkjentYtelseRepo, utbetalingRepository)
         val utbetalingTidslinje = utbetalingstidslinjeService.byggTidslinje(saksnummer)
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje, LocalDate.now().minusDays(1)) //TODO: Blir i dag minus en dag riktig?
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje)
 
         return lagreUtbetalinger(utbetalinger)
     }
