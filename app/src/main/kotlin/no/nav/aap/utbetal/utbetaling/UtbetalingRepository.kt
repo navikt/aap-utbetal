@@ -214,7 +214,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
             utbetalingRef = row.getUUID("UTBETALING_REF")
         )
         if (medPeriode) {
-            utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
+            return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
         }
         return utbetaling
     }
