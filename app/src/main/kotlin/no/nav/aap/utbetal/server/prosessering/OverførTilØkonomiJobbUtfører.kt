@@ -30,8 +30,8 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         } else {
             if (utbetaling.perioder.isEmpty()) {
                 log.info("Opphør av utbetalingId: $utbetalingId")
-                val heelvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
-                UtbetalingKlient().opphør(utbetaling.utbetalingRef, heelvedUtbetaling)
+                val helvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
+                UtbetalingKlient().opphør(utbetaling.utbetalingRef, helvedUtbetaling)
             } else {
                 log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
                 UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
