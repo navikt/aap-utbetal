@@ -38,9 +38,6 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
             }
         }
         utbetalingRepo.oppdaterStatus(utbetalingId, UtbetalingStatus.SENDT)
-
-//TODO: skal vi sjekke kvitteringer?
-//        UtbetalingJobbService(connection).opprettSjekkKvitteringJobb(utbetalingId)
     }
 
     private fun Utbetaling.harNyePerioder() =
