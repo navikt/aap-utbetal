@@ -11,7 +11,6 @@ import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -22,14 +21,9 @@ data class UtbetalingsperiodeMedReferanse(
 
 data class Utbetalinger(
     val endringUtbetalinger: List<Utbetaling>,
-    val nyUtbetaling: Utbetaling?
+    val nyeUtbetalinger: List<Utbetaling>,
 ) {
-    fun alle(): List<Utbetaling> {
-        if (nyUtbetaling == null) {
-            return endringUtbetalinger
-        }
-        return endringUtbetalinger + nyUtbetaling
-    }
+    fun alle(): List<Utbetaling> = endringUtbetalinger + nyeUtbetalinger
 }
 
 class UtbetalingBeregner {
@@ -47,7 +41,7 @@ class UtbetalingBeregner {
             utbetalingerTidslinje.segmenter().map { it.verdi }
         }
         val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
-        val utbetalingMedNyePerioder = if (nyeUtbetalingsperioder.isNotEmpty()) {
+        val utbetalingerMedNyePerioder =  nyeUtbetalingsperioder.splittPerBeløp().map { (utbetalingRef, utbetalingsperioder) ->
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
@@ -59,16 +53,19 @@ class UtbetalingBeregner {
                 saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
                 utbetalingOversendt = LocalDateTime.now(),
                 utbetalingStatus = UtbetalingStatus.OPPRETTET,
-                perioder = nyeUtbetalingsperioder,
-                utbetalingRef = nyUtbetalingRef
+                perioder = utbetalingsperioder,
+                utbetalingRef = utbetalingRef
             )
-        } else {
-            null
         }
         return Utbetalinger(
             endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(sakUtbetalingId, nyTilkjentYtelse),
-            nyUtbetaling = utbetalingMedNyePerioder
+            nyeUtbetalinger = utbetalingerMedNyePerioder
         )
+    }
+
+    private fun List<Utbetalingsperiode>.splittPerBeløp(): Map<UUID, List<Utbetalingsperiode>> {
+        val perBeløp = groupBy {it.beløp}
+        return perBeløp.entries.associate {UUID.randomUUID() to it.value.sortedBy { it.periode.fom }}
     }
 
     private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {

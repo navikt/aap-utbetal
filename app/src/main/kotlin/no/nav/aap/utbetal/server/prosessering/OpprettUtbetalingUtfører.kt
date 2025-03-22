@@ -74,21 +74,22 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
 
     private fun lagreUtbetalinger(utbetalinger: Utbetalinger): Utbetalinger {
         val utbetalingRepo = UtbetalingRepository(connection)
+
         val endringUtbetalinger = mutableListOf<Utbetaling>()
         utbetalinger.endringUtbetalinger.forEach { endringUtbetaling ->
             val utbetalingId = utbetalingRepo.lagre(endringUtbetaling)
             endringUtbetalinger.add(endringUtbetaling.copy(id = utbetalingId))
         }
-        val nyUtbetaling = if (utbetalinger.nyUtbetaling != null) {
-            val utbetalingId = utbetalingRepo.lagre(utbetalinger.nyUtbetaling)
-            utbetalinger.nyUtbetaling.copy(id = utbetalingId)
-        } else {
-            null
+
+        val nyeUtbetalinger = mutableListOf<Utbetaling>()
+        utbetalinger.nyeUtbetalinger.forEach { nyUtbetaling ->
+            val utbetalingId = utbetalingRepo.lagre(nyUtbetaling)
+            nyeUtbetalinger.add(nyUtbetaling.copy(id = utbetalingId))
         }
 
         return Utbetalinger(
             endringUtbetalinger = endringUtbetalinger,
-            nyUtbetaling = nyUtbetaling
+            nyeUtbetalinger = nyeUtbetalinger
         )
     }
 

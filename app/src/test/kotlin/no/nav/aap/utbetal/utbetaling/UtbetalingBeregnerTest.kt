@@ -30,9 +30,9 @@ class UtbetalingBeregnerTest {
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
-        val nyUtbetaling = utbetalinger.nyUtbetaling
-
-        val perioder = nyUtbetaling!!.perioder
+        assertThat(utbetalinger.nyeUtbetalinger).hasSize(1)
+        val nyeUtbetalinger = utbetalinger.nyeUtbetalinger
+        val perioder = nyeUtbetalinger[0].perioder
         assertThat(perioder.size).isEqualTo(3)
         verifiserNyPeriode(perioder[0], 1000)
         verifiserNyPeriode(perioder[1], 1000)
@@ -53,11 +53,13 @@ class UtbetalingBeregnerTest {
         verifiserEndretPeriode(endringUtbetalingPerioder[0], 600)
         verifiserEndretPeriode(endringUtbetalingPerioder[1], 600)
         verifiserEndretPeriode(endringUtbetalingPerioder[2], 600)
-        val nyUtbetalingPerioder = utbetalinger.nyUtbetaling!!.perioder
+        assertThat(utbetalinger.nyeUtbetalinger).hasSize(1)
+        val nyUtbetalingPerioder = utbetalinger.nyeUtbetalinger[0].perioder
         verifiserNyPeriode(nyUtbetalingPerioder[0], 500)
         verifiserNyPeriode(nyUtbetalingPerioder[1], 500)
         verifiserNyPeriode(nyUtbetalingPerioder[2], 500)
     }
+
 
     @Test
     fun `Opphør av en periode`() {
@@ -69,7 +71,7 @@ class UtbetalingBeregnerTest {
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
         assertThat(utbetalinger.endringUtbetalinger.first().perioder).hasSize(0)
-        assertThat(utbetalinger.nyUtbetaling).isNull()
+        assertThat(utbetalinger.nyeUtbetalinger).isEmpty()
     }
 
 
