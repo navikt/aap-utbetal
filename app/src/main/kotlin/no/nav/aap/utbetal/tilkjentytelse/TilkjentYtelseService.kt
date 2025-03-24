@@ -2,10 +2,13 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -26,6 +29,8 @@ enum class TilkjentYtelseResponse {
 
 class TilkjentYtelseService(private val connection: DBConnection) {
 
+    private val log: Logger = LoggerFactory.getLogger(TilkjentYtelseService::class.java)
+
     fun håndterNyTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): TilkjentYtelseResponse {
         val utbetalingRepo = UtbetalingRepository(connection)
         val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
@@ -37,13 +42,15 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
             lagre(tilkjentYtelse)
+            //TODO: Fjern denne på sikt.
             UtbetalingJobbService(connection).opprettUtbetalingJobb(
-                tilkjentYtelse.saksnummer.toString(),
+                tilkjentYtelse.saksnummer,
                 tilkjentYtelse.behandlingsreferanse
             )
         } else {
             // Sjekk om duplikat ikke er lik, slik at det kan sendes Conflict http code til klienten
             if (!eksisterendeTilkjentYtelse.erLik(tilkjentYtelse)) {
+                log.info("Duplikatkontroll på innsending av tilkjent ytelse $eksisterendeTilkjentYtelse er ikke like $tilkjentYtelse")
                 return TilkjentYtelseResponse.CONFLICT
             }
         }

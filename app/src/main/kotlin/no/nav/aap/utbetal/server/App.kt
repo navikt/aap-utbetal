@@ -34,6 +34,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.SjekkForNyeUtbetalingerUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.hent
@@ -109,7 +110,8 @@ fun Application.motor(dataSource: DataSource): Motor {
         jobber = listOf(
             OpprettUtbetalingUtfører,
             OverførTilØkonomiJobbUtfører,
-            SjekkKvitteringFraØkonomiUtfører
+            SjekkKvitteringFraØkonomiUtfører,
+            SjekkForNyeUtbetalingerUtfører
         )
     )
 
