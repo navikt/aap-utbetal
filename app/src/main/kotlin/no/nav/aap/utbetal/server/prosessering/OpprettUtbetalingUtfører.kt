@@ -15,7 +15,6 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingData
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.Utbetalinger
-import no.nav.aap.utbetal.utbetaling.UtbetalingstidslinjeService
 import java.util.*
 
 class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfører {
@@ -57,19 +56,6 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
             }
         }
         return Tidslinje<UtbetalingData>(segmenter)
-    }
-
-    private fun opprettUtbetalinger2(saksnummer: Saksnummer, behandlingsreferanse: UUID): Utbetalinger {
-        val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
-        val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
-
-        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
-        val utbetalingRepository = UtbetalingRepository(connection)
-        val utbetalingstidslinjeService = UtbetalingstidslinjeService(tilkjentYtelseRepo, utbetalingRepository)
-        val utbetalingTidslinje = utbetalingstidslinjeService.byggTidslinje(saksnummer)
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje)
-
-        return lagreUtbetalinger(utbetalinger)
     }
 
     private fun lagreUtbetalinger(utbetalinger: Utbetalinger): Utbetalinger {

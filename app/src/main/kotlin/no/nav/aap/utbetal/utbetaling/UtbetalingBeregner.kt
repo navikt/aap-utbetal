@@ -11,8 +11,17 @@ import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
+import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+
+data class UtbetalingData(
+    val utbetalingRef: UUID,
+    val beløp: UInt,
+    val fastsattDagsats: UInt,
+    val utbetalingsdato: LocalDate
+)
 
 data class UtbetalingsperiodeMedReferanse(
     val utbetalingRef: UUID,
@@ -191,6 +200,9 @@ class UtbetalingBeregner {
     }
 
 
-    private fun Beløp.tilUInt() = verdi.toBigInteger().toInt().toUInt()
+    private fun Beløp.tilUInt() = verdi
+        .setScale(0, RoundingMode. HALF_UP)
+        .toInt()
+        .toUInt()
 
 }
