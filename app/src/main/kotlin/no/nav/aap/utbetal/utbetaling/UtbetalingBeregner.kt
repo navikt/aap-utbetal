@@ -106,9 +106,11 @@ class UtbetalingBeregner {
     }
 
     private fun finnPeriodeSomSkalSendes(nyTilkjentYtelse: TilkjentYtelse): Periode? {
-        val sisteUtbetalingsdato = nyTilkjentYtelse.vedtakstidspunkt.toLocalDate()
+        val vedtaksdato = nyTilkjentYtelse.vedtakstidspunkt.toLocalDate()
         val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
-        val max = nyTilkjentYtelse.perioder.filter { it.periode.tom <= sisteUtbetalingsdato }.maxOfOrNull { it.periode.tom }
+        val max = nyTilkjentYtelse.perioder
+            .filter { it.periode.tom <= vedtaksdato && it.detaljer.utbetalingsdato <= vedtaksdato}
+            .maxOfOrNull { it.periode.tom }
         return if (min == null || max == null || min.isAfter(max)) {
             null
         } else {

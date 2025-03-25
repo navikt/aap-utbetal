@@ -24,7 +24,7 @@ class UtbetalingBeregnerTest {
     @Test
     fun `Bare nye perioder`() {
         val start = LocalDate.of(2025, 1, 1)
-        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14), 1000, 1100, 1200)
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9), 1000, 1100, 1200)
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje)
@@ -43,7 +43,7 @@ class UtbetalingBeregnerTest {
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25), 1000, 1000, 600, 500)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000, 1000, 600, 500)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -65,7 +65,7 @@ class UtbetalingBeregnerTest {
     fun `Opphør av en periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25), 1000, 0, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000, 0, 1000)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -119,7 +119,7 @@ class UtbetalingBeregnerTest {
                 barnetilleggsats = Beløp(36L),
                 redusertDagsats = beløp,
                 ventedagerSamordning = false,
-                utbetalingsdato = tom.plusDays(1),
+                utbetalingsdato = tom.plusDays(9),
             )
         )
 
@@ -143,7 +143,7 @@ class UtbetalingBeregnerTest {
                 utbetalingRef = UUID.randomUUID(),
                 beløp = beløp.toUInt(),
                 fastsattDagsats = beløp.toUInt(),
-                utbetalingsdato = tom.plusDays(1)
+                utbetalingsdato = tom.plusDays(9)
 
             )
         )
