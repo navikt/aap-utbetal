@@ -111,7 +111,8 @@ fun Application.motor(dataSource: DataSource): Motor {
             OpprettUtbetalingUtfører,
             OverførTilØkonomiJobbUtfører,
             SjekkKvitteringFraØkonomiUtfører,
-            SjekkForNyeUtbetalingerUtfører
+            //NB: Kommentert ut inntil videre. Må testes bedre først.
+            //SjekkForNyeUtbetalingerUtfører
         )
     )
 

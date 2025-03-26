@@ -11,9 +11,12 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 class SjekkForNyeUtbetalingerUtfører(private val connection: DBConnection): JobbUtfører {
 
     override fun utfør(input: JobbInput) {
+        //NB: Kommentert ut inntil videre. Må testes bedre først.
+        /*
         val sakOgBehandlingListe = SakUtbetalingRepository(connection).finnÅpneSakerOgSisteBehandling()
         val utbetalingJobbService = UtbetalingJobbService(connection)
         sakOgBehandlingListe.forEach { utbetalingJobbService.opprettUtbetalingJobb(it.saksnummer, it.behandlingRef) }
+         */
     }
 
     companion object: Jobb {
