@@ -64,7 +64,8 @@ class SakUtbetalingRepository(val connection: DBConnection) {
             WHERE
                 TY.BEHANDLING_REF NOT IN (
                     SELECT FORRIGE_BEHANDLING_REF FROM TILKJENT_YTELSE WHERE SAKSNUMMER = TY.SAKSNUMMER AND FORRIGE_BEHANDLING_REF IS NOT NULL
-                )
+                ) AND
+                TY.SAKSNUMMER = SU.SAKSNUMMER
         """.trimIndent()
 
         return connection.queryList<SakOgBehandling>(finnSisteTilkjentYtelseSql) {
