@@ -24,7 +24,7 @@ class UtbetalingBeregnerTest {
     @Test
     fun `Bare nye perioder`() {
         val start = LocalDate.of(2025, 1, 1)
-        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9), 1000, 1100, 1200)
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9), 1000.0, 1100.0, 1200.0)
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje)
@@ -43,7 +43,7 @@ class UtbetalingBeregnerTest {
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000, 1000, 600, 500)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 1000.0, 600.0, 500.0)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -65,7 +65,7 @@ class UtbetalingBeregnerTest {
     fun `Opphør av en periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000, 0, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 0.0, 1000.0)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -89,9 +89,9 @@ class UtbetalingBeregnerTest {
     }
 
 
-    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, vararg beløpListe: Long): TilkjentYtelse {
+    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, vararg beløpListe: Double): TilkjentYtelse {
         val perioder = beløpListe.mapIndexed { i, beløp ->
-            lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(beløp))
+            lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(BigDecimal(beløp)))
         }
         return TilkjentYtelse(
             id = 123L,

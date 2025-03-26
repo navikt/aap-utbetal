@@ -198,7 +198,7 @@ class UtbetalingBeregner {
 
     private fun sammeBeløp(utbetalingData: UtbetalingData, ytelseDetaljer: YtelseDetaljer): Boolean {
         return utbetalingData.beløp == ytelseDetaljer.redusertDagsats.tilUInt() &&
-                utbetalingData.fastsattDagsats == ytelseDetaljer.redusertDagsats.tilUInt()
+                utbetalingData.fastsattDagsats == ytelseDetaljer.dagsats.tilUInt()
     }
 
 
