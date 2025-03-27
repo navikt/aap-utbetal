@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -32,13 +33,14 @@ import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
+import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
-import no.nav.aap.utbetal.server.prosessering.SjekkForNyeUtbetalingerUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.hent
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.sql.DataSource
 
 private const val ANTALL_WORKERS = 4
@@ -90,11 +92,17 @@ internal fun Application.server(dbConfig: DbConfig) {
 
     val motor = motor(dataSource)
 
+    val authConfig = AuthorizationMachineToMachineConfig(
+        authorizedAzps = listOfNotNull(
+            configForKey("BEHANDLINGSFLYT_AZP")?.let(UUID::fromString)
+        )
+    )
+
     routing {
         authenticate(AZURE) {
             apiRouting {
-                tilkjentYtelse(dataSource, prometheus)
-                hent(dataSource, prometheus)
+                tilkjentYtelse(dataSource, prometheus, authConfig)
+                hent(dataSource, prometheus, authConfig)
                 motorApi(dataSource)
             }
         }
