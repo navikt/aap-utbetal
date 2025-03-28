@@ -6,7 +6,6 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
-import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -28,15 +27,6 @@ class UtbetalingJobbService(private val connection: DBConnection) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for utbetalingId: $utbetalingId")
         FlytJobbRepository(connection).leggTil(
             JobbInput(OverførTilØkonomiJobbUtfører).medParameter("utbetalingId", utbetalingId.toString())
-        )
-    }
-
-
-    fun opprettSjekkKvitteringJobb(utbetalingId: Long) {
-        log.info("Oppretter jobb for å sjekke status på utbetalingId: $utbetalingId")
-        FlytJobbRepository(connection).leggTil(
-            JobbInput(SjekkKvitteringFraØkonomiUtfører)
-                .medParameter("utbetalingId", utbetalingId.toString())
         )
     }
 

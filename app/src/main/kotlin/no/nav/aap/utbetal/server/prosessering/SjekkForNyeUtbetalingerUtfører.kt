@@ -1,22 +1,28 @@
 package no.nav.aap.utbetal.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import org.slf4j.LoggerFactory
 
 class SjekkForNyeUtbetalingerUtfører(private val connection: DBConnection): JobbUtfører {
 
+    private val log = LoggerFactory.getLogger(SjekkForNyeUtbetalingerUtfører::class.java)
+
     override fun utfør(input: JobbInput) {
-        //NB: Kommentert ut inntil videre. Må testes bedre først.
-        /*
-        val sakOgBehandlingListe = SakUtbetalingRepository(connection).finnÅpneSakerOgSisteBehandling()
-        val utbetalingJobbService = UtbetalingJobbService(connection)
-        sakOgBehandlingListe.forEach { utbetalingJobbService.opprettUtbetalingJobb(it.saksnummer, it.behandlingRef) }
-         */
+        if (Miljø.erProd()) {
+            log.info("SjekkForNyeUtbetalingerUtfører er deaktivert for produksjon inntil videre")
+        } else {
+            val sakOgBehandlingListe = SakUtbetalingRepository(connection).finnÅpneSakerOgSisteBehandling()
+            log.info("Fant ${sakOgBehandlingListe.size} saker som må sjekkes for om nye utbetalinger skal dannes")
+            val utbetalingJobbService = UtbetalingJobbService(connection)
+            sakOgBehandlingListe.forEach { utbetalingJobbService.opprettUtbetalingJobb(it.saksnummer, it.behandlingRef) }
+        }
     }
 
     companion object: Jobb {
