@@ -21,11 +21,11 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
         prometheus.httpCallCounter("/tilkjentytelse").increment()
         log.info("Tilkjent ytelse: {}", dto.copy(personIdent = "..........."))
 
-        val respomse = dataSource.transaction { connection ->
+        val response = dataSource.transaction { connection ->
             TilkjentYtelseService(connection).håndterNyTilkjentYtelse(dto.tilTilkjentYtelse())
         }
 
-        when (respomse) {
+        when (response) {
             TilkjentYtelseResponse.LOCKED -> respondWithStatus(HttpStatusCode.Locked)
             TilkjentYtelseResponse.CONFLICT -> respondWithStatus(HttpStatusCode.Conflict)
             TilkjentYtelseResponse.OK -> respondWithStatus(HttpStatusCode.OK)
