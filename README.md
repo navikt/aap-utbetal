@@ -27,42 +27,41 @@ graph TD
 
 ### Hovedfunksjoner
 
-#### #1: Vedtak på førstegangsbehandling
+#### #1: Mottar tilkjent ytelse fra behandlingsflyt ved veedtak
 
 ```mermaid
 sequenceDiagram
 Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak)
-Utbetal->>Database: Opprett rad i SAK_UTBETALING
+Utbetal->>Utbetal: Sjekk om alle tidligere utbetalinger er bekreftet (ellers returner LOCKED)
+Utbetal->>Utbetal: Sjekk at tilkjent ytelse ikke er duplikat (ellers returner CONFLICT)
+Utbetal->>Database: Opprett rad i SAK_UTBETALING dersom den ikke eksisterer
 Utbetal->>Database: Lagre tilkjent ytelse
-Utbetal->>Utbetal: Opprett Helved-utbetaling
-Utbetal->>Database: Lagre Helved-utbetaling
-Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(saksnummer)
+Utbetal->>Utbetalmotor: Opprett task for å opprette utbetalinger(saksnummer, behandlingRef)
 
 ```
 
-#### #2: Vedtak på revurdering
+#### #2: Opprett utbetalinger for gitt behandling/tilkjent ytelse
 ```mermaid
 sequenceDiagram
-    Behandlingsflyt->>Utbetal: Ny tilkjent ytelse (vedtak i revurdering)
-    Utbetal->>Database: Hent rad fra SAK_UTBETALING
-    Utbetal->>Database: Lagre tilkjent ytelse
-    Utbetal->>Utbetal: Sjekk om ny tilkjent ytelse påvirker tidligere utbetalinger
-    opt Påvirker tidligere utbetaling?
-        Utbetal->>Utbetal: Opprett Helved-utbetaling for eventuell etterbetaling
-        Utbetal->>Database: Lagre Helved-utbetaling
-        Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(saksnummer)
-    end
+    Utbetalmotor->>Utbetal: Start opprett utbetalinger(saksnummer, behandlingRef)
+    Utbetal->>Database: Hent tilkjent ytelse for behandling
+    Utbetal->>Database: Hent sak-utbetaling for sak
+    Utbetal->>Database: Hent tidligere utbetalinger for sak
+    Utbetal->>Utbetal: Bygg tidslinje for tidligere utbetalinger
+    Utbetal->>Utbetal: Beregn utbetalinger(endringer og ny) utifra tilkjent ytelse og tidligere utbetalinger
+    Utbetal->>Database: Lagrer de beregnede utbetalingene
+    Utbetal->>Utbetalmotor: Opprett tasker for sending av alle beregnede utbetalinger(utbetalingId)
 ```
 
 #### #3: Overfør utbetaling til Helved-utbetaling
 
 ```mermaid
 sequenceDiagram
-Utbetalmotor->>Utbetal: Start overfør utbetaling(saksnummer)
-Utbetal->>Database: Hent Helved-utbetaling
-Utbetal->>HelvedUtbetaling: Send utbetaling
-Utbetal->>Database: Oppdater status til SENDT(utbetalingId)
-Utbetal->>Database: Sett dato for neste utbetaling i SAK_UTBETALING
+Utbetalmotor->>Utbetal: Start overfør utbetaling(utbetalingId)
+Utbetal->>Database: Hent utbetaling
+Utbetal->>Utbetal: Konverter utbetaling til Helved datamodell
+Utbetal->>HelvedUtbetaling: Send utbetaling (POST for ny, PUT for endring og DELETE for opphør)
+Utbetal->>Database: Oppdater status til SENDT(utbetalingId) på utbetaling
 ```
 
 #### #4: Finn nye utbetalinger som skal overføres
@@ -70,40 +69,22 @@ Utbetal->>Database: Sett dato for neste utbetaling i SAK_UTBETALING
 ```mermaid
 sequenceDiagram
 Utbetalmotor->>Utbetal: Trigger daglig opprettelse av utbetalinger
-Utbetal->>Utbetal: Finn alle saker hvor utbetalingsdato er passert
-loop For hver sak hvor utbetalingsdato er passert
-    Utbetal->>Utbetalmotor: Opprett task for sak som trenger utbetaling(saksnummer)
+Utbetal->>Database: Finn alle åpne saker og siste behandling
+loop For hver sak 
+    Utbetal->>Utbetalmotor: Opprett task for opprettelse av utbetalinger(saksnummer, behandlingRef)
 end
 ```
 
-#### #5: Opprett utbetaling (for utbetaling hver 14. dag)
-```mermaid
-sequenceDiagram
-Utbetalmotor->>Utbetal: Opprett utbetaling
-Utbetal->>Database: Hent siste tilkjent ytelse
-Utbetal->>Utbetal: Opprett Helved-utbetaling
-Utbetal->>Database: Lagre Helved-utbetaling
-Utbetal->>Utbetalmotor: Opprett overfør utbetaling task(saksnummer)
-```
-
-
-#### #6: Behandle kvittering
+#### #5: Behandle kvittering
 
 ```mermaid
 sequenceDiagram
-Utbetalmotor->>Utbetal: Behandle kvitteringer (trigges hvert 15. min.)
+Utbetalmotor->>Utbetal: Behandle kvitteringer (trigges hvert 10. min.)
 Utbetal->>Database: Hent alle utbetalinger som mangler kvittering
 loop For hver utbetaling som mangler kvittering
-    Utbetal->>Utbetalmotor: Lag task for hver utbetaling som mangler kvittering(utbetalingId)
+    Utbetal->>HelvedUtbetaling: Hent status for utbetaling
+    Utbetal->>Database: Oppdater status på utbetaling dersom OK eller FEILET
 end
-```
-#### #7: Hent kvitteringer for utbetaling og oppdater database
-
-```mermaid
-sequenceDiagram
-Utbetalmotor->>Utbetal: Sjekk kvittering (utbetalingId)
-Utbetal->>Helved-utbetaling: Sjekk status for utbetaling (utbetalingId)
-Utbetal->>Database: Oppdater status på utbetaling dersom endret
 ```
 
 ### Lokalt utviklingsmiljø:
