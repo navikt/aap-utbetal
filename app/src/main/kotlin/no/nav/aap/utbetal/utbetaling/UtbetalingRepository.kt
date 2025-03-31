@@ -255,9 +255,13 @@ class UtbetalingRepository(private val connection: DBConnection) {
 
     private fun slettTidligereUtbetaling(utbetalingRef: UUID) {
         val logiskSlettGammelUtbetaling = """
-            UPDATE UTBETALING
-            SET SLETTET = TRUE
-            WHERE UTBETALING_REF = ?
+            UPDATE 
+                UTBETALING
+            SET 
+                SLETTET = TRUE,
+                UTBETALING_ENDRET = CURRENT_TIMESTAMP
+            WHERE 
+                UTBETALING_REF = ?
         """.trimIndent()
 
         connection.execute(logiskSlettGammelUtbetaling) {
@@ -272,7 +276,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
             UPDATE 
                 UTBETALING 
             SET 
-                UTBETALING_STATUS = ? 
+                UTBETALING_STATUS = ?, 
+                UTBETALING_ENDRET = CURRENT_TIMESTAMP
             WHERE 
                 ID = ?
         """
