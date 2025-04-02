@@ -25,6 +25,7 @@ data class Utbetaling(
     val perioder: List<Utbetalingsperiode>,
     val avvent: Avvent? = null,
     val utbetalingRef: UUID,
+    val versjon: Long = 0L
 )
 
 data class Utbetalingsperiode(

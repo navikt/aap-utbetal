@@ -37,7 +37,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
                 UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
             }
         }
-        utbetalingRepo.oppdaterStatus(utbetalingId, UtbetalingStatus.SENDT)
+        utbetalingRepo.oppdaterStatus(utbetalingId, utbetaling.versjon, UtbetalingStatus.SENDT)
     }
 
     private fun Utbetaling.harNyePerioder() =

@@ -11,6 +11,7 @@ import java.util.UUID
 data class UtbetalingLight(
     val id: Long,
     val utbetalingRef: UUID,
+    val versjon: Long
 )
 
 class UtbetalingRepository(private val connection: DBConnection) {
@@ -97,7 +98,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 SAKSBEHANDLER_IDENT,
                 UTBETALING_OPPRETTET,
                 UTBETALING_ENDRET,
-                UTBETALING_STATUS
+                UTBETALING_STATUS,
+                VERSJON
             FROM 
                 UTBETALING
             WHERE
@@ -129,7 +131,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 U.SAKSBEHANDLER_IDENT,
                 U.UTBETALING_OPPRETTET,
                 U.UTBETALING_ENDRET,
-                U.UTBETALING_STATUS
+                U.UTBETALING_STATUS,
+                U.VERSJON
             FROM 
                 UTBETALING U,
                 TILKJENT_YTELSE TY
@@ -150,7 +153,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val hentAlleSendteUtbetalingerSql = """
             SELECT 
                 ID,
-                UTBETALING_REF
+                UTBETALING_REF,
+                VERSJON
             FROM 
                 UTBETALING
             WHERE
@@ -163,6 +167,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 UtbetalingLight(
                     id = row.getLong("ID"),
                     utbetalingRef = row.getUUID("UTBETALING_REF"),
+                    versjon = row.getLong("VERSJON"),
                 )
             }
         }
@@ -183,7 +188,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 UTBETALING_OPPRETTET,
                 UTBETALING_ENDRET,
                 UTBETALING_STATUS,
-                UTBETALING_REF
+                UTBETALING_REF,
+                VERSJON
             FROM 
                 UTBETALING
             WHERE
@@ -211,7 +217,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
             utbetalingEndret = row.getLocalDateTimeOrNull("UTBETALING_ENDRET"),
             utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
             perioder = listOf(),
-            utbetalingRef = row.getUUID("UTBETALING_REF")
+            utbetalingRef = row.getUUID("UTBETALING_REF"),
+            versjon = row.getLong("VERSJON"),
         )
         if (medPeriode) {
             return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
@@ -271,21 +278,24 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun oppdaterStatus(utbetalingId: Long, status: UtbetalingStatus) {
+    fun oppdaterStatus(utbetalingId: Long, versjon: Long, status: UtbetalingStatus) {
         val oppdaterStatusSql = """
             UPDATE 
                 UTBETALING 
             SET 
                 UTBETALING_STATUS = ?, 
-                UTBETALING_ENDRET = CURRENT_TIMESTAMP
+                UTBETALING_ENDRET = CURRENT_TIMESTAMP,
+                VERSJON = VERSJON + 1
             WHERE 
-                ID = ?
+                ID = ? AND
+                VERSJON = ?
         """
 
         connection.execute(oppdaterStatusSql) {
             setParams {
                 setString(1, status.name)
                 setLong(2, utbetalingId)
+                setLong(3, versjon)
             }
             setResultValidator { require(it == 1) }
         }
