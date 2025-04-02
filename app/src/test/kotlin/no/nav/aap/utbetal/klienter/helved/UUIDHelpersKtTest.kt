@@ -1,5 +1,7 @@
 package no.nav.aap.utbetal.klienter.helved
 
+import no.nav.aap.utbetaling.helved.base64ToUUID
+import no.nav.aap.utbetaling.helved.toBase64
 import org.assertj.core.api.Assertions.assertThat
 import java.util.UUID
 import kotlin.test.Test

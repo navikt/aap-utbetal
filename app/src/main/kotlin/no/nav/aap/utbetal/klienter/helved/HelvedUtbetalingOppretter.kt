@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.klienter.helved
 
+import no.nav.aap.utbetaling.helved.toBase64
 import java.time.LocalDate
 
 class HelvedUtbetalingOppretter {

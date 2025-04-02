@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.klienter.helved
+package no.nav.aap.utbetaling.helved
 
 import java.util.Base64
 import java.util.UUID
