@@ -2,11 +2,14 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
+import no.nav.aap.utbetal.utbetaling.KvitteringService
 import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import no.nav.aap.utbetal.utbetaling.UtbetalingLight
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -33,16 +36,22 @@ class TilkjentYtelseService(private val connection: DBConnection) {
 
     fun håndterNyTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): TilkjentYtelseResponse {
         val utbetalingRepo = UtbetalingRepository(connection)
+
+        //Prøv å hente alle manglende kvitteringer
+        utbetalingRepo.hent(tilkjentYtelse.saksnummer).hentKvitteringerForSendteUtbetalinger()
+
+        //Sjekk om det fortsatt mangler kvitteringer, eller er som av andre grunner ikke er BEKREFTET
         val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
-        val locked = utbetalingerForSak.any {it.utbetalingStatus != no.nav.aap.utbetaling.UtbetalingStatus.BEKREFTET}
+        val locked = utbetalingerForSak.any {it.utbetalingStatus != UtbetalingStatus.BEKREFTET}
         if (locked) {
             return TilkjentYtelseResponse.LOCKED
         }
+
+        //Lagre tilkjent ytelse dersom den ikke er duplikat
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
             lagre(tilkjentYtelse)
-            //TODO: Fjern denne på sikt.
             UtbetalingJobbService(connection).opprettUtbetalingJobb(
                 tilkjentYtelse.saksnummer,
                 tilkjentYtelse.behandlingsreferanse
@@ -56,6 +65,21 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         }
         return TilkjentYtelseResponse.OK
     }
+
+    private fun List<Utbetaling>.hentKvitteringerForSendteUtbetalinger() {
+        val kvitteringService = KvitteringService(connection)
+        filter { it.utbetalingStatus == UtbetalingStatus.SENDT }
+            .forEach { utbetaling ->
+                kvitteringService.sjekkKvittering(utbetaling.tilUtbetalingLight())
+            }
+    }
+
+    private fun Utbetaling.tilUtbetalingLight() =
+        UtbetalingLight(
+            id = id!!,
+            utbetalingRef = utbetalingRef,
+            versjon = versjon,
+        )
 
     /**
      * Lagre tilkjent ytelese. Oppretter SakUtbetaling dersom det er første tilkjente ytelse for denne saken.

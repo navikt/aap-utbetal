@@ -20,8 +20,6 @@ fun Application.helvedUtbetalingFake() {
             call.respond(HttpStatusCode.NoContent)
         }
         get("/utbetalinger/{uid}/status") {
-            val uid = call.parameters["uid"]
-            println("Finn utbetaling for $uid")
             call.respond(status = HttpStatusCode.OK, UtbetalingStatus.OK)
         }
     }
