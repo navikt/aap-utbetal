@@ -70,5 +70,13 @@ spec:
         sqlInstances:
             - type: POSTGRES_16
               tier: db-custom-1-3840
+              diskAutoresize: true
+              highAvailability: true
+              pointInTimeRecovery: true
               databases:
                   - name: utbetal
+              flags:
+                  - name: cloudsql.enable_pgaudit
+                    value: "true"
+                  - name: pgaudit.log
+                    value: "all"
