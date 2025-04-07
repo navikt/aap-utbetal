@@ -25,6 +25,60 @@ graph TD
     Utbetal--Start utbetaling ved<br/> åpen behandling-->Helved-utbetaling
 ```
 
+
+### Flyt
+
+```mermaid
+flowchart LR
+    Behandlingslyt["`**Behandlingsflyt**
+                    Sender tilkjent ytelse
+                    til Utbetal
+                    når vedtak iverksettes`"]
+    Utbetal["`**Utbetal**
+            Mottar tilkjent ytelse
+            og lagrer denne og
+            lager task for å utlede
+            utbetalinger`"]
+
+    OpprettUtbetalingUtfører["`**OpprettUtbetalingUtfører**
+                            Deler opp utbetaling i eventuelle endinger
+                            og nye utbetalinger. Utbetalingene lagres
+                            og task for sending av utbetaling opprettes
+                            per utbetaling. Status på utbetaling er nå OPPRETTET.`"]
+
+    OverførTilØkonomiJobbUtfører["`**OverførTilØkonomiJobbUtfører**
+                                Konverterer utbetaling til Helved-utbetaling
+                                sitt format, og sender utbetalingene enten som
+                                en ny utbetaling eller endring av eksisterende
+                                utbetaling. Utbetalings status 
+                                settes til SENDT.`"]                                     
+                            
+    Behandlingslyt --REST--> Utbetal --Motor--> OpprettUtbetalingUtfører --Motor---> OverførTilØkonomiJobbUtfører
+
+    SjekkForNyeUtbetalingerUtfører["`**SjekkForNyeUtbetalingerUtfører**
+                                    Finner alle åpne saker og opprett en
+                                    OpprettUtbetalingUtfører task for alle
+                                    siste behandling.`"]
+                                    
+    MotorDagligUtbetaling["CRON: Daglig trigging kl 04:00"]
+
+    MotorDagligUtbetaling--Motor-->SjekkForNyeUtbetalingerUtfører --Motor--> OpprettUtbetalingUtfører
+
+    SjekkKvitteringFraØkonomiUtfører["`**SjekkKvitteringFraØkonomiUtfører**
+                                        Henter alle utbetalinger med status
+                                        SENDT og prøver å hente status
+                                        på disse fra Helved-utbetaling.
+                                        Dersom det er mottatt kvittering,
+                                        så settes status enten til
+                                        BEKREFTET eller FEILET.`"]
+    
+    MotorHentKvitteringer["`CRON: Trigges hvert
+                            10. minutt`"]
+
+    MotorHentKvitteringer --Motor--> SjekkKvitteringFraØkonomiUtfører
+```
+
+
 ### Hovedfunksjoner
 
 #### #1: Mottar tilkjent ytelse fra behandlingsflyt ved veedtak
