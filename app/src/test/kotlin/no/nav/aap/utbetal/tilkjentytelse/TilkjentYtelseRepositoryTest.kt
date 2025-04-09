@@ -11,26 +11,16 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
-import kotlin.test.AfterTest
+import java.util.*
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertNull
 
 class TilkjentYtelseRepositoryTest {
 
-    @AfterTest
-    fun tearDown() {
-        @Suppress("SqlWithoutWhere")
-        InitTestDatabase.dataSource.transaction {
-            it.execute("DELETE FROM TILKJENT_PERIODE")
-            it.execute("DELETE FROM TILKJENT_YTELSE")
-            it.execute("DELETE FROM SAK_UTBETALING")
-        }
-    }
-
     @Test
     fun `Finner ingen tilkjentYtelse dersom ingen er lagret`() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        InitTestDatabase.freshDatabase().transaction { connection ->
             val tilkjentYtelseId = TilkjentYtelseRepository(connection).finnSisteTilkjentYtelse(Saksnummer("123"))
             assertNull(tilkjentYtelseId)
         }
@@ -39,7 +29,8 @@ class TilkjentYtelseRepositoryTest {
     @Test
     fun `Finner siste tilkjentYtelse dersom bare førstegangsbehandling`() {
         val saksnummer = Saksnummer("123")
-        val tilkjentYtelseId = InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+        val tilkjentYtelseId = dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagre(
                 opprettTilkjentYtelse(
                     saksnummer = saksnummer,
@@ -51,7 +42,7 @@ class TilkjentYtelseRepositoryTest {
                 )
             )
         }
-        val funnetTilkjentYtelseId = InitTestDatabase.dataSource.transaction { connection ->
+        val funnetTilkjentYtelseId = dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).finnSisteTilkjentYtelse(saksnummer)
         }
         assertThat(funnetTilkjentYtelseId).isEqualTo(tilkjentYtelseId)
@@ -68,13 +59,15 @@ class TilkjentYtelseRepositoryTest {
         val saksnummer1 = Saksnummer("123")
         val saksnummer2 = Saksnummer("456")
 
-        lagreTilkjentYtelse(saksnummer1, behandlingRef1, null)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef2, behandlingRef1)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef3, behandlingRef2)
-        val tilkjentYtelseId4 = lagreTilkjentYtelse(saksnummer1, behandlingRef4, behandlingRef3)
-        lagreTilkjentYtelse(saksnummer2, behandlingRef5, null)
+        val dataSource = InitTestDatabase.freshDatabase()
 
-        val funnetTilkjentYtelseId = InitTestDatabase.dataSource.transaction { connection ->
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef2, behandlingRef1)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef3, behandlingRef2)
+        val tilkjentYtelseId4 = lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef4, behandlingRef3)
+        lagreTilkjentYtelse(dataSource, saksnummer2, behandlingRef5, null)
+
+        val funnetTilkjentYtelseId = dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).finnSisteTilkjentYtelse(saksnummer1)
         }
         assertThat(funnetTilkjentYtelseId).isEqualTo(tilkjentYtelseId4)
@@ -89,14 +82,15 @@ class TilkjentYtelseRepositoryTest {
         val behandlingRef4 = UUID.randomUUID()
         val behandlingRef5 = UUID.randomUUID()
 
+        val dataSource = InitTestDatabase.freshDatabase()
         // Fem tilkjent ytelse i litt random rekkefølge
-        lagreTilkjentYtelse(saksnummer1, behandlingRef1, null)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef4, behandlingRef3)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef5, behandlingRef4)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef2, behandlingRef1)
-        lagreTilkjentYtelse(saksnummer1, behandlingRef3, behandlingRef2)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef4, behandlingRef3)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef5, behandlingRef4)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef2, behandlingRef1)
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef3, behandlingRef2)
 
-        val tilkjentYtelseListe = InitTestDatabase.dataSource.transaction { connection ->
+        val tilkjentYtelseListe = InitTestDatabase.freshDatabase().transaction { connection ->
             TilkjentYtelseRepository(connection).finnRekkefølgeTilkjentYtelse(saksnummer1)
         }
 
@@ -110,8 +104,8 @@ class TilkjentYtelseRepositoryTest {
         }
     }
 
-    private fun lagreTilkjentYtelse(saksnummer: Saksnummer, behandlingRef: UUID, forrigeBehandlingRef: UUID?): Long {
-        return InitTestDatabase.dataSource.transaction { connection ->
+    private fun lagreTilkjentYtelse(dataSource: DataSource, saksnummer: Saksnummer, behandlingRef: UUID, forrigeBehandlingRef: UUID?): Long {
+        return dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagre(
                 opprettTilkjentYtelse(
                     saksnummer = saksnummer,

@@ -11,14 +11,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.test.AfterTest
 import kotlin.test.Test
 
 class UtbetalingRepositoryTest {
 
     @Test
     fun `Lagre utbetaling`() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        InitTestDatabase.freshDatabase().transaction { connection ->
             val saksnummer = Saksnummer("001")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600001"
@@ -47,20 +46,22 @@ class UtbetalingRepositoryTest {
         val behandlingRef = UUID.randomUUID()
         val personIdent = "12345600002"
 
-        val utbetalingId = InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        val utbetalingId = dataSource.transaction { connection ->
             val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
             val tyId = opprettTilkjentYtelse(connection, saksnummer, behandlingRef, personIdent)
             opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId)
         }
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val utbetalingRepo = UtbetalingRepository(connection)
             val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
             assertThat(utbetaling.utbetalingStatus).isEqualTo(UtbetalingStatus.OPPRETTET)
             utbetalingRepo.oppdaterStatus(utbetaling.id!!, utbetaling.versjon, UtbetalingStatus.SENDT)
         }
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val utbetalingRepo = UtbetalingRepository(connection)
             val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
             assertThat(utbetaling.utbetalingStatus).isEqualTo(UtbetalingStatus.SENDT)
@@ -73,18 +74,20 @@ class UtbetalingRepositoryTest {
         val behandlingRef = UUID.randomUUID()
         val personIdent = "12345600003"
 
-        val utbetalingId = InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        val utbetalingId = dataSource.transaction { connection ->
             val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
             val tyId = opprettTilkjentYtelse(connection, saksnummer, behandlingRef, personIdent)
             opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId)
         }
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val utbetalingRepo = UtbetalingRepository(connection)
             val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
 
             // En annen transaksjon kommer i mellom og oppdaterer til BEKREFTET
-            InitTestDatabase.dataSource.transaction { innerConnection ->
+            dataSource.transaction { innerConnection ->
                 val utbetalingRepo2 = UtbetalingRepository(connection)
                 val utbetaling = utbetalingRepo2.hentUtbetaling(utbetalingId)
                 utbetalingRepo2.oppdaterStatus(utbetaling.id!!, utbetaling.versjon, UtbetalingStatus.BEKREFTET)
@@ -100,7 +103,7 @@ class UtbetalingRepositoryTest {
         }
 
         //Verifiserer riktig status
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val utbetalingRepo = UtbetalingRepository(connection)
             val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
             assertThat(utbetaling.utbetalingStatus).isEqualTo(UtbetalingStatus.BEKREFTET)
@@ -110,7 +113,9 @@ class UtbetalingRepositoryTest {
 
     @Test
     fun `Skal hente sendte utbetalinger`() {
-        InitTestDatabase.dataSource.transaction { connection ->
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        dataSource.transaction { connection ->
             val saksnummer = Saksnummer("004")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600004"
@@ -120,7 +125,7 @@ class UtbetalingRepositoryTest {
             opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId)
         }
 
-        val utbetalingId2 = InitTestDatabase.dataSource.transaction { connection ->
+        val utbetalingId2 = dataSource.transaction { connection ->
             val saksnummer = Saksnummer("005")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600005"
@@ -133,7 +138,7 @@ class UtbetalingRepositoryTest {
             utbetaling.id
         }
 
-        InitTestDatabase.dataSource.transaction { connection ->
+        dataSource.transaction { connection ->
             val saksnummer = Saksnummer("006")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600006"
@@ -145,7 +150,7 @@ class UtbetalingRepositoryTest {
             UtbetalingRepository(connection).oppdaterStatus(utbetaling.id!!, utbetaling.versjon, UtbetalingStatus.BEKREFTET)
         }
 
-        InitTestDatabase.dataSource.transaction(readOnly = true) { connection ->
+        dataSource.transaction(readOnly = true) { connection ->
             val alleSendteUtbetalinger = UtbetalingRepository(connection).hentAlleSendteUtbetalinger()
             assertThat(alleSendteUtbetalinger).hasSize(1)
             assertThat(alleSendteUtbetalinger.first().id).isEqualTo(utbetalingId2)
@@ -193,19 +198,6 @@ class UtbetalingRepositoryTest {
                 opprettetTidspunkt = LocalDateTime.now()
             )
         )
-    }
-
-    @AfterTest
-    fun tearDown() {
-        @Suppress("SqlWithoutWhere")
-        InitTestDatabase.dataSource.transaction {
-            it.execute("DELETE FROM UTBETALING_AVVENT")
-            it.execute("DELETE FROM UTBETALINGSPERIODE")
-            it.execute("DELETE FROM UTBETALING")
-            it.execute("DELETE FROM TILKJENT_PERIODE")
-            it.execute("DELETE FROM TILKJENT_YTELSE")
-            it.execute("DELETE FROM SAK_UTBETALING")
-        }
     }
 
 }
