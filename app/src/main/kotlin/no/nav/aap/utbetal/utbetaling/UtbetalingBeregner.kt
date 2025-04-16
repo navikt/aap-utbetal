@@ -121,7 +121,7 @@ class UtbetalingBeregner {
     private fun klippPeriodeOgFjernHelger(tilkjentYtelse: TilkjentYtelse, periode: Periode): Tidslinje<YtelseDetaljer> {
         val helger = periode.finnHelger()
         val ytelseTidslinje = tilkjentYtelse.tilTidslinje()
-        val klippetYtelseTidslinje = ytelseTidslinje.disjoint(periode)
+        val klippetYtelseTidslinje = ytelseTidslinje.begrensetTil(periode)
         val helgerTidslinje = helger.tilTidslinje()
         return klippetYtelseTidslinje.kombiner(helgerTidslinje, StandardSammenslåere.minus())
     }
