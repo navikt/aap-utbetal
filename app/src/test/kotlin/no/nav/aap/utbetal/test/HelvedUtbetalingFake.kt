@@ -1,23 +1,47 @@
 package no.nav.aap.utbetal.test
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import no.nav.aap.utbetal.klienter.helved.Utbetaling
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
+import java.util.*
 
 
 fun Application.helvedUtbetalingFake() {
 
+    val fakeDatabase = mutableMapOf<UUID, Utbetaling>()
+
+
     routing {
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+            }
+        }
         post("/utbetalinger/{uid}") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            val utbetaling = call.receive<Utbetaling>()
+            fakeDatabase[utbetalingRef] = utbetaling
             call.respond(HttpStatusCode.Created)
         }
         put("/utbetalinger/{uid}") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            val utbetaling = call.receive<Utbetaling>()
+            fakeDatabase[utbetalingRef] = utbetaling
             call.respond(HttpStatusCode.NoContent)
+        }
+        delete("/utbetalinger/{uid}") {
+            call.respond(HttpStatusCode.OK)
+        }
+        get("/utbetalinger/{uid}") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            call.respond(status = HttpStatusCode.OK, fakeDatabase[utbetalingRef]!!)
         }
         get("/utbetalinger/{uid}/status") {
             call.respond(status = HttpStatusCode.OK, UtbetalingStatus.OK)
