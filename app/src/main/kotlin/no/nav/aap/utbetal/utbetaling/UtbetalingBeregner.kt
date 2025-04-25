@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.felles.finnHelger
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvvent
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
@@ -63,6 +64,7 @@ class UtbetalingBeregner {
                 utbetalingOversendt = LocalDateTime.now(),
                 utbetalingStatus = UtbetalingStatus.OPPRETTET,
                 perioder = utbetalingsperioder,
+                avvent = nyTilkjentYtelse.avvent?.tilUtbetalingAvvent(),
                 utbetalingRef = utbetalingRef
             )
         }
@@ -93,6 +95,7 @@ class UtbetalingBeregner {
                 utbetalingOversendt = LocalDateTime.now(),
                 utbetalingStatus = UtbetalingStatus.OPPRETTET,
                 perioder = utbetalingsperioder,
+                avvent = nyTilkjentYtelse.avvent?.tilUtbetalingAvvent(),
                 utbetalingRef = utbetalingRef
             )
         }
@@ -141,6 +144,16 @@ class UtbetalingBeregner {
                 Unit
             )
         })
+
+    private fun TilkjentYtelseAvvent.tilUtbetalingAvvent(): UtbetalingAvvent {
+        return UtbetalingAvvent(
+            fom = this.fom,
+            tom = this.tom,
+            overføres = this.overføres,
+            årsak = this.årsak,
+            feilregistrering = this.feilregistrering,
+        )
+    }
 
     private fun prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef: UUID): JoinStyle.OUTER_JOIN<UtbetalingData, YtelseDetaljer, UtbetalingsperiodeMedReferanse> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->

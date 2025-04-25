@@ -3,6 +3,8 @@ package no.nav.aap.utbetal.utbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDateTime
@@ -53,6 +55,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
 
         lagre(utbetalingId, utbetaling.perioder)
+        utbetaling.avvent?.let {lagre(utbetalingId, it)}
+
         return utbetalingId
     }
 
@@ -81,6 +85,30 @@ class UtbetalingRepository(private val connection: DBConnection) {
             }
         }
 
+    }
+
+    private fun lagre(utbetalingId: Long, avvent: UtbetalingAvvent) {
+        val insertAvventSql = """
+            INSERT INTO UTBETALING_AVVENT
+                (
+                    UTBETALING_ID,
+                    PERIODE,
+                    OVERFORES,
+                    ARSAK,
+                    FEILREGISTRERING
+                )
+                VALUES (?, ?::daterange, ?, ?, ?)
+        """.trimIndent()
+
+        connection.execute(insertAvventSql) {
+            setParams {
+                setLong(1, utbetalingId)
+                setPeriode(2, Periode(avvent.fom , avvent.tom))
+                setLocalDate(3, avvent.overføres)
+                setString(4, avvent.årsak?.name)
+                setBoolean(5, avvent.feilregistrering)
+            }
+        }
     }
 
     fun hent(saksnummer: Saksnummer): List<Utbetaling> {
@@ -203,7 +231,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun mapUtbetaling(row: Row, medPeriode: Boolean = true): Utbetaling {
+    private fun mapUtbetaling(row: Row): Utbetaling {
         val utbetaling = Utbetaling(
             id = row.getLong("ID"),
             saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
@@ -220,10 +248,10 @@ class UtbetalingRepository(private val connection: DBConnection) {
             utbetalingRef = row.getUUID("UTBETALING_REF"),
             versjon = row.getLong("VERSJON"),
         )
-        if (medPeriode) {
-            return utbetaling.copy(perioder = hentUtbetalingsperioder(utbetaling.id!!))
-        }
-        return utbetaling
+        return utbetaling.copy(
+            perioder = hentUtbetalingsperioder(utbetaling.id!!),
+            avvent = hentUtbetalingAvvent(utbetaling.id),
+        )
     }
 
     private fun hentUtbetalingsperioder(utbetalingId: Long): List<Utbetalingsperiode> {
@@ -255,6 +283,33 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     utbetalingsperiodeType = UtbetalingsperiodeType.valueOf(row.getString("UTBETALINGSPERIODE_TYPE")),
                     utbetalingsdato = row.getLocalDate("UTBETALINGSDATO")
 
+                )
+            }
+        }
+    }
+
+    private fun hentUtbetalingAvvent(utbetalingId: Long): UtbetalingAvvent? {
+        val hentUtbetalingAvventSql = """
+            SELECT
+                PERIODE,
+                OVERFORES,
+                ARSAK,
+                FEILREGISTRERING
+            FROM UTBETALING_AVVENT
+            WHERE UTBETALING_ID = ?
+        """.trimIndent()
+
+        return connection.queryFirstOrNull(hentUtbetalingAvventSql) {
+
+            setParams { setLong(1, utbetalingId) }
+            setRowMapper { row ->
+                val periode = row.getPeriode("PERIODE")
+                UtbetalingAvvent(
+                    fom = periode.fom,
+                    tom = periode.tom,
+                    overføres = row.getLocalDate("OVERFORES"),
+                    årsak = AvventÅrsak.valueOf(row.getString("ARSAK")),
+                    feilregistrering = row.getBoolean("FEILREGISTRERING"),
                 )
             }
         }

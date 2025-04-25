@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -13,7 +14,8 @@ data class TilkjentYtelseDto(
     val vedtakstidspunkt: LocalDateTime,
     val beslutterId: String,
     val saksbehandlerId: String,
-    val perioder: List<TilkjentYtelsePeriodeDto>
+    val perioder: List<TilkjentYtelsePeriodeDto>,
+    val avvent: TilkjentYtelseAvventDto? = null
 )
 
 data class TilkjentYtelsePeriodeDto(
@@ -34,4 +36,12 @@ data class TilkjentYtelseDetaljerDto(
     val barnetillegg: BigDecimal,
     val ventedagerSamordning: Boolean = false,
     val utbetalingsdato: LocalDate
+)
+
+data class TilkjentYtelseAvventDto(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val overføres: LocalDate,
+    val årsak: AvventÅrsak? = null,
+    val feilregistrering: Boolean = false,
 )

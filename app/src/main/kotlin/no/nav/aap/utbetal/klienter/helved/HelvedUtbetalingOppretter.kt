@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.klienter.helved
 
+import no.nav.aap.utbetal.utbetaling.UtbetalingAvvent
 import no.nav.aap.utbetaling.helved.toBase64
 import java.time.LocalDate
 
@@ -14,7 +15,18 @@ class HelvedUtbetalingOppretter {
             vedtakstidspunkt = utbetaling.vedtakstidspunkt,
             beslutterId = utbetaling.beslutterId,
             saksbehandlerId = utbetaling.saksbehandlerId,
-            perioder = utbetaling.perioder.tilUtbetalingsperioder()
+            perioder = utbetaling.perioder.tilUtbetalingsperioder(),
+            avvent = utbetaling.avvent?.tilHelvedUtbetalingAvvent()
+        )
+    }
+
+    private fun UtbetalingAvvent.tilHelvedUtbetalingAvvent(): Avvent {
+        return Avvent(
+            fom = this.fom,
+            tom = this.tom,
+            overføres = this.overføres,
+            årsak = this.årsak,
+            feilregistrering = this.feilregistrering
         )
     }
 

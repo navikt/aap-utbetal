@@ -9,6 +9,7 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 
 fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
     val perioder = perioder.tilTilkjentYtelsePeriode()
+    val avvent = avvent?.tilAvvent()
     return TilkjentYtelse(
         saksnummer = Saksnummer(this.saksnummer),
         behandlingsreferanse = this.behandlingsreferanse,
@@ -17,7 +18,8 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
         vedtakstidspunkt = this.vedtakstidspunkt,
         beslutterId = this.beslutterId,
         saksbehandlerId = this.saksbehandlerId,
-        perioder = perioder
+        perioder = perioder,
+        avvent = avvent,
     )
 }
 
@@ -41,4 +43,15 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
             )
         )
     }
+}
+
+private fun TilkjentYtelseAvventDto.tilAvvent(): TilkjentYtelseAvvent {
+    return TilkjentYtelseAvvent(
+        fom = this.fom,
+        tom = this.tom,
+        overføres = this.overføres,
+        årsak = this.årsak,
+        feilregistrering = this.feilregistrering
+    )
+
 }

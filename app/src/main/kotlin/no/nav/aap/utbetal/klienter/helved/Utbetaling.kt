@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.klienter.helved
 
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,15 +25,10 @@ data class Utbetalingsperiode(
     val fastsattDagsats: UInt? = null,
 )
 
-enum class Årsak(val kode: String) {
-    AVVENT_AVREGNING("AVAV"),
-    AVVENT_REFUSJONSKRAV("AVRK"),
-}
-
 data class Avvent(
     val fom: LocalDate,
     val tom: LocalDate,
     val overføres: LocalDate,
-    val årsak: Årsak? = null,
+    val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
 )

@@ -2,10 +2,12 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import java.util.UUID
 
 data class TilkjentYtelseLight(
@@ -36,6 +38,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
 
         lagre(tilkjentYtelseId, tilkjentYtelse.perioder)
+        tilkjentYtelse.avvent?.let { lagre(tilkjentYtelseId, it) }
 
         return tilkjentYtelseId
     }
@@ -82,6 +85,29 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
+    private fun lagre(tilkjentYtelseId: Long, avvent: TilkjentYtelseAvvent) {
+        val sqlInsertAvvent = """
+            INSERT INTO TILKJENT_YTELSE_AVVENT 
+                (
+                    TILKJENT_YTELSE_ID,
+                    PERIODE,
+                    OVERFORES,
+                    ARSAK,
+                    FEILREGISTRERING
+                )
+                VALUES (?, ?::daterange, ?, ?, ?)
+        """.trimIndent()
+
+        connection.execute(sqlInsertAvvent) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+                setPeriode(2, Periode(avvent.fom , avvent.tom))
+                setLocalDate(3, avvent.overføres)
+                setString(4, avvent.årsak?.name)
+                setBoolean(5, avvent.feilregistrering)
+            }
+        }
+    }
 
     fun hent(behandlingReferanse: UUID): TilkjentYtelse? {
         val selectTilkjentYtelse = """
@@ -119,7 +145,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 )
             }
         }
-        return tilkjentYtelse?.copy(perioder = hentTilkjentePerioder(tilkjentYtelse.id!!))
+        return tilkjentYtelse?.copy(
+            perioder = hentTilkjentePerioder(tilkjentYtelse.id!!),
+            avvent = hentAvvent(tilkjentYtelse.id)
+        )
     }
 
     fun finnSisteTilkjentYtelse(saksnummer: Saksnummer): Long? {
@@ -171,6 +200,35 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     id = row.getLong("ID"),
                     behandlingRef = row.getUUID("BEHANDLING_REF"),
                     forrigeBehandlingRef = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
+                )
+            }
+        }
+    }
+
+    private fun hentAvvent(tilkjentYtelseId: Long): TilkjentYtelseAvvent? {
+        val sqlHentAvvent = """
+            SELECT
+                TILKJENT_YTELSE_ID,
+                PERIODE,
+                OVERFORES,
+                ARSAK,
+                FEILREGISTRERING
+            FROM TILKJENT_YTELSE_AVVENT
+            WHERE TILKJENT_YTELSE_ID = ?
+        """.trimIndent()
+
+        return connection.queryFirstOrNull(sqlHentAvvent) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+            }
+            setRowMapper { row ->
+                val periode = row.getPeriode("PERIODE")
+                TilkjentYtelseAvvent(
+                    fom = periode.fom,
+                    tom = periode.tom,
+                    overføres = row.getLocalDate("OVERFORES"),
+                    årsak = AvventÅrsak.valueOf(row.getString("ARSAK")),
+                    feilregistrering = row.getBoolean("FEILREGISTRERING"),
                 )
             }
         }

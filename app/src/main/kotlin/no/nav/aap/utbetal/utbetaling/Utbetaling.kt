@@ -2,7 +2,7 @@ package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.utbetal.klienter.helved.Avvent
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import java.time.LocalDate
@@ -23,7 +23,7 @@ data class Utbetaling(
     val utbetalingEndret: LocalDateTime? = null,
     val utbetalingStatus: UtbetalingStatus,
     val perioder: List<Utbetalingsperiode>,
-    val avvent: Avvent? = null,
+    val avvent: UtbetalingAvvent? = null,
     val utbetalingRef: UUID,
     val versjon: Long = 0L
 )
@@ -35,4 +35,12 @@ data class Utbetalingsperiode(
     val fastsattDagsats: UInt,
     val utbetalingsperiodeType: UtbetalingsperiodeType,
     val utbetalingsdato: LocalDate,
+)
+
+data class UtbetalingAvvent(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val overføres: LocalDate,
+    val årsak: AvventÅrsak? = null,
+    val feilregistrering: Boolean = false,
 )

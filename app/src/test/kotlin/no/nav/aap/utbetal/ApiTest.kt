@@ -11,10 +11,12 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvventDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
@@ -45,6 +47,19 @@ class ApiTest {
     }
 
     @Test
+    fun `Tilkjent ytelse etter førstegangsbehandling med avvent refusjonskrav`() {
+        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        val avventDto = TilkjentYtelseAvventDto(
+            fom = LocalDate.of(2024, 12, 1),
+            tom = LocalDate.of(2024, 12, 31),
+            overføres = LocalDate.of(2025, 1, 21),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV
+        )
+        val tilkjentYtelseMedAvvent = tilkjentYtelse.copy(avvent = avventDto)
+        postTilkjentYtelse(tilkjentYtelseMedAvvent)
+    }
+
+    @Test
     fun `Dobbel innsending av samme tilkjent ytelse skal gå bra`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
@@ -59,7 +74,6 @@ class ApiTest {
             postTilkjentYtelse(tilkjentYtelse.copy(vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt.plusDays(1)))
         }
     }
-
 
     @Test
     fun `Ekporter openapi typer til json`() {
@@ -105,7 +119,7 @@ class ApiTest {
         }
         val saksnummer = Random().nextInt(999999999).toString()
         return TilkjentYtelseDto(
-            saksnummer = "$saksnummer",
+            saksnummer = saksnummer,
             behandlingsreferanse = UUID.randomUUID(),
             personIdent = "12345612345",
             vedtakstidspunkt = LocalDateTime.now(),
