@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PutRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.utbetaling.helved.base64ToUUID
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -38,19 +39,9 @@ class UtbetalingKlient {
         tokenProvider = ClientCredentialsTokenProvider
     )
 
-    /*
-    fun simulering(simuleringRequest: SimuleringRequest) {
-        log.info("Simulering for saksummer ${simuleringRequest.sakId} og behandling ${simuleringRequest.behandlingId}")
-        val simuleringUrl = url.resolve("api/simulering/v2")
-        val request = PostRequest(body = simuleringRequest)
-
-        client.post<SimuleringRequest, Unit>(simuleringUrl, request)
-    }
-    */
-
     fun iverksettNy(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Iverksett ny utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
-        val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef"))
+        val iverksettUrl = url.resolve("utbetalinger/$utbetalingRef")
         val request = PostRequest(body = helvedUtbetaling)
         client.post<Utbetaling, Unit>(iverksettUrl, request) { _, _ -> }
     }
@@ -81,5 +72,18 @@ class UtbetalingKlient {
         return client.get<UtbetalingStatus>(hentStatusUrl, request)!!
     }
 
+    fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+        log.info("Simulering av utbetaling for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
+        val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
+        val request = PostRequest(body = utbetaling)
+        return requireNotNull(client.post(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
+    }
+
+    fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+        log.info("Simulering av opphør for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
+        val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
+        val request = DeleteMedBodyRequest(body = utbetaling)
+        return requireNotNull(client.deleteMedBody(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
+    }
 
 }
