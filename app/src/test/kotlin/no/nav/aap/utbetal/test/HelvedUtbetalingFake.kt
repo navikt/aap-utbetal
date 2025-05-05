@@ -10,6 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.aap.utbetal.klienter.helved.Utbetaling
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
+import no.nav.aap.utbetal.simulering.SimuleringDto
 import java.util.*
 
 
@@ -45,6 +46,18 @@ fun Application.helvedUtbetalingFake() {
         }
         get("/utbetalinger/{uid}/status") {
             call.respond(status = HttpStatusCode.OK, UtbetalingStatus.OK)
+        }
+        post("/utbetalinger/{uid}/simuler") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            val utbetaling = call.receive<Utbetaling>()
+            fakeDatabase[utbetalingRef] = utbetaling
+            call.respond(status = HttpStatusCode.OK, SimuleringDto(perioder = listOf()))
+        }
+        delete("/utbetalinger/{uid}/simuler") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            val utbetaling = call.receive<Utbetaling>()
+            fakeDatabase[utbetalingRef] = utbetaling
+            call.respond(status = HttpStatusCode.OK, SimuleringDto(perioder = listOf()))
         }
     }
 

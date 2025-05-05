@@ -38,6 +38,7 @@ import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkForNyeUtbetalingerUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
+import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.hent
 import org.slf4j.LoggerFactory
@@ -104,6 +105,7 @@ internal fun Application.server(dbConfig: DbConfig) {
             apiRouting {
                 tilkjentYtelse(dataSource, prometheus, authConfig)
                 hent(dataSource, prometheus, authConfig)
+                simulering(dataSource, prometheus, authConfig)
                 motorApi(dataSource)
             }
         }

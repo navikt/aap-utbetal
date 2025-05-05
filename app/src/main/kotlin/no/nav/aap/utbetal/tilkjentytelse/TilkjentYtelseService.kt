@@ -118,6 +118,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         if (beslutterId != tilkjentYtelse.beslutterId) return false
         if (saksbehandlerId != tilkjentYtelse.saksbehandlerId) return false
         if (perioder.size != tilkjentYtelse.perioder.size) return false
+        if (avvent != tilkjentYtelse.avvent) return false
         for (index in tilkjentYtelse.perioder.indices) {
             val periode1 = perioder[index]
             val periode2 = tilkjentYtelse.perioder[index]

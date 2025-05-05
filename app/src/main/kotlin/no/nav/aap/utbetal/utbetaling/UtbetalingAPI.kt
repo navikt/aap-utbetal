@@ -10,7 +10,6 @@ import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetaling.HentUtbetalingerDto
 import no.nav.aap.utbetaling.UtbetalingDto
-import no.nav.aap.utbetaling.UtbetalingsperiodeDto
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.hent(
@@ -25,21 +24,3 @@ fun NormalOpenAPIRoute.hent(
         respond(utbetalingsplan.map { it.tilUtbetalingDto() })
     }
 
-private fun Utbetaling.tilUtbetalingDto(): UtbetalingDto {
-    return UtbetalingDto(
-        utbetalingOversendt = this.utbetalingOversendt,
-        utbetalingBekreftet = this.utbetalingEndret,
-        utbetalingStatus = this.utbetalingStatus,
-        perioder = this.perioder.map { it.tilUtbetalingsperiodeDto() }
-    )
-}
-
-private fun Utbetalingsperiode.tilUtbetalingsperiodeDto() =
-    UtbetalingsperiodeDto(
-        fom = this.periode.fom,
-        tom = this.periode.tom,
-        beløp = this.beløp,
-        fastsattDagsats = this.fastsattDagsats,
-        utbetalingsperiodeType = this.utbetalingsperiodeType,
-        utbetalingsdato = this.utbetalingsdato
-    )

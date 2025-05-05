@@ -1,6 +1,5 @@
 package no.nav.aap.utbetal.server.prosessering
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -11,11 +10,9 @@ import java.util.*
 
 class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfører {
     override fun utfør(input: JobbInput) {
-        val saksnummer = input.parameter("saksnummer")
         val behandlingsreferanse = input.parameter("behandlingsreferanse")
 
         val utbetalinger = UtbetalingService(connection).opprettUtbetalinger(
-            saksnummer = Saksnummer(saksnummer),
             behandlingsreferanse = UUID.fromString(behandlingsreferanse)
         )
 

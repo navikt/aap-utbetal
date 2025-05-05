@@ -1,22 +1,30 @@
 package no.nav.aap.utbetal.utbetaling
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import java.util.UUID
 
 class UtbetalingService(private val connection: DBConnection) {
 
-    fun opprettUtbetalinger(saksnummer: Saksnummer, behandlingsreferanse: UUID, lagre: Boolean = true): Utbetalinger {
-        val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
-        val nyTilkjentYtelse = tilkjentYtelseRepo.hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
-        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
-        val utbetalingRepository = UtbetalingRepository(connection)
-        val utbetalingListe = utbetalingRepository.hent(saksnummer)
+    fun simulerOpprettelseAvUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
+        return opprettUtbetalinger(nyTilkjentYtelse, false)
+    }
+
+    fun opprettUtbetalinger(behandlingsreferanse: UUID): Utbetalinger {
+        val nyTilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
+        return opprettUtbetalinger(nyTilkjentYtelse, true)
+    }
+
+    private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse, lagre: Boolean = true): Utbetalinger {
+        val sakUtbetaling = SakUtbetalingRepository(connection).hent(nyTilkjentYtelse.saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
+        val utbetalingListe = UtbetalingRepository(connection).hent(nyTilkjentYtelse.saksnummer)
+
         val utbetalingTidslinje = byggTidslinje(utbetalingListe)
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje)
+
         if (lagre) {
             return lagreUtbetalinger(utbetalinger)
         }
@@ -58,6 +66,5 @@ class UtbetalingService(private val connection: DBConnection) {
             nyeUtbetalinger = nyeUtbetalinger
         )
     }
-
 
 }
