@@ -140,7 +140,6 @@ class TilkjentYtelseRepositoryTest {
                     grunnlagsfaktor = GUnit("0.008"),
                     barnetilleggsats = Beløp(36L),
                     redusertDagsats = beløp,
-                    ventedagerSamordning = false,
                     utbetalingsdato = startDato.plusWeeks(it * 2L).plusDays(14)
                 )
             )

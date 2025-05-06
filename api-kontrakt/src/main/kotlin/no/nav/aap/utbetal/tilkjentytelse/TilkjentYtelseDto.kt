@@ -34,7 +34,6 @@ data class TilkjentYtelseDetaljerDto(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
-    val ventedagerSamordning: Boolean = false,
     val utbetalingsdato: LocalDate
 )
 

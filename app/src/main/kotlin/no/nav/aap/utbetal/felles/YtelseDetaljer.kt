@@ -15,6 +15,5 @@ data class YtelseDetaljer(
     val antallBarn: Int,
     val barnetilleggsats: Beløp,
     val barnetillegg: Beløp,
-    val ventedagerSamordning: Boolean,
     val utbetalingsdato: LocalDate
 )

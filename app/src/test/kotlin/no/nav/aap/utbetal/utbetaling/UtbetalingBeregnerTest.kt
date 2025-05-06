@@ -118,7 +118,6 @@ class UtbetalingBeregnerTest {
                 grunnlagsfaktor = GUnit(BigDecimal.valueOf(0.008)),
                 barnetilleggsats = Beløp(36L),
                 redusertDagsats = beløp,
-                ventedagerSamordning = false,
                 utbetalingsdato = tom.plusDays(9),
             )
         )
