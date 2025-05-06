@@ -11,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.tilgang.NoAuthConfig
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
@@ -153,7 +154,7 @@ class ApiTest {
 
         // Starter server
         private val server = embeddedServer(Netty, port = 8080) {
-            server(dbConfig = dbConfig)
+            server(dbConfig = dbConfig, NoAuthConfig)
             module(fakes)
         }.start()
 

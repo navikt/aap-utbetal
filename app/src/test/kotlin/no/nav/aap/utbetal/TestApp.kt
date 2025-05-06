@@ -4,7 +4,9 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import no.nav.aap.utbetal.server.DbConfig import no.nav.aap.utbetal.server.server
+import no.nav.aap.tilgang.NoAuthConfig
+import no.nav.aap.utbetal.server.DbConfig
+import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.test.Fakes
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -27,7 +29,7 @@ fun main() {
         // Useful for connecting to the test database locally
         // jdbc URL contains the host and port and database name.
         println("jdbcUrl: ${postgres.jdbcUrl}. Password: ${postgres.password}. Username: ${postgres.username}.")
-        server(dbConfig)
+        server(dbConfig, NoAuthConfig)
         module(fakes)
     }.start(wait = true)
 }

@@ -34,6 +34,7 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
+import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkForNyeUtbetalingerUtfører
@@ -60,10 +61,17 @@ fun main() {
         LoggerFactory.getLogger(App::class.java).error("Uhåndtert feil.", e)
         prometheus.uhåndtertExceptionTeller(e::class.java.name).increment()
     }
-    embeddedServer(Netty, 8080) { server(DbConfig()) }.start(wait = true)
+
+    val authConfig = AuthorizationMachineToMachineConfig(
+        authorizedAzps = listOfNotNull(
+            configForKey("BEHANDLINGSFLYT_AZP")?.let(UUID::fromString)
+        )
+    )
+    
+    embeddedServer(Netty, 8080) { server(DbConfig(), authConfig) }.start(wait = true)
 }
 
-internal fun Application.server(dbConfig: DbConfig) {
+internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     commonKtorModule(prometheus, AzureConfig(), InfoModel(title = "AAP - Utbetling",
@@ -93,12 +101,6 @@ internal fun Application.server(dbConfig: DbConfig) {
     Migrering.migrate(dataSource)
 
     val motor = motor(dataSource)
-
-    val authConfig = AuthorizationMachineToMachineConfig(
-        authorizedAzps = listOfNotNull(
-            configForKey("BEHANDLINGSFLYT_AZP")?.let(UUID::fromString)
-        )
-    )
 
     routing {
         authenticate(AZURE) {
