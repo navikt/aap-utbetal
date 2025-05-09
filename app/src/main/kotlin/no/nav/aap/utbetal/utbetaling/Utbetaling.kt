@@ -51,8 +51,8 @@ data class Utbetalingsperiode(
         UtbetalingsperiodeDto(
             fom = this.periode.fom,
             tom = this.periode.tom,
-            beløp = this.beløp,
-            fastsattDagsats = this.fastsattDagsats,
+            beløp = this.beløp.toInt(),
+            fastsattDagsats = this.fastsattDagsats.toInt(),
             utbetalingsperiodeType = this.utbetalingsperiodeType,
             utbetalingsdato = this.utbetalingsdato,
         )
