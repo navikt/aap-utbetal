@@ -55,7 +55,7 @@ class UtbetalingBeregner {
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-                tilkjentYtelseId = nyTilkjentYtelse.id!!,
+                tilkjentYtelseId = nyTilkjentYtelse.id,
                 personIdent = nyTilkjentYtelse.personIdent,
                 vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
                 beslutterId = nyTilkjentYtelse.beslutterId,
@@ -85,7 +85,7 @@ class UtbetalingBeregner {
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-                tilkjentYtelseId = nyTilkjentYtelse.id!!,
+                tilkjentYtelseId = nyTilkjentYtelse.id,
                 personIdent = nyTilkjentYtelse.personIdent,
                 vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
                 beslutterId = nyTilkjentYtelse.beslutterId,

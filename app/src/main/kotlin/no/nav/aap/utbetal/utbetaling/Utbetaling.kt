@@ -15,7 +15,7 @@ data class Utbetaling(
     val id: Long? = null,
     val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
-    val tilkjentYtelseId: Long,
+    val tilkjentYtelseId: Long?,
     val personIdent: String,
     val vedtakstidspunkt: LocalDateTime,
     val beslutterId: String,
