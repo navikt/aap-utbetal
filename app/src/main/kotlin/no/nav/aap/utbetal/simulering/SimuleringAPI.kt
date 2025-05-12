@@ -46,9 +46,7 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
             }
             log.info("Simuleringsresultat funnet")
         }
-        if (Miljø.erDev()) {
-            log.info("Simuleringsresultat: {}", utbetalingerOgSimuleringer)
-        }
+        log.info("Simuleringsresultat: {}", utbetalingerOgSimuleringer)
         respond(utbetalingerOgSimuleringer)
     }
 
