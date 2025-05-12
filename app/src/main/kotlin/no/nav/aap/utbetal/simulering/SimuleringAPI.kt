@@ -13,12 +13,17 @@ import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+
+private val log: Logger = LoggerFactory.getLogger("POST /simulering")
 
 fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
 
     route("/simulering").authorizedPost<Unit, List<UtbetalingOgSimuleringDto>, TilkjentYtelseDto>(authConfig, null) { _, dto ->
         prometheus.httpCallCounter("/simulering").increment()
+        log.info("Simulering: {}", dto.copy(personIdent = "..........."))
         val utbetalingerOgSimuleringer = mutableListOf<UtbetalingOgSimuleringDto>()
         dataSource.transaction(readOnly = true) { connection ->
             val tilkjentYtelse = dto.tilTilkjentYtelse()
