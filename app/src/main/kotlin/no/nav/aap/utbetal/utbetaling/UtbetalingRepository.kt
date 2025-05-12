@@ -18,7 +18,7 @@ data class UtbetalingLight(
 
 class UtbetalingRepository(private val connection: DBConnection) {
 
-    fun lagre(utbetaling: Utbetaling): Long {
+    fun lagre(sakUtbetalingId: Long, utbetaling: Utbetaling): Long {
         slettTidligereUtbetaling(utbetaling.utbetalingRef)
         var insertUtbetalingSql = """
             INSERT INTO UTBETALING
@@ -42,7 +42,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
             setParams {
                 setString(1, utbetaling.saksnummer.toString())
                 setUUID(2, utbetaling.behandlingsreferanse)
-                setLong(3, utbetaling.sakUtbetalingId)
+                setLong(3, sakUtbetalingId)
                 setLong(4, utbetaling.tilkjentYtelseId)
                 setString(5, utbetaling.personIdent)
                 setLocalDateTime(6, utbetaling.vedtakstidspunkt)
@@ -235,7 +235,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
         val utbetaling = Utbetaling(
             id = row.getLong("ID"),
             saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
-            behandlingsreferanse = row.getUUID("BEHANDLING_REF"), sakUtbetalingId = row.getLong("SAK_UTBETALING_ID"),
+            behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
             tilkjentYtelseId = row.getLong("TILKJENT_YTELSE_ID"),
             personIdent = row.getString("PERSON_IDENT"),
             vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),

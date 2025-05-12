@@ -161,7 +161,6 @@ class UtbetalingRepositoryTest {
         val utbetaling = Utbetaling(
             saksnummer = saksnummer,
             behandlingsreferanse = behandlingRef,
-            sakUtbetalingId = sakUtbetalingId,
             tilkjentYtelseId = tilkjentYtelseId,
             personIdent = personIdent,
             vedtakstidspunkt = LocalDateTime.now(),
@@ -173,7 +172,7 @@ class UtbetalingRepositoryTest {
             avvent = null,
             utbetalingRef = UUID.randomUUID(),
         )
-        return UtbetalingRepository(connection).lagre(utbetaling)
+        return UtbetalingRepository(connection).lagre(sakUtbetalingId, utbetaling)
     }
 
     private fun opprettTilkjentYtelse(connection: DBConnection, saksnummer: Saksnummer, behandlingRef: UUID, personIdent: String): Long {

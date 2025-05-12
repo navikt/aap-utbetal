@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
@@ -10,24 +11,21 @@ import java.util.UUID
 class UtbetalingService(private val connection: DBConnection) {
 
     fun simulerOpprettelseAvUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
-        return opprettUtbetalinger(nyTilkjentYtelse, false)
+        return opprettUtbetalinger(nyTilkjentYtelse)
     }
 
     fun opprettUtbetalinger(behandlingsreferanse: UUID): Utbetalinger {
         val nyTilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingsreferanse) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
-        return opprettUtbetalinger(nyTilkjentYtelse, true)
+        val utbetalinger = opprettUtbetalinger(nyTilkjentYtelse)
+        return lagreUtbetalinger(nyTilkjentYtelse.saksnummer, utbetalinger)
     }
 
-    private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse, lagre: Boolean = true): Utbetalinger {
-        val sakUtbetaling = SakUtbetalingRepository(connection).hent(nyTilkjentYtelse.saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
+    private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
         val utbetalingListe = UtbetalingRepository(connection).hent(nyTilkjentYtelse.saksnummer)
 
         val utbetalingTidslinje = byggTidslinje(utbetalingListe)
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(sakUtbetaling.id!!, nyTilkjentYtelse, utbetalingTidslinje)
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
-        if (lagre) {
-            return lagreUtbetalinger(utbetalinger)
-        }
         return utbetalinger
     }
 
@@ -46,18 +44,20 @@ class UtbetalingService(private val connection: DBConnection) {
         return Tidslinje<UtbetalingData>(segmenter)
     }
 
-    private fun lagreUtbetalinger(utbetalinger: Utbetalinger): Utbetalinger {
+    private fun lagreUtbetalinger(saksnummer: Saksnummer, utbetalinger: Utbetalinger): Utbetalinger {
+        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer) ?: throw IllegalArgumentException("Finner ikke sak")
+
         val utbetalingRepo = UtbetalingRepository(connection)
 
         val endringUtbetalinger = mutableListOf<Utbetaling>()
         utbetalinger.endringUtbetalinger.forEach { endringUtbetaling ->
-            val utbetalingId = utbetalingRepo.lagre(endringUtbetaling)
+            val utbetalingId = utbetalingRepo.lagre(sakUtbetaling.id!!, endringUtbetaling)
             endringUtbetalinger.add(endringUtbetaling.copy(id = utbetalingId))
         }
 
         val nyeUtbetalinger = mutableListOf<Utbetaling>()
         utbetalinger.nyeUtbetalinger.forEach { nyUtbetaling ->
-            val utbetalingId = utbetalingRepo.lagre(nyUtbetaling)
+            val utbetalingId = utbetalingRepo.lagre(sakUtbetaling.id!!, nyUtbetaling)
             nyeUtbetalinger.add(nyUtbetaling.copy(id = utbetalingId))
         }
 

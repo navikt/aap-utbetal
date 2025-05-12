@@ -38,7 +38,7 @@ data class Utbetalinger(
 
 class UtbetalingBeregner {
 
-    fun tilkjentYtelseTilUtbetaling(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse, tidligereUtbetalingerTidslinje: Tidslinje<UtbetalingData>): Utbetalinger {
+    fun tilkjentYtelseTilUtbetaling(nyTilkjentYtelse: TilkjentYtelse, tidligereUtbetalingerTidslinje: Tidslinje<UtbetalingData>): Utbetalinger {
         val periodeSomSkalSendes = finnPeriodeSomSkalSendes(nyTilkjentYtelse)
         val nyUtbetalingRef = UUID.randomUUID()
         val utbetalingsperioder = if (periodeSomSkalSendes == null) {
@@ -55,7 +55,6 @@ class UtbetalingBeregner {
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-                sakUtbetalingId = sakUtbetalingId,
                 tilkjentYtelseId = nyTilkjentYtelse.id!!,
                 personIdent = nyTilkjentYtelse.personIdent,
                 vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
@@ -69,7 +68,7 @@ class UtbetalingBeregner {
             )
         }
         return Utbetalinger(
-            endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(sakUtbetalingId, nyTilkjentYtelse),
+            endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(nyTilkjentYtelse),
             nyeUtbetalinger = utbetalingerMedNyePerioder
         )
     }
@@ -79,14 +78,13 @@ class UtbetalingBeregner {
         return perBeløp.entries.associate {UUID.randomUUID() to it.value.sortedBy { it.periode.fom }}
     }
 
-    private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(sakUtbetalingId: Long, nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
+    private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
         val utbetalingRefEndringer = finnUtbetalingerSomSkalSendesSomEndring()
         return utbetalingRefEndringer.map { utbetalingRef ->
             val utbetalingsperioder = this.filter {it.utbetalingRef == utbetalingRef} .map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-                sakUtbetalingId = sakUtbetalingId,
                 tilkjentYtelseId = nyTilkjentYtelse.id!!,
                 personIdent = nyTilkjentYtelse.personIdent,
                 vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,

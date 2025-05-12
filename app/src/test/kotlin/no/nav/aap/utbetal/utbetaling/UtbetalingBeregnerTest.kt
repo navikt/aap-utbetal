@@ -27,7 +27,7 @@ class UtbetalingBeregnerTest {
         val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9), 1000.0, 1100.0, 1200.0)
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, ty, utbetalingTidslinje)
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
         assertThat(utbetalinger.nyeUtbetalinger).hasSize(1)
@@ -45,7 +45,7 @@ class UtbetalingBeregnerTest {
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
         val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 1000.0, 600.0, 500.0)
 
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
         val endringUtbetalingPerioder = utbetalinger.endringUtbetalinger[0].perioder
@@ -67,7 +67,7 @@ class UtbetalingBeregnerTest {
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
         val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 0.0, 1000.0)
 
-        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(1, nyTilkjentYtelse, utbetalingTidslinje)
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
         assertThat(utbetalinger.endringUtbetalinger).hasSize(1)
         assertThat(utbetalinger.endringUtbetalinger.first().perioder).hasSize(0)
