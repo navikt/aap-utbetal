@@ -16,6 +16,7 @@ import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.server
+import no.nav.aap.utbetal.simulering.UtbetalingOgSimuleringDto
 import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvventDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
@@ -70,11 +71,19 @@ class ApiTest {
     @Test
     fun `Dobbel innsending av nesten samme tilkjent ytelse skal kaste exception`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        postTilkjentYtelse(tilkjentYtelse)
+        postTilSimulering(tilkjentYtelse)
         assertFailsWith<ConflictHttpResponseException> {
             postTilkjentYtelse(tilkjentYtelse.copy(vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt.plusDays(1)))
         }
     }
+
+
+    @Test
+    fun `Simulering i en førstegangsbehandling`() {
+        val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
+        postTilSimulering(tilkjentYtelse)
+    }
+
 
     @Test
     fun `Ekporter openapi typer til json`() {
@@ -134,6 +143,13 @@ class ApiTest {
             URI.create("http://localhost:8080/tilkjentytelse"),
             PostRequest(body = tilkjentYtelse)
         )
+    }
+
+    private fun postTilSimulering(tilkjentYtelse: TilkjentYtelseDto): List<UtbetalingOgSimuleringDto> {
+        return client.post(
+            URI.create("http://localhost:8080/simulering"),
+            PostRequest(body = tilkjentYtelse)
+        )!!
     }
 
     companion object {
