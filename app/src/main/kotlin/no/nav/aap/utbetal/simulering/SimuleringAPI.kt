@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
@@ -12,6 +13,7 @@ import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,6 +44,9 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
                     simuleringDto = simulering.tilSimuleringDto()
                 ))
             }
+        }
+        if (Miljø.erDev()) {
+            log.info("Simuleringsresultat: {}", utbetalingerOgSimuleringer)
         }
         respond(utbetalingerOgSimuleringer)
     }
