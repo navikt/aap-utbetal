@@ -82,7 +82,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         )
 
     /**
-     * Lagre tilkjent ytelese. Oppretter SakUtbetaling dersom det er første tilkjente ytelse for denne saken.
+     * Lagre tilkjent ytelse. Oppretter SakUtbetaling dersom det er første tilkjente ytelse for denne saken.
      *
      * @param tilkjentYtelse tilkjent ytelse som skal lagres
      *

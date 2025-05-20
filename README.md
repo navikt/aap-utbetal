@@ -13,7 +13,7 @@ APIene er dokumentert med Swagger.
 ```mermaid
 graph TD
     Behandlingsflyt--Oppdaterer med tilkjent ytelse<br/> ved vedtak-->Utbetal((Utbetal))
-    Utbetal--Lagre tilkjent ytelse og<br/> opprett task for utbetaling-->DB[(Database)]
+    Utbetal--Lagre tilkjent ytelse og<br/> opprett task for beregning av utbetaling-->DB[(Database)]
     Utbetal--Beregn utbetalinger og<br/> opprett tasker for sending-->DB
     Utbetal--Send utbetaling-->Helved-utbetaling
     Utbetal--Sjekker status<br/> for utbetaling-->Helved-utbetaling
