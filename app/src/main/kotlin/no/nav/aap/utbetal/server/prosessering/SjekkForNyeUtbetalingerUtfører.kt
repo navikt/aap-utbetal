@@ -5,7 +5,6 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.motor.cron.CronExpression
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import org.slf4j.LoggerFactory
@@ -42,10 +41,14 @@ class SjekkForNyeUtbetalingerUtfører(private val connection: DBConnection): Job
             return "Sjekk om det finnes nye utbetalinger som skal overføres til økonomi"
         }
 
+        /* -- NB: Denne skal ikke kjøres lengre. Fjernes fra koden etterhvert.
+
         override fun cron(): CronExpression? {
             //Kjøres kl 04:00.
             return CronExpression.create("0 0 4 * * *")
         }
+
+        */
     }
 
 }
