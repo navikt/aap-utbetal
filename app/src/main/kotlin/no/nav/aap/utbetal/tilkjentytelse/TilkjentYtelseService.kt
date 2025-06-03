@@ -78,6 +78,8 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         UtbetalingLight(
             id = id!!,
             utbetalingRef = utbetalingRef,
+            saksnummer = saksnummer,
+            behandlingsreferanse = behandlingsreferanse,
             versjon = versjon,
         )
 

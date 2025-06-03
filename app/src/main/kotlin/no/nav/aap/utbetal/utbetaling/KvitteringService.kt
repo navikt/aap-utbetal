@@ -22,20 +22,24 @@ class KvitteringService(private val connection: DBConnection) {
         } catch (_: IkkeFunnetException) {
             null
         }
+        val utbetalingInfo = "uid = ${utbetaling.utbetalingRef}, saksnummer = ${utbetaling.saksnummer}, behandlingsref = ${utbetaling.behandlingsreferanse}"
         when (status) {
             null -> {
-                log.warn("Utbetaling ${utbetaling.utbetalingRef} ikke funnet i helved utbetaling")
+                log.warn("Helved utbetaling ikke funnet. $utbetalingInfo")
                 utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.FEILET)
             }
-            IKKE_PÅBEGYNT, SENDT_TIL_OPPDRAG -> {
-                log.info("Utbetaling ${utbetaling.utbetalingRef} ikke behandlet: $status")
+            IKKE_PÅBEGYNT -> {
+                log.info("Utbetaling er ikke påbegynt. $utbetalingInfo")
+            }
+            SENDT_TIL_OPPDRAG -> {
+                log.info("Utbetaling er sendt til oppdrag. $utbetalingInfo")
             }
             FEILET_MOT_OPPDRAG -> {
-                log.info("Utbetaling ${utbetaling.utbetalingRef} feilet mot oppdrag")
+                log.warn("Utbetaling feilet mot oppdrag. $utbetalingInfo")
                 utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.FEILET)
             }
             OK, OK_UTEN_UTBETALING -> {
-                log.info("Utbetaling ${utbetaling.utbetalingRef} er BEKREFTET, og har status: $status")
+                log.info("Utbetaling  er BEKREFTET, og har status $status. $utbetalingInfo")
                 utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.BEKREFTET)
             }
         }

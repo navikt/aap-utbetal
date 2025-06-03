@@ -13,6 +13,8 @@ import java.util.UUID
 data class UtbetalingLight(
     val id: Long,
     val utbetalingRef: UUID,
+    val saksnummer: Saksnummer,
+    val behandlingsreferanse: UUID,
     val versjon: Long
 )
 
@@ -182,6 +184,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
             SELECT 
                 ID,
                 UTBETALING_REF,
+                SAKSNUMMER,
+                BEHANDLING_REF,
                 VERSJON
             FROM 
                 UTBETALING
@@ -195,6 +199,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 UtbetalingLight(
                     id = row.getLong("ID"),
                     utbetalingRef = row.getUUID("UTBETALING_REF"),
+                    saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
+                    behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     versjon = row.getLong("VERSJON"),
                 )
             }

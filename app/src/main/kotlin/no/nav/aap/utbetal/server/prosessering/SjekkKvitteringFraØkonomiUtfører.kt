@@ -16,7 +16,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
 
     override fun utfør(input: JobbInput) {
         val sendteUtbetalinger = UtbetalingRepository(connection).hentAlleSendteUtbetalinger()
-        log.info("Fant ${sendteUtbetalinger.size} utbetalinger som mangler kvittering")
+        log.info("Mangler kvitteringer på ${sendteUtbetalinger.size} utbetalinger")
         val kvitteringService = KvitteringService(connection)
         sendteUtbetalinger.forEach { kvitteringService.sjekkKvittering(it) }
     }
