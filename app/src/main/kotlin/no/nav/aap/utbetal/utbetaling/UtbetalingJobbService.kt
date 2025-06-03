@@ -23,10 +23,12 @@ class UtbetalingJobbService(private val connection: DBConnection) {
         )
     }
 
-    fun overførUtbetalingJobb(utbetalingId: Long) {
+    fun overførUtbetalingJobb(sakUtbetaling: SakUtbetaling, utbetalingId: Long) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for utbetalingId: $utbetalingId")
         FlytJobbRepository(connection).leggTil(
-            JobbInput(OverførTilØkonomiJobbUtfører).medParameter("utbetalingId", utbetalingId.toString())
+            JobbInput(OverførTilØkonomiJobbUtfører)
+                .forSak(sakUtbetaling.id!!)
+                .medParameter("utbetalingId", utbetalingId.toString())
         )
     }
 

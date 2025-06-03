@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import java.util.*
@@ -16,9 +17,14 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
             behandlingsreferanse = UUID.fromString(behandlingsreferanse)
         )
 
-        val utbetalingJobbService = UtbetalingJobbService(connection)
-        utbetalinger.alle()
-            .forEach { utbetaling -> utbetalingJobbService.overførUtbetalingJobb(utbetaling.id!!) }
+        if (utbetalinger.alle().isNotEmpty()) {
+            //Skal alltid finne SakUtbetaling her.
+            val sakUtbetaling = SakUtbetalingRepository(connection).hent(utbetalinger.alle().first().saksnummer)!!
+
+            val utbetalingJobbService = UtbetalingJobbService(connection)
+            utbetalinger.alle()
+                .forEach { utbetaling -> utbetalingJobbService.overførUtbetalingJobb(sakUtbetaling, utbetaling.id!!) }
+        }
     }
 
     companion object: Jobb {
