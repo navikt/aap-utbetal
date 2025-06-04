@@ -151,9 +151,35 @@ class UtbetalingRepositoryTest {
         }
 
         dataSource.transaction(readOnly = true) { connection ->
-            val alleSendteUtbetalinger = UtbetalingRepository(connection).hentAlleSendteUtbetalinger()
+            val alleSendteUtbetalinger = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
             assertThat(alleSendteUtbetalinger).hasSize(1)
             assertThat(alleSendteUtbetalinger.first().id).isEqualTo(utbetalingId2)
+        }
+    }
+
+
+    @Test
+    fun `Skal også hente feilede utbetalinger`() {
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        val utbetalingId = dataSource.transaction { connection ->
+            val saksnummer = Saksnummer("005")
+            val behandlingRef = UUID.randomUUID()
+            val personIdent = "12345600005"
+
+            val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
+            val tyId = opprettTilkjentYtelse(connection, saksnummer, behandlingRef, personIdent)
+            val utbetalingId = opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId)
+
+            val utbetaling = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+            UtbetalingRepository(connection).oppdaterStatus(utbetaling.id!!, utbetaling.versjon, UtbetalingStatus.FEILET )
+            utbetaling.id
+        }
+
+        dataSource.transaction(readOnly = true) { connection ->
+            val alleSendteUtbetalinger = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
+            assertThat(alleSendteUtbetalinger).hasSize(1)
+            assertThat(alleSendteUtbetalinger.first().id).isEqualTo(utbetalingId)
         }
     }
 

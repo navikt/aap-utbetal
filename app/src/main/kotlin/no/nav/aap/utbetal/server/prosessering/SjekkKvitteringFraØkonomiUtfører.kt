@@ -7,6 +7,7 @@ import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
 import no.nav.aap.utbetal.utbetaling.KvitteringService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -15,10 +16,13 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
     private val log: Logger = LoggerFactory.getLogger(SjekkKvitteringFraØkonomiUtfører::class.java)
 
     override fun utfør(input: JobbInput) {
-        val sendteUtbetalinger = UtbetalingRepository(connection).hentAlleSendteUtbetalinger()
-        log.info("Mangler kvitteringer på ${sendteUtbetalinger.size} utbetalinger")
+        val utbetalingerSomManglerKvitteringer = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
+        val sendtMenManglerKvittering = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.SENDT}
+        val feiletStatus = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.FEILET}
+        log.info("Mangler kvitteringer på $sendtMenManglerKvittering utbetalinger")
+        log.info("Feilet status på $feiletStatus utbetalinger")
         val kvitteringService = KvitteringService(connection)
-        sendteUtbetalinger.forEach { kvitteringService.sjekkKvittering(it) }
+        utbetalingerSomManglerKvitteringer.forEach { kvitteringService.sjekkKvittering(it) }
     }
 
     companion object: Jobb {

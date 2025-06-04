@@ -8,6 +8,7 @@ import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.IKKE_PÅBEGYNT
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.OK
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.OK_UTEN_UTBETALING
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.SENDT_TIL_OPPDRAG
+import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -26,7 +27,7 @@ class KvitteringService(private val connection: DBConnection) {
         when (status) {
             null -> {
                 log.warn("Helved utbetaling ikke funnet. $utbetalingInfo")
-                utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.FEILET)
+                utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, UtbetalingStatus.FEILET)
             }
             IKKE_PÅBEGYNT -> {
                 log.info("Utbetaling er ikke påbegynt. $utbetalingInfo")
@@ -35,12 +36,16 @@ class KvitteringService(private val connection: DBConnection) {
                 log.info("Utbetaling er sendt til oppdrag. $utbetalingInfo")
             }
             FEILET_MOT_OPPDRAG -> {
-                log.warn("Utbetaling feilet mot oppdrag. $utbetalingInfo")
-                utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.FEILET)
+                if (utbetaling.utbetalingStatus == UtbetalingStatus.FEILET) {
+                    log.info("Utbetaling feiler fortsatt mot oppdrag. $utbetalingInfo")
+                } else {
+                    log.warn("Utbetaling feilet mot oppdrag. $utbetalingInfo")
+                    utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, UtbetalingStatus.FEILET)
+                }
             }
             OK, OK_UTEN_UTBETALING -> {
                 log.info("Utbetaling  er BEKREFTET, og har status $status. $utbetalingInfo")
-                utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, no.nav.aap.utbetaling.UtbetalingStatus.BEKREFTET)
+                utbetalingRepo.oppdaterStatus(utbetaling.id, utbetaling.versjon, UtbetalingStatus.BEKREFTET)
             }
         }
     }

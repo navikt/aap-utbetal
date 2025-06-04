@@ -15,6 +15,7 @@ data class UtbetalingLight(
     val utbetalingRef: UUID,
     val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
+    val utbetalingStatus: UtbetalingStatus,
     val versjon: Long
 )
 
@@ -179,18 +180,19 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentAlleSendteUtbetalinger(): List<UtbetalingLight> {
+    fun hentUtbetalingerSomManglerKvittering(): List<UtbetalingLight> {
         val hentAlleSendteUtbetalingerSql = """
             SELECT 
                 ID,
                 UTBETALING_REF,
                 SAKSNUMMER,
                 BEHANDLING_REF,
+                UTBETALING_STATUS,
                 VERSJON
             FROM 
                 UTBETALING
             WHERE
-                UTBETALING_STATUS = 'SENDT' AND
+                UTBETALING_STATUS IN ('SENDT', 'FEILET') AND
                 SLETTET = FALSE
         """.trimIndent()
 
@@ -201,6 +203,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     utbetalingRef = row.getUUID("UTBETALING_REF"),
                     saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
+                    utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
                     versjon = row.getLong("VERSJON"),
                 )
             }
