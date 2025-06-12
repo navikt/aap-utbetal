@@ -20,7 +20,9 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
     route("/tilkjentytelse").authorizedPost<Unit, Unit, TilkjentYtelseDto>(authConfig, null) { _, dto ->
         prometheus.httpCallCounter("/tilkjentytelse").increment()
         log.info("Tilkjent ytelse: {}", dto.copy(personIdent = "..........."))
-
+        if (dto.avvent != null) {
+            log.info("Avvent utbetaling for saksnummer ${dto.saksnummer} og behandling ${dto.behandlingsreferanse}: ${dto.avvent}")
+        }
         val response = dataSource.transaction { connection ->
             TilkjentYtelseService(connection).håndterNyTilkjentYtelse(dto.tilTilkjentYtelse())
         }
