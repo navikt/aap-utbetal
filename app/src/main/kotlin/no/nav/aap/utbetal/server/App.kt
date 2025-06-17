@@ -4,23 +4,17 @@ import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -67,15 +61,17 @@ fun main() {
             configForKey("BEHANDLINGSFLYT_AZP")?.let(UUID::fromString)
         )
     )
-    
+
     embeddedServer(Netty, 8080) { server(DbConfig(), authConfig) }.start(wait = true)
 }
 
 internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    commonKtorModule(prometheus, AzureConfig(), InfoModel(title = "AAP - Utbetling",
-        description = """
+    commonKtorModule(
+        prometheus, AzureConfig(), InfoModel(
+            title = "AAP - Utbetling",
+            description = """
                 For å teste API i dev, besøk
                 <a href="https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-gcp:aap:utbetal">Token Generator</a> for å få token.
                 
@@ -100,7 +96,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
     val dataSource = initDatasource(dbConfig)
     Migrering.migrate(dataSource)
 
-    val motor = motor(dataSource)
+    val motor = motor(dataSource, prometheus)
 
     routing {
         authenticate(AZURE) {
@@ -116,10 +112,11 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
 }
 
 
-fun Application.motor(dataSource: DataSource): Motor {
+fun Application.motor(dataSource: DataSource, prometheus: MeterRegistry): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
+        prometheus = prometheus,
         jobber = listOf(
             OpprettUtbetalingUtfører,
             OverførTilØkonomiJobbUtfører,
