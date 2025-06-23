@@ -43,6 +43,22 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
                 ))
             }
         }
+        log.info("Simulering utbetalinger: ${utbetalingerOgSimuleringer.anonymiser()}")
         respond(utbetalingerOgSimuleringer)
     }
 
+
+
+private fun List<UtbetalingOgSimuleringDto>.anonymiser(): List<UtbetalingOgSimuleringDto> {
+    return map { utbetalingOgSimuleringDto ->
+        UtbetalingOgSimuleringDto(
+            utbetalingDto = utbetalingOgSimuleringDto.utbetalingDto,
+            simuleringDto = SimuleringDto(utbetalingOgSimuleringDto.simuleringDto.perioder.map { simuleringsperiodeDto ->
+                simuleringsperiodeDto.copy(utbetalinger = simuleringsperiodeDto.utbetalinger.map { simulertUtbetalingDto ->
+                    simulertUtbetalingDto.copy(utbetalesTil = "...........")
+                })
+            })
+        )
+    }
+
+}
