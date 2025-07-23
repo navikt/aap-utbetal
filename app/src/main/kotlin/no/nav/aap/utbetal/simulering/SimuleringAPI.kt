@@ -38,10 +38,10 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
                     val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
                     klient.simuleringUtbetaling(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 }
-                val klippetSimulering = simulering.klipp(helvedUtbetaling.perioder.map { Periode(it.fom, it.tom) })
+//                val klippetSimulering = simulering.klipp(helvedUtbetaling.perioder.map { Periode(it.fom, it.tom) })
                 utbetalingerOgSimuleringer.add(UtbetalingOgSimuleringDto(
                     utbetalingDto = utbetaling.tilUtbetalingDto(),
-                    simuleringDto = klippetSimulering.tilSimuleringDto()
+                    simuleringDto = simulering.tilSimuleringDto()
                 ))
             }
         }
