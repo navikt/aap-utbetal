@@ -1,5 +1,8 @@
 package no.nav.aap.utbetal.klienter.helved
 
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.simulering.SimuleringDto
 import no.nav.aap.utbetal.simulering.SimuleringsperiodeDto
 import no.nav.aap.utbetal.simulering.SimulertUtbetalingDto
@@ -11,6 +14,18 @@ data class Simulering(
     fun tilSimuleringDto() = SimuleringDto(
         perioder = perioder.map { it.tilSimuleringsperiode() }
     )
+
+    fun klipp(perioder: List<Periode>): Simulering {
+        val klippePerioder =
+            Tidslinje(perioder.map { Segment(it, Unit) })
+        val simuleringsperioderTidslinje =
+            Tidslinje(this.perioder.map { periode -> Segment(Periode(periode.fom, periode.tom), periode.utbetalinger) })
+        val klippetTidslinje = simuleringsperioderTidslinje.disjoint(klippePerioder, { p, v, -> Segment(p, v.verdi)})
+        return Simulering(
+            perioder =  klippetTidslinje
+                .map { segment -> Simuleringsperiode(fom = segment.fom(), tom = segment.tom(), utbetalinger = segment.verdi) }
+        )
+    }
 }
 
 data class Simuleringsperiode(
