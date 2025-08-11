@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.server.prosessering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
@@ -19,6 +20,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
         val utbetalingerSomManglerKvitteringer = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
         val sendtMenManglerKvittering = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.SENDT}
         val feiletStatus = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.FEILET}
+        log.info(("Miljø: ${Miljø.er()}"))
         log.info("Mangler kvitteringer på $sendtMenManglerKvittering utbetalinger")
         log.info("Feilet status på $feiletStatus utbetalinger")
         val kvitteringService = KvitteringService(connection)
