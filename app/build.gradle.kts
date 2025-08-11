@@ -7,7 +7,7 @@ val tilgangVersjon = "1.0.99"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.2.2"
+    id("io.ktor.plugin") version "3.2.3"
 }
 
 application {
