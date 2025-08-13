@@ -14,11 +14,11 @@ class UtbetalingJobbService(private val connection: DBConnection) {
 
     private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
 
-    fun opprettUtbetalingJobb(saksnummer: Saksnummer, behandlingsreferanse: UUID) {
+    fun opprettUtbetalingJobb(sakUtbetalingId: Long, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
         FlytJobbRepository(connection).leggTil(
             JobbInput(OpprettUtbetalingUtfører)
-                .medParameter("saksnummer", saksnummer.toString())
+                .forSak(sakUtbetalingId)
                 .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
         )
     }

@@ -51,9 +51,9 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
-            lagre(tilkjentYtelse)
+            val sakUtbetalingId = lagre(tilkjentYtelse)
             UtbetalingJobbService(connection).opprettUtbetalingJobb(
-                tilkjentYtelse.saksnummer,
+                sakUtbetalingId,
                 tilkjentYtelse.behandlingsreferanse
             )
         } else {

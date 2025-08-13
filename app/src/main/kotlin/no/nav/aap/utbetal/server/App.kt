@@ -31,7 +31,6 @@ import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
-import no.nav.aap.utbetal.server.prosessering.SjekkForNyeUtbetalingerUtfører
 import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
@@ -121,7 +120,6 @@ fun Application.motor(dataSource: DataSource, prometheus: MeterRegistry): Motor 
             OpprettUtbetalingUtfører,
             OverførTilØkonomiJobbUtfører,
             SjekkKvitteringFraØkonomiUtfører,
-            SjekkForNyeUtbetalingerUtfører
         )
     )
 
