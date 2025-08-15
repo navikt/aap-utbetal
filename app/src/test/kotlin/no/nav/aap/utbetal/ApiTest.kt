@@ -3,6 +3,7 @@ package no.nav.aap.utbetal
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -11,10 +12,12 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.tilgang.NoAuthConfig
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
+import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.server.server
 import no.nav.aap.utbetal.simulering.UtbetalingOgSimuleringDto
 import no.nav.aap.utbetal.test.Fakes
@@ -22,6 +25,10 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvventDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetaling.UtbetalingStatus
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -35,6 +42,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import javax.sql.DataSource
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -42,10 +50,27 @@ import kotlin.test.fail
 
 class ApiTest {
 
+    val dataSource = initDatasource(dbConfig)
+
+    @AfterTest
+    fun cleanup() {
+        fakes.utbetalinger.clear()
+    }
+
     @Test
     fun `Tilkjent ytelse etter førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
+
+        val uid = ventPåMotor(dataSource, tilkjentYtelse.saksnummer, tilkjentYtelse.behandlingsreferanse)
+
+
+        val helvedUtbetaling = fakes.utbetalinger[uid]
+        assertThat(helvedUtbetaling).isNotNull()
+        assertThat(helvedUtbetaling!!.perioder.first().fastsattDagsats).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.perioder.first().beløp).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.avvent).isNull()
+
     }
 
     @Test
@@ -59,6 +84,17 @@ class ApiTest {
         )
         val tilkjentYtelseMedAvvent = tilkjentYtelse.copy(avvent = avventDto)
         postTilkjentYtelse(tilkjentYtelseMedAvvent)
+
+        val uid = ventPåMotor(dataSource, tilkjentYtelse.saksnummer, tilkjentYtelse.behandlingsreferanse)
+
+        val helvedUtbetaling = fakes.utbetalinger[uid]
+        assertThat(helvedUtbetaling).isNotNull()
+        assertThat(helvedUtbetaling!!.avvent).isNotNull()
+        assertThat(helvedUtbetaling.avvent!!.fom).isEqualTo(avventDto.fom)
+        assertThat(helvedUtbetaling.avvent.tom).isEqualTo(avventDto.tom)
+        assertThat(helvedUtbetaling.avvent.årsak).isEqualTo(avventDto.årsak)
+        assertThat(helvedUtbetaling.avvent.overføres).isEqualTo(avventDto.overføres)
+        assertThat(helvedUtbetaling.avvent.feilregistrering).isEqualTo(avventDto.feilregistrering)
     }
 
     @Test
@@ -66,6 +102,15 @@ class ApiTest {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
         postTilkjentYtelse(tilkjentYtelse)
         postTilkjentYtelse(tilkjentYtelse)
+
+        val uid = ventPåMotor(dataSource, tilkjentYtelse.saksnummer, tilkjentYtelse.behandlingsreferanse)
+
+        assertThat(fakes.utbetalinger).hasSize(1)
+        val helvedUtbetaling = fakes.utbetalinger[uid]
+        assertThat(helvedUtbetaling).isNotNull()
+        assertThat(helvedUtbetaling!!.perioder.first().fastsattDagsats).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.perioder.first().beløp).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.avvent).isNull()
     }
 
     @Test
@@ -75,15 +120,24 @@ class ApiTest {
         assertFailsWith<ConflictHttpResponseException> {
             postTilkjentYtelse(tilkjentYtelse.copy(vedtakstidspunkt = tilkjentYtelse.vedtakstidspunkt.plusDays(1)))
         }
-    }
 
+        val uid = ventPåMotor(dataSource, tilkjentYtelse.saksnummer, tilkjentYtelse.behandlingsreferanse)
+
+        assertThat(fakes.utbetalinger).hasSize(1)
+        val helvedUtbetaling = fakes.utbetalinger[uid]
+        assertThat(helvedUtbetaling).isNotNull()
+        assertThat(helvedUtbetaling!!.perioder.first().fastsattDagsats).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.perioder.first().beløp).isEqualTo(500.toUInt())
+        assertThat(helvedUtbetaling.avvent).isNull()
+    }
 
     @Test
     fun `Simulering i en førstegangsbehandling`() {
         val tilkjentYtelse = opprettTilkjentYtelse(3, BigDecimal(500L), LocalDate.of(2024, 12, 1))
-        postTilSimulering(tilkjentYtelse)
-    }
+        val simuleringer = postTilSimulering(tilkjentYtelse)
 
+        assertThat(simuleringer).hasSize(1)
+    }
 
     @Test
     fun `Ekporter openapi typer til json`() {
@@ -192,6 +246,23 @@ class ApiTest {
         fun afterAll() {
             server.stop()
             postgres.close()
+        }
+    }
+
+    private fun ventPåMotor(dataSource: DataSource, saksnummer: String, behandlingRef:  UUID): UUID {
+        val util = TestUtil(dataSource, ProsesseringsJobber.alle().filter { it.cron != null }.map { it.type })
+        val sakUtbetalingId = dataSource.transaction { connection ->
+            SakUtbetalingRepository(connection).hent(Saksnummer(saksnummer))!!.id!!
+
+        }
+        util.ventPåSvar(sakUtbetalingId)
+
+        return dataSource.transaction { connection ->
+            val utbetalinger = UtbetalingRepository(connection).hent(behandlingRef)
+            assertThat(utbetalinger).hasSize(1)
+            assertThat(utbetalinger.first().utbetalingStatus).isIn(UtbetalingStatus.SENDT, UtbetalingStatus.BEKREFTET)
+
+            utbetalinger.first().utbetalingRef
         }
     }
 

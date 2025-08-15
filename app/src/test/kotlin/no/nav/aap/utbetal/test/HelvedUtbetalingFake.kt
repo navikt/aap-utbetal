@@ -13,11 +13,7 @@ import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
 import no.nav.aap.utbetal.simulering.SimuleringDto
 import java.util.*
 
-
-fun Application.helvedUtbetalingFake() {
-
-    val fakeDatabase = mutableMapOf<UUID, Utbetaling>()
-
+fun Application.helvedUtbetalingFake(utbetalinger: MutableMap<UUID, Utbetaling>) {
 
     routing {
         install(ContentNegotiation) {
@@ -28,13 +24,13 @@ fun Application.helvedUtbetalingFake() {
         post("/utbetalinger/{uid}") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
-            fakeDatabase[utbetalingRef] = utbetaling
+            utbetalinger[utbetalingRef] = utbetaling
             call.respond(HttpStatusCode.Created)
         }
         put("/utbetalinger/{uid}") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
-            fakeDatabase[utbetalingRef] = utbetaling
+            utbetalinger[utbetalingRef] = utbetaling
             call.respond(HttpStatusCode.NoContent)
         }
         delete("/utbetalinger/{uid}") {
@@ -42,7 +38,7 @@ fun Application.helvedUtbetalingFake() {
         }
         get("/utbetalinger/{uid}") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
-            call.respond(status = HttpStatusCode.OK, fakeDatabase[utbetalingRef]!!)
+            call.respond(status = HttpStatusCode.OK, utbetalinger[utbetalingRef]!!)
         }
         get("/utbetalinger/{uid}/status") {
             call.respond(status = HttpStatusCode.OK, UtbetalingStatus.OK)
@@ -50,13 +46,13 @@ fun Application.helvedUtbetalingFake() {
         post("/utbetalinger/{uid}/simuler") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
-            fakeDatabase[utbetalingRef] = utbetaling
+            utbetalinger[utbetalingRef] = utbetaling
             call.respond(status = HttpStatusCode.OK, SimuleringDto(perioder = listOf()))
         }
         delete("/utbetalinger/{uid}/simuler") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
-            fakeDatabase[utbetalingRef] = utbetaling
+            utbetalinger[utbetalingRef] = utbetaling
             call.respond(status = HttpStatusCode.OK, SimuleringDto(perioder = listOf()))
         }
     }

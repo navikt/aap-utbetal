@@ -53,6 +53,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.11.1")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
 
+    testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4")

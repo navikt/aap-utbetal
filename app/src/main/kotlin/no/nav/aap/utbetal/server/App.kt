@@ -29,9 +29,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
-import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
-import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
-import no.nav.aap.utbetal.server.prosessering.SjekkKvitteringFraØkonomiUtfører
+import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.hent
@@ -116,11 +114,7 @@ fun Application.motor(dataSource: DataSource, prometheus: MeterRegistry): Motor 
         dataSource = dataSource,
         antallKammer = ANTALL_WORKERS,
         prometheus = prometheus,
-        jobber = listOf(
-            OpprettUtbetalingUtfører,
-            OverførTilØkonomiJobbUtfører,
-            SjekkKvitteringFraØkonomiUtfører,
-        )
+        jobber = ProsesseringsJobber.alle()
     )
 
     dataSource.transaction { dbConnection ->
