@@ -9,6 +9,7 @@ data class YtelseDetaljer(
     val redusertDagsats: Beløp,
     val gradering: Prosent,
     val dagsats: Beløp,
+    @Deprecated("Denne er alltid lik dagsats fra behandlingsflyt.")
     val grunnlag: Beløp,
     val grunnlagsfaktor: GUnit,
     val grunnbeløp: Beløp,
