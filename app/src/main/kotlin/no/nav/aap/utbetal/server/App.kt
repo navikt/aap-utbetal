@@ -152,6 +152,7 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     minimumIdle = 1
     driverClassName = "org.postgresql.Driver"
     connectionTestQuery = "SELECT 1"
+    metricRegistry = prometheus
 })
 
 internal data class ErrorRespons(val message: String?)
