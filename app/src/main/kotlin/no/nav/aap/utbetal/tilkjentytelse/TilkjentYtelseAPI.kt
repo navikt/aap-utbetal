@@ -12,6 +12,7 @@ import no.nav.aap.utbetal.httpCallCounter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+import kotlin.time.measureTime
 
 private val log: Logger = LoggerFactory.getLogger("POST /tilkjentytelse")
 
@@ -23,9 +24,11 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
         if (dto.avvent != null) {
             log.info("Avvent utbetaling for saksnummer ${dto.saksnummer} og behandling ${dto.behandlingsreferanse}: ${dto.avvent}")
         }
+        val start = System.currentTimeMillis()
         val response = dataSource.transaction { connection ->
             TilkjentYtelseService(connection).håndterNyTilkjentYtelse(dto.tilTilkjentYtelse())
         }
+        log.info("Tilkjent ytelse mottak tok ${System.currentTimeMillis() - start} ms")
 
         when (response) {
             TilkjentYtelseResponse.LOCKED -> respondWithStatus(HttpStatusCode.Locked)
