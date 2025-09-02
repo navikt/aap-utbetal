@@ -1,0 +1,57 @@
+name: Deploy kafka topics
+
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - kafka/**
+            - .github/workflows/deploy-kafka.yaml
+            - '!kafka/README.md'
+jobs:
+    setup-matrix:
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.set-matrix.outputs.matrix }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - id: set-matrix
+              run: |
+                  MATRIX=$(git diff-tree --diff-filter=d --no-commit-id --name-only -r ${{ github.event.before }} ${{ github.sha }} | grep kafka/ |  grep -v '^kafka/README.md$' | cut -d '/' -f 2 | sort -u | paste -d',' -s )
+                  if [[ -z "${MATRIX// }" ]]; then
+                    JSON="{}"
+                  else
+                    JSON=$(jq -c -n --arg v $MATRIX '{"topic": $v|split(",")}')
+                  fi
+                  echo "matrix=$JSON" >> $GITHUB_OUTPUT
+    deploy:
+        needs: setup-matrix
+        runs-on: ubuntu-latest
+        environment: gcp
+        if: ${{ needs.setup-matrix.outputs.matrix != '{}' }}
+        strategy:
+            fail-fast: true
+            matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+            - name: deploy to dev
+              uses: nais/deploy/actions/deploy@v2
+              env:
+                  CLUSTER: dev-gcp
+                  RESOURCE: kafka/${{ matrix.topic }}/topic.yaml
+                  VARS: kafka/${{ matrix.topic }}/dev-vars.yaml
+                  PRINT_PAYLOAD: true
+
+            - name: deploy to prod
+              uses: nais/deploy/actions/deploy@v2
+              env:
+                  CLUSTER: prod-gcp
+                  RESOURCE: kafka/${{ matrix.topic }}/topic.yaml
+                  VARS: kafka/${{ matrix.topic }}/prod-vars.yaml
+                  PRINT_PAYLOAD: true
