@@ -1,0 +1,26 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+    name: utbetaling.v1
+    namespace: aap
+    labels:
+        team: aap
+spec:
+    pool: {{pool}}
+    config:
+    {{#each config as |value key|}}
+        {{key}}: {{value}}
+    {{/each}}
+    acl:
+        - team: teamdagpenger
+          application: dp-kafka-manager
+          access: read
+        - team: teamdagpenger
+          application: dp-mellom-barken-og-veden
+          access: write
+        - team: helved
+          application: abetal
+          access: read
+        - team: helved
+          application: peisschtappern
+          access: read
