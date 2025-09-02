@@ -12,12 +12,6 @@ spec:
         {{key}}: {{value}}
     {{/each}}
     acl:
-        - team: teamdagpenger
-          application: dp-kafka-manager
-          access: read
-        - team: teamdagpenger
-          application: dp-mellom-barken-og-veden
-          access: write
         - team: helved
           application: abetal
           access: read
