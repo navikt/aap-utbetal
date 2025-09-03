@@ -139,7 +139,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
                     beslutterId = row.getString("BESLUTTER_ID"),
                     saksbehandlerId = row.getString("SAKSBEHANDLER_ID"),
-                    listOf()
+                    perioder = listOf(),
                 )
             }
         }
@@ -224,7 +224,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 TilkjentYtelseAvvent(
                     fom = periode.fom,
                     tom = periode.tom,
-                    overføres = row.getLocalDate("OVERFORES"),
+                    overføres = row.getLocalDateOrNull("OVERFORES"),
                     årsak = AvventÅrsak.valueOf(row.getString("ARSAK")),
                     feilregistrering = row.getBoolean("FEILREGISTRERING"),
                 )

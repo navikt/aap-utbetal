@@ -23,7 +23,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
 
     fun lagre(sakUtbetalingId: Long, utbetaling: Utbetaling): Long {
         slettTidligereUtbetaling(utbetaling.utbetalingRef)
-        var insertUtbetalingSql = """
+        val insertUtbetalingSql = """
             INSERT INTO UTBETALING
                 (
                     SAKSNUMMER,
@@ -316,7 +316,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 UtbetalingAvvent(
                     fom = periode.fom,
                     tom = periode.tom,
-                    overføres = row.getLocalDate("OVERFORES"),
+                    overføres = row.getLocalDateOrNull("OVERFORES"),
                     årsak = AvventÅrsak.valueOf(row.getString("ARSAK")),
                     feilregistrering = row.getBoolean("FEILREGISTRERING"),
                 )

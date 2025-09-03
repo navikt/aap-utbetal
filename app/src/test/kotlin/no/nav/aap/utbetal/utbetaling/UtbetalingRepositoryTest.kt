@@ -4,11 +4,13 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.Test
@@ -39,6 +41,67 @@ class UtbetalingRepositoryTest {
             assertThat(utbetalingFraBehandlingRef.behandlingsreferanse).isEqualTo(behandlingRef)
         }
     }
+
+    @Test
+    fun `Lagre utbetaling med avvent utbetaling`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val saksnummer = Saksnummer("001-1")
+            val behandlingRef = UUID.randomUUID()
+            val personIdent = "12345600001"
+
+            val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
+            val tyId = opprettTilkjentYtelse(connection, saksnummer, behandlingRef, personIdent)
+            val utbetalingAvvent = UtbetalingAvvent(
+                LocalDate.parse("2025-01-01"),
+                LocalDate.parse("2025-01-31"),
+                LocalDate.parse("2025-01-31"),
+                AvventÅrsak.AVVENT_AVREGNING
+            )
+
+            val utbetalingId = opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId, utbetalingAvvent)
+
+            val utbetalingFraId = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+            assertThat(utbetalingFraId.saksnummer).isEqualTo(saksnummer)
+            assertThat(utbetalingFraId.behandlingsreferanse).isEqualTo(behandlingRef)
+
+            val avvent = utbetalingFraId.avvent!!
+            assertThat(avvent.fom).isEqualTo(utbetalingAvvent.fom)
+            assertThat(avvent.tom).isEqualTo(utbetalingAvvent.tom)
+            assertThat(avvent.overføres).isEqualTo(utbetalingAvvent.overføres)
+            assertThat(avvent.årsak).isEqualTo(utbetalingAvvent.årsak)
+        }
+    }
+
+    @Test
+    fun `Lagre utbetaling med avvent utbetaling uten overføresdato`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val saksnummer = Saksnummer("001-2")
+            val behandlingRef = UUID.randomUUID()
+            val personIdent = "12345600001"
+
+            val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
+            val tyId = opprettTilkjentYtelse(connection, saksnummer, behandlingRef, personIdent)
+            val utbetalingAvvent = UtbetalingAvvent(
+                LocalDate.parse("2025-01-01"),
+                LocalDate.parse("2025-01-31"),
+                null,
+                AvventÅrsak.AVVENT_AVREGNING
+            )
+
+            val utbetalingId = opprettUtbetaling(connection, saksnummer, behandlingRef, personIdent, sakUtbetalingId, tyId, utbetalingAvvent)
+
+            val utbetalingFraId = UtbetalingRepository(connection).hentUtbetaling(utbetalingId)
+            assertThat(utbetalingFraId.saksnummer).isEqualTo(saksnummer)
+            assertThat(utbetalingFraId.behandlingsreferanse).isEqualTo(behandlingRef)
+
+            val avvent = utbetalingFraId.avvent!!
+            assertThat(avvent.fom).isEqualTo(utbetalingAvvent.fom)
+            assertThat(avvent.tom).isEqualTo(utbetalingAvvent.tom)
+            assertThat(avvent.overføres).isEqualTo(utbetalingAvvent.overføres)
+            assertThat(avvent.årsak).isEqualTo(utbetalingAvvent.årsak)
+        }
+    }
+
 
     @Test
     fun `Oppdater status på utbetaling`() {
@@ -183,7 +246,7 @@ class UtbetalingRepositoryTest {
         }
     }
 
-    private fun opprettUtbetaling(connection: DBConnection, saksnummer: Saksnummer, behandlingRef: UUID, personIdent: String, sakUtbetalingId: Long, tilkjentYtelseId: Long): Long {
+    private fun opprettUtbetaling(connection: DBConnection, saksnummer: Saksnummer, behandlingRef: UUID, personIdent: String, sakUtbetalingId: Long, tilkjentYtelseId: Long, utbetalingAvvent: UtbetalingAvvent? = null): Long {
         val utbetaling = Utbetaling(
             saksnummer = saksnummer,
             behandlingsreferanse = behandlingRef,
@@ -195,7 +258,7 @@ class UtbetalingRepositoryTest {
             utbetalingOversendt = LocalDateTime.now(),
             utbetalingStatus = UtbetalingStatus.OPPRETTET,
             perioder = listOf(),
-            avvent = null,
+            avvent = utbetalingAvvent,
             utbetalingRef = UUID.randomUUID(),
         )
         return UtbetalingRepository(connection).lagre(sakUtbetalingId, utbetaling)

@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -104,7 +105,65 @@ class TilkjentYtelseRepositoryTest {
         }
     }
 
-    private fun lagreTilkjentYtelse(dataSource: DataSource, saksnummer: Saksnummer, behandlingRef: UUID, forrigeBehandlingRef: UUID?): Long {
+    @Test
+    fun `Lagre tilkjent ytelse med avvent utbetaling`() {
+        val behandlingRef1 = UUID.randomUUID()
+        val saksnummer1 = Saksnummer("123")
+
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        val avvent = TilkjentYtelseAvvent(
+            fom = LocalDate.parse("2025-01-01"),
+            tom = LocalDate.parse("2025-01-31"),
+            overføres = LocalDate.parse("2025-01-31"),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null, avvent)
+
+        val tilkjentYtelseMedAvvent = dataSource.transaction { connection ->
+            TilkjentYtelseRepository(connection).hent(behandlingRef1)
+        }
+        assertThat(tilkjentYtelseMedAvvent!!.avvent).isNotNull()
+        assertThat(tilkjentYtelseMedAvvent.avvent!!.fom).isEqualTo(avvent.fom)
+        assertThat(tilkjentYtelseMedAvvent.avvent.tom).isEqualTo(avvent.tom)
+        assertThat(tilkjentYtelseMedAvvent.avvent.overføres).isEqualTo(avvent.overføres)
+        assertThat(tilkjentYtelseMedAvvent.avvent.årsak).isEqualTo(avvent.årsak)
+    }
+
+    @Test
+    fun `Lagre tilkjent ytelse med avvent utbetaling uten overføresdato`() {
+        val behandlingRef1 = UUID.randomUUID()
+        val saksnummer1 = Saksnummer("123")
+
+        val dataSource = InitTestDatabase.freshDatabase()
+
+        val avvent = TilkjentYtelseAvvent(
+            fom = LocalDate.parse("2025-01-01"),
+            tom = LocalDate.parse("2025-01-31"),
+            overføres = null,
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null, avvent)
+
+        val tilkjentYtelseMedAvvent = dataSource.transaction { connection ->
+            TilkjentYtelseRepository(connection).hent(behandlingRef1)
+        }
+        assertThat(tilkjentYtelseMedAvvent!!.avvent).isNotNull()
+        assertThat(tilkjentYtelseMedAvvent.avvent!!.fom).isEqualTo(avvent.fom)
+        assertThat(tilkjentYtelseMedAvvent.avvent.tom).isEqualTo(avvent.tom)
+        assertThat(tilkjentYtelseMedAvvent.avvent.overføres).isNull()
+        assertThat(tilkjentYtelseMedAvvent.avvent.årsak).isEqualTo(avvent.årsak)
+
+    }
+
+
+    private fun lagreTilkjentYtelse(
+        dataSource: DataSource,
+        saksnummer: Saksnummer,
+        behandlingRef: UUID,
+        forrigeBehandlingRef: UUID?,
+        avvent: TilkjentYtelseAvvent? = null,
+    ): Long {
         return dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagre(
                 opprettTilkjentYtelse(
@@ -113,7 +172,8 @@ class TilkjentYtelseRepositoryTest {
                     forrigeBehandlingRef = forrigeBehandlingRef,
                     antallPerioder = 5,
                     beløp = Beløp(1000L),
-                    startDato = LocalDate.now()
+                    startDato = LocalDate.now(),
+                    avvent = avvent,
                 )
             )
         }
@@ -125,7 +185,8 @@ class TilkjentYtelseRepositoryTest {
         forrigeBehandlingRef: UUID?,
         antallPerioder: Int,
         beløp: Beløp,
-        startDato: LocalDate
+        startDato: LocalDate,
+        avvent: TilkjentYtelseAvvent? = null,
     ): TilkjentYtelse {
         val perioder = (0 until antallPerioder).map {
             TilkjentYtelsePeriode(
@@ -152,7 +213,9 @@ class TilkjentYtelseRepositoryTest {
             vedtakstidspunkt = LocalDateTime.now(),
             beslutterId = "testbruker1",
             saksbehandlerId = "testbruker2",
-            perioder = perioder)
+            perioder = perioder,
+            avvent = avvent,
+        )
     }
 
 }

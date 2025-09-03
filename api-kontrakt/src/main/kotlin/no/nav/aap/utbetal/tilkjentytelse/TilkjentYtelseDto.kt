@@ -40,7 +40,7 @@ data class TilkjentYtelseDetaljerDto(
 data class TilkjentYtelseAvventDto(
     val fom: LocalDate,
     val tom: LocalDate,
-    val overføres: LocalDate,
+    val overføres: LocalDate?,
     val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
 )

@@ -28,7 +28,7 @@ data class Utbetalingsperiode(
 data class Avvent(
     val fom: LocalDate,
     val tom: LocalDate,
-    val overføres: LocalDate,
+    val overføres: LocalDate?,
     val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
 )
