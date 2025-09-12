@@ -56,7 +56,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:42.7.7")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.4.2")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.4")
