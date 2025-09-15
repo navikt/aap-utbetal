@@ -9,7 +9,7 @@ val jupiterVersjon = "5.13.4"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.3.0"
+    id("io.ktor.plugin") version "3.2.3"
 }
 
 application {
@@ -28,7 +28,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:verdityper:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
-    implementation("no.nav:ktor-openapi-generator:1.0.125")
+    implementation("no.nav:ktor-openapi-generator:1.0.122")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
@@ -45,14 +45,13 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-core:11.12.0")
     implementation("org.flywaydb:flyway-database-postgresql:11.12.0")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
 
