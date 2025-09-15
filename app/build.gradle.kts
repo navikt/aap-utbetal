@@ -28,7 +28,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:verdityper:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
-    implementation("no.nav:ktor-openapi-generator:1.0.122")
+    implementation("no.nav:ktor-openapi-generator:1.0.125")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
