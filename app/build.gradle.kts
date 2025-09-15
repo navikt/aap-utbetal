@@ -9,7 +9,7 @@ val jupiterVersjon = "5.13.4"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.2.3"
+    id("io.ktor.plugin") version "3.3.0"
 }
 
 application {
