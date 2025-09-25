@@ -104,7 +104,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
                 sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
             }
         }
-        TilkjentYtelseRepository(connection).lagre(tilkjentYtelse)
+        TilkjentYtelseRepository(connection).lagreTilkjentYtelse(tilkjentYtelse)
         return sakUtbetalingId
     }
 
