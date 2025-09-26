@@ -7,7 +7,6 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.collections.sortBy
 
 class TrekkService(
     private val tilkjentYtelseRepository: TilkjentYtelseRepository,
