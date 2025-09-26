@@ -23,6 +23,7 @@ data class Simulering(
         val klippetTidslinje = simuleringsperioderTidslinje.disjoint(klippePerioder, { p, v, -> Segment(p, v.verdi)})
         return Simulering(
             perioder =  klippetTidslinje
+                .segmenter()
                 .map { segment -> Simuleringsperiode(fom = segment.fom(), tom = segment.tom(), utbetalinger = segment.verdi) }
         )
     }
