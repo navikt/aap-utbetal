@@ -139,6 +139,14 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             if (detaljer1.barnetillegg.avrundet() != detaljer2.barnetillegg.avrundet()) return false
             if (detaljer1.utbetalingsdato != detaljer2.utbetalingsdato) return false
         }
+        if (nyMeldeperiode != tilkjentYtelse.nyMeldeperiode) return false
+        if (trekk.size != tilkjentYtelse.trekk.size) return false
+        for (index in tilkjentYtelse.trekk.indices) {
+            val periode1 = trekk[index]
+            val periode2 = tilkjentYtelse.trekk[index]
+            if (periode1.dato != periode2.dato) return false
+            if (periode1.beløp != periode2.beløp) return false
+        }
         return true
     }
 
