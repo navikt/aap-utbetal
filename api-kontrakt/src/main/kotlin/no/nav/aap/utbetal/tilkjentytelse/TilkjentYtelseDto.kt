@@ -17,7 +17,7 @@ data class TilkjentYtelseDto(
     val perioder: List<TilkjentYtelsePeriodeDto>,
     val avvent: TilkjentYtelseAvventDto? = null,
     val nyMeldeperiode: MeldeperiodeDto? = null,
-    val nyeTrekk: List<TilkjentYtelseTrekkDto> = emptyList(),
+    val trekk: List<TilkjentYtelseTrekkDto> = emptyList(),
 )
 
 data class MeldeperiodeDto(
