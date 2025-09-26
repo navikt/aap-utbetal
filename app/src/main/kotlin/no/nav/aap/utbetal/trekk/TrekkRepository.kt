@@ -25,7 +25,7 @@ class TrekkRepository(private val connection: DBConnection) {
 
     fun lagre(trekkId: Long, trekkPosteringer: List<TrekkPostering>) {
         val insertTrekkPosteringerSql = """
-            INSERT INTO TREKK_POSTERING (TREKK_ID, DATO,BELOP)
+            INSERT INTO TREKK_POSTERING (TREKK_ID, DATO, BELOP)
             VALUES (?, ?, ?)
         """.trimIndent()
 

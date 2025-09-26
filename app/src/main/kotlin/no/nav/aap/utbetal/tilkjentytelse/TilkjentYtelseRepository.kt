@@ -104,7 +104,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
 
     private fun lagreTilkjentYtelseTrekk(tilkjentYtelseId: Long, tilkjentYtelseTrekk: List<TilkjentYtelseTrekk>) {
         val sqlInsertTrekk = """
-            INSERT INTO TILKJENT_PERIODE_TREKK
+            INSERT INTO TILKJENT_YTELSE_TREKK
                 (
                    TILKJENT_YTELSE_ID,
                    DATO,
@@ -133,7 +133,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 PERSON_IDENT,
                 VEDTAKSTIDSPUNKT,
                 BESLUTTER_ID,
-                SAKSBEHANDLER_ID
+                SAKSBEHANDLER_ID,
+                NY_MELDEPERIODE
             FROM 
                 TILKJENT_YTELSE
             WHERE
@@ -155,13 +156,15 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
                     beslutterId = row.getString("BESLUTTER_ID"),
                     saksbehandlerId = row.getString("SAKSBEHANDLER_ID"),
+                    nyMeldeperiode = row.getPeriodeOrNull("NY_MELDEPERIODE"),
                     perioder = listOf(),
                 )
             }
         }
         return tilkjentYtelse?.copy(
             perioder = hentTilkjentePerioder(tilkjentYtelse.id!!),
-            avvent = hentAvvent(tilkjentYtelse.id)
+            avvent = hentAvvent(tilkjentYtelse.id),
+            trekk = hentTrekk(tilkjentYtelse.id),
         )
     }
 
@@ -291,6 +294,29 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             }
         }
     }
+
+    private fun hentTrekk(tilkjentYtelseId: Long): List<TilkjentYtelseTrekk> {
+        val sqlHentTrekk = """
+            SELECT 
+                DATO, BELOP
+            FROM TILKJENT_YTELSE_TREKK
+            WHERE TILKJENT_YTELSE_ID = ?
+        """.trimIndent()
+
+        return connection.queryList(sqlHentTrekk) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+            }
+            setRowMapper { row ->
+                TilkjentYtelseTrekk(
+                    dato = row.getLocalDate("DATO"),
+                    beløp = row.getInt("BELOP"),
+                )
+
+            }
+        }
+    }
+
 }
 
 data class TilkjentYtelseLight(

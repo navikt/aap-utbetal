@@ -39,14 +39,32 @@ class TrekkServiceTest {
         }
     }
 
+    @Test
+    fun `ingen ny meldeperiode, skal føre til ingen nye trekk-posteringer men trekk skal lagres`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val tyRepo = TilkjentYtelseRepository(connection)
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(tyRepo, trekkRepo)
 
-    fun `ingen ny meldeperiode, skal føre til ingen nye trekk`() {
+            val ty = lagTilkjentYtelse(trekk = listOf(
+                TilkjentYtelseTrekk(
+                    dato = LocalDate.parse("2021-01-01"),
+                    beløp = 2000
+                )
+            ))
+            tyRepo.lagreTilkjentYtelse(ty)
 
+            service.oppdaterTrekk(ty.behandlingsreferanse)
+
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2021-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(2000)
+        }
     }
 
-
-
-    private fun lagTilkjentYtelse(meldeperiode: Periode? = null, nyeTrekk: List<TilkjentYtelseTrekk> = emptyList()): TilkjentYtelse {
+    private fun lagTilkjentYtelse(meldeperiode: Periode? = null, trekk: List<TilkjentYtelseTrekk> = emptyList()): TilkjentYtelse {
         return TilkjentYtelse(
             id = 123L,
             saksnummer = Saksnummer("sak1"),
@@ -58,7 +76,7 @@ class TrekkServiceTest {
             saksbehandlerId = "saksbehandler1",
             perioder = listOf(
                 TilkjentYtelsePeriode(
-                    periode = Periode(LocalDate.parse("2021-01-01"), LocalDate.parse("2021-01-31")),
+                    periode = Periode(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-01-31")),
                     detaljer = YtelseDetaljer(
                         redusertDagsats = Beløp(1000),
                         gradering = Prosent(100),
@@ -75,7 +93,7 @@ class TrekkServiceTest {
             ),
             avvent = null,
             nyMeldeperiode = meldeperiode,
-            trekk = nyeTrekk
+            trekk = trekk
         )
     }
 
