@@ -7,6 +7,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.collections.sortBy
 
 class TrekkService(
     private val tilkjentYtelseRepository: TilkjentYtelseRepository,
@@ -82,16 +83,18 @@ class TrekkService(
     private fun TilkjentYtelse.finnMuligeDatoerForTrekk(): List<DatoOgBeløp> {
         if (nyMeldeperiode == null) return emptyList()
         return perioder
-            .filter {it.periode.fom >= nyMeldeperiode.fom && it.periode.tom <= nyMeldeperiode.tom}
             .map {arbeidsdagerMedBeløp(it)}
             .flatten()
+            .filter {it.dato >= nyMeldeperiode.fom && it.dato <= nyMeldeperiode.tom}
+            .sortedBy {it.dato}
+
     }
 
     private fun arbeidsdagerMedBeløp(tyPeriode: TilkjentYtelsePeriode): List<DatoOgBeløp> {
         var dato = tyPeriode.periode.fom
         val arbeidsdager = mutableListOf<DatoOgBeløp>()
         while (dato <= tyPeriode.periode.tom) {
-            if (dato.dayOfWeek in listOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)) {
+            if (dato.dayOfWeek in DayOfWeek.MONDAY..DayOfWeek.FRIDAY) {
                 arbeidsdager.add(DatoOgBeløp(dato, tyPeriode.detaljer.redusertDagsats.verdi.toInt()))
             }
             dato = dato.plusDays(1)

@@ -48,7 +48,7 @@ class TrekkServiceTest {
 
             val ty = lagTilkjentYtelse(trekk = listOf(
                 TilkjentYtelseTrekk(
-                    dato = LocalDate.parse("2021-01-01"),
+                    dato = LocalDate.parse("2025-01-01"),
                     beløp = 2000
                 )
             ))
@@ -59,8 +59,43 @@ class TrekkServiceTest {
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
             assertThat(trekkListe).hasSize(1)
-            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2021-01-01"))
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
             assertThat(trekkListe.first().beløp).isEqualTo(2000)
+            assertThat(trekkListe.first().posteringer).hasSize(0)
+        }
+    }
+
+    @Test
+    fun `trekk og meldeperiode skal føre til posteringer`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val tyRepo = TilkjentYtelseRepository(connection)
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(tyRepo, trekkRepo)
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 1800
+                    )
+                ),
+            )
+            tyRepo.lagreTilkjentYtelse(ty)
+
+            service.oppdaterTrekk(ty.behandlingsreferanse)
+
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(1800)
+            assertThat(trekkListe.first().posteringer).hasSize(2)
+            val posteringer = trekkListe.first().posteringer
+            assertThat(posteringer[0].dato).isEqualTo(LocalDate.parse("2025-01-13"))
+            assertThat(posteringer[0].beløp).isEqualTo(1000)
+            assertThat(posteringer[1].dato).isEqualTo(LocalDate.parse("2025-01-14"))
+            assertThat(posteringer[1].beløp).isEqualTo(800)
         }
     }
 

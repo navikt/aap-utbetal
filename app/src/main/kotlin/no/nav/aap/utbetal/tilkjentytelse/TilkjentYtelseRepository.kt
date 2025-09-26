@@ -15,8 +15,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     fun lagreTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): Long {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
-                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT, VEDTAKSTIDSPUNKT, BESLUTTER_ID, SAKSBEHANDLER_ID)
-                VALUES(?, ? ,?, ?, ?, ?, ?)
+                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT, VEDTAKSTIDSPUNKT, BESLUTTER_ID, SAKSBEHANDLER_ID, NY_MELDEPERIODE)
+                VALUES(?, ? ,?, ?, ?, ?, ?, ?::daterange)
         """.trimIndent()
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
@@ -28,6 +28,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setLocalDateTime(5, tilkjentYtelse.vedtakstidspunkt)
                 setString(6, tilkjentYtelse.beslutterId)
                 setString(7, tilkjentYtelse.saksbehandlerId)
+                setPeriode(8, tilkjentYtelse.nyMeldeperiode)
             }
         }
 
