@@ -20,6 +20,8 @@ fun TilkjentYtelseDto.tilTilkjentYtelse(): TilkjentYtelse {
         saksbehandlerId = this.saksbehandlerId,
         perioder = perioder,
         avvent = avvent,
+        nyMeldeperiode = nyMeldeperiode?.tilPeriode(),
+        trekk = trekk.tilTrekk()
     )
 }
 
@@ -54,3 +56,17 @@ private fun TilkjentYtelseAvventDto.tilAvvent(): TilkjentYtelseAvvent {
     )
 
 }
+
+private fun MeldeperiodeDto.tilPeriode(): Periode {
+    return Periode(fom = fom , tom = tom)
+}
+
+private fun List<TilkjentYtelseTrekkDto>.tilTrekk(): List<TilkjentYtelseTrekk> {
+    return map {
+        TilkjentYtelseTrekk(
+            dato = it.dato,
+            beløp = it.beløp,
+        )
+    }
+}
+

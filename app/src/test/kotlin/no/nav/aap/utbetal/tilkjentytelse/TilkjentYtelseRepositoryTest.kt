@@ -32,7 +32,7 @@ class TilkjentYtelseRepositoryTest {
         val saksnummer = Saksnummer("123")
         val dataSource = InitTestDatabase.freshDatabase()
         val tilkjentYtelseId = dataSource.transaction { connection ->
-            TilkjentYtelseRepository(connection).lagre(
+            TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
                 opprettTilkjentYtelse(
                     saksnummer = saksnummer,
                     behandlingRef = UUID.randomUUID(),
@@ -165,7 +165,7 @@ class TilkjentYtelseRepositoryTest {
         avvent: TilkjentYtelseAvvent? = null,
     ): Long {
         return dataSource.transaction { connection ->
-            TilkjentYtelseRepository(connection).lagre(
+            TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
                 opprettTilkjentYtelse(
                     saksnummer = saksnummer,
                     behandlingRef = behandlingRef,

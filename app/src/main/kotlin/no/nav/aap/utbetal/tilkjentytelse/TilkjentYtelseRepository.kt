@@ -10,19 +10,13 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import java.util.UUID
 
-data class TilkjentYtelseLight(
-    val id: Long,
-    val behandlingRef: UUID,
-    val forrigeBehandlingRef: UUID?
-)
-
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
-    fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
+    fun lagreTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): Long {
         val sqlInsertTilkjentYtelse = """
             INSERT INTO TILKJENT_YTELSE 
-                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT, VEDTAKSTIDSPUNKT, BESLUTTER_ID, SAKSBEHANDLER_ID)
-                VALUES(?, ? ,?, ?, ?, ?, ?)
+                (SAKSNUMMER, BEHANDLING_REF, FORRIGE_BEHANDLING_REF, PERSON_IDENT, VEDTAKSTIDSPUNKT, BESLUTTER_ID, SAKSBEHANDLER_ID, NY_MELDEPERIODE)
+                VALUES(?, ? ,?, ?, ?, ?, ?, ?::daterange)
         """.trimIndent()
 
         val tilkjentYtelseId = connection.executeReturnKey(sqlInsertTilkjentYtelse) {
@@ -34,17 +28,19 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setLocalDateTime(5, tilkjentYtelse.vedtakstidspunkt)
                 setString(6, tilkjentYtelse.beslutterId)
                 setString(7, tilkjentYtelse.saksbehandlerId)
+                setPeriode(8, tilkjentYtelse.nyMeldeperiode)
             }
         }
 
-        lagre(tilkjentYtelseId, tilkjentYtelse.perioder)
-        tilkjentYtelse.avvent?.let { lagre(tilkjentYtelseId, it) }
+        lagreTilkjentYtelsePerioder(tilkjentYtelseId, tilkjentYtelse.perioder)
+        tilkjentYtelse.avvent?.let { lagreTilkjentYtelseAvvent(tilkjentYtelseId, it) }
+        lagreTilkjentYtelseTrekk(tilkjentYtelseId, tilkjentYtelse.trekk)
 
         return tilkjentYtelseId
     }
 
 
-    private fun lagre(tilkjentYtelseId: Long, tilkjentPerioder: List<TilkjentYtelsePeriode>) {
+    private fun lagreTilkjentYtelsePerioder(tilkjentYtelseId: Long, tilkjentPerioder: List<TilkjentYtelsePeriode>) {
         val sqlInsertTilkjentPeriode = """
             INSERT INTO TILKJENT_PERIODE
                 (
@@ -83,7 +79,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun lagre(tilkjentYtelseId: Long, avvent: TilkjentYtelseAvvent) {
+    private fun lagreTilkjentYtelseAvvent(tilkjentYtelseId: Long, avvent: TilkjentYtelseAvvent) {
         val sqlInsertAvvent = """
             INSERT INTO TILKJENT_YTELSE_AVVENT 
                 (
@@ -107,6 +103,27 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
+    private fun lagreTilkjentYtelseTrekk(tilkjentYtelseId: Long, tilkjentYtelseTrekk: List<TilkjentYtelseTrekk>) {
+        val sqlInsertTrekk = """
+            INSERT INTO TILKJENT_YTELSE_TREKK
+                (
+                   TILKJENT_YTELSE_ID,
+                   DATO,
+                   BELOP
+               )
+               VALUES (?, ?, ?)
+        """.trimIndent()
+
+        connection.executeBatch(sqlInsertTrekk, tilkjentYtelseTrekk) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+                setLocalDate(2, it.dato)
+                setInt(3, it.beløp)
+            }
+        }
+    }
+
+
     fun hent(behandlingReferanse: UUID): TilkjentYtelse? {
         val selectTilkjentYtelse = """
             SELECT 
@@ -117,7 +134,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 PERSON_IDENT,
                 VEDTAKSTIDSPUNKT,
                 BESLUTTER_ID,
-                SAKSBEHANDLER_ID
+                SAKSBEHANDLER_ID,
+                NY_MELDEPERIODE
             FROM 
                 TILKJENT_YTELSE
             WHERE
@@ -139,13 +157,15 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
                     beslutterId = row.getString("BESLUTTER_ID"),
                     saksbehandlerId = row.getString("SAKSBEHANDLER_ID"),
+                    nyMeldeperiode = row.getPeriodeOrNull("NY_MELDEPERIODE"),
                     perioder = listOf(),
                 )
             }
         }
         return tilkjentYtelse?.copy(
             perioder = hentTilkjentePerioder(tilkjentYtelse.id!!),
-            avvent = hentAvvent(tilkjentYtelse.id)
+            avvent = hentAvvent(tilkjentYtelse.id),
+            trekk = hentTrekk(tilkjentYtelse.id),
         )
     }
 
@@ -250,7 +270,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
 
-        return connection.queryList<TilkjentYtelsePeriode>(selectTilkjentePerioder) {
+        return connection.queryList(selectTilkjentePerioder) {
             setParams {
                 setLong(1, tilkjentYtelseId)
             }
@@ -276,4 +296,33 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         }
     }
 
+    private fun hentTrekk(tilkjentYtelseId: Long): List<TilkjentYtelseTrekk> {
+        val sqlHentTrekk = """
+            SELECT 
+                DATO, BELOP
+            FROM TILKJENT_YTELSE_TREKK
+            WHERE TILKJENT_YTELSE_ID = ?
+        """.trimIndent()
+
+        return connection.queryList(sqlHentTrekk) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+            }
+            setRowMapper { row ->
+                TilkjentYtelseTrekk(
+                    dato = row.getLocalDate("DATO"),
+                    beløp = row.getInt("BELOP"),
+                )
+
+            }
+        }
+    }
+
 }
+
+data class TilkjentYtelseLight(
+    val id: Long,
+    val behandlingRef: UUID,
+    val forrigeBehandlingRef: UUID?
+)
+

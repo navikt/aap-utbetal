@@ -265,7 +265,7 @@ class UtbetalingRepositoryTest {
     }
 
     private fun opprettTilkjentYtelse(connection: DBConnection, saksnummer: Saksnummer, behandlingRef: UUID, personIdent: String): Long {
-        return TilkjentYtelseRepository(connection).lagre(
+        return TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
             TilkjentYtelse(
                 saksnummer = saksnummer,
                 behandlingsreferanse = behandlingRef,

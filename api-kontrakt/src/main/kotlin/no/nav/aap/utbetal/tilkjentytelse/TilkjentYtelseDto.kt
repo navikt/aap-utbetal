@@ -15,7 +15,14 @@ data class TilkjentYtelseDto(
     val beslutterId: String,
     val saksbehandlerId: String,
     val perioder: List<TilkjentYtelsePeriodeDto>,
-    val avvent: TilkjentYtelseAvventDto? = null
+    val avvent: TilkjentYtelseAvventDto? = null,
+    val nyMeldeperiode: MeldeperiodeDto? = null,
+    val trekk: List<TilkjentYtelseTrekkDto> = emptyList(),
+)
+
+data class MeldeperiodeDto(
+    val fom: LocalDate,
+    val tom: LocalDate,
 )
 
 data class TilkjentYtelsePeriodeDto(
@@ -43,4 +50,9 @@ data class TilkjentYtelseAvventDto(
     val overføres: LocalDate?,
     val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
+)
+
+data class TilkjentYtelseTrekkDto(
+    val dato: LocalDate,
+    val beløp: Int,
 )
