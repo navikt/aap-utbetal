@@ -99,6 +99,115 @@ class TrekkServiceTest {
         }
     }
 
+    @Test
+    fun `tilbaketrekking av trekk skal føre til at posteringene fjernes`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val tyRepo = TilkjentYtelseRepository(connection)
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(tyRepo, trekkRepo)
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 1800
+                    )
+                ),
+            )
+
+            tyRepo.lagreTilkjentYtelse(ty)
+            service.oppdaterTrekk(ty.behandlingsreferanse)
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(1800)
+            assertThat(trekkListe.first().posteringer).hasSize(2)
+            val posteringer = trekkListe.first().posteringer
+            assertThat(posteringer[0].dato).isEqualTo(LocalDate.parse("2025-01-13"))
+            assertThat(posteringer[0].beløp).isEqualTo(1000)
+            assertThat(posteringer[1].dato).isEqualTo(LocalDate.parse("2025-01-14"))
+            assertThat(posteringer[1].beløp).isEqualTo(800)
+
+            val oppdatertTilkjentYtelseMedEndretTrekk = ty.copy(
+                behandlingsreferanse = UUID.randomUUID(),
+                nyMeldeperiode = Periode(fom = LocalDate.parse("2025-01-27"), tom = LocalDate.parse("2025-02-09")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 0
+                    )
+                ),
+            )
+
+            tyRepo.lagreTilkjentYtelse(oppdatertTilkjentYtelseMedEndretTrekk)
+            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk.behandlingsreferanse)
+            val trekkListeEtterEndretTrekk = trekkRepo.hentTrekk(oppdatertTilkjentYtelseMedEndretTrekk.saksnummer)
+
+            assertThat(trekkListeEtterEndretTrekk).hasSize(1)
+            assertThat(trekkListeEtterEndretTrekk.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListeEtterEndretTrekk.first().beløp).isEqualTo(0)
+            assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(0)
+        }
+    }
+
+    @Test
+    fun `endring av trekk skal føre til at posteringene justeres`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val tyRepo = TilkjentYtelseRepository(connection)
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(tyRepo, trekkRepo)
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 1800
+                    )
+                ),
+            )
+
+            tyRepo.lagreTilkjentYtelse(ty)
+            service.oppdaterTrekk(ty.behandlingsreferanse)
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(1800)
+            assertThat(trekkListe.first().posteringer).hasSize(2)
+            val posteringer = trekkListe.first().posteringer
+            assertThat(posteringer[0].dato).isEqualTo(LocalDate.parse("2025-01-13"))
+            assertThat(posteringer[0].beløp).isEqualTo(1000)
+            assertThat(posteringer[1].dato).isEqualTo(LocalDate.parse("2025-01-14"))
+            assertThat(posteringer[1].beløp).isEqualTo(800)
+
+            val oppdatertTilkjentYtelseMedEndretTrekk = ty.copy(
+                behandlingsreferanse = UUID.randomUUID(),
+                nyMeldeperiode = Periode(fom = LocalDate.parse("2025-01-27"), tom = LocalDate.parse("2025-02-09")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 999
+                    )
+                ),
+            )
+
+            tyRepo.lagreTilkjentYtelse(oppdatertTilkjentYtelseMedEndretTrekk)
+            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk.behandlingsreferanse)
+            val trekkListeEtterEndretTrekk = trekkRepo.hentTrekk(oppdatertTilkjentYtelseMedEndretTrekk.saksnummer)
+
+            assertThat(trekkListeEtterEndretTrekk).hasSize(1)
+            assertThat(trekkListeEtterEndretTrekk.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListeEtterEndretTrekk.first().beløp).isEqualTo(999)
+            assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(1)
+            val posteringerEtterEndring = trekkListeEtterEndretTrekk.first().posteringer
+            assertThat(posteringerEtterEndring[0].dato).isEqualTo(LocalDate.parse("2025-01-27"))
+            assertThat(posteringerEtterEndring[0].beløp).isEqualTo(999)
+        }
+    }
+
     private fun lagTilkjentYtelse(meldeperiode: Periode? = null, trekk: List<TilkjentYtelseTrekk> = emptyList()): TilkjentYtelse {
         return TilkjentYtelse(
             id = 123L,
