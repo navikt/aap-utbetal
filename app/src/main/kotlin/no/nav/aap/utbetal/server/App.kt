@@ -32,6 +32,7 @@ import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
+import no.nav.aap.utbetal.trekk.hentTrekkListe
 import no.nav.aap.utbetal.utbetaling.hent
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -102,6 +103,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 hent(dataSource, prometheus, authConfig)
                 simulering(dataSource, prometheus, authConfig)
                 motorApi(dataSource)
+                hentTrekkListe(dataSource, prometheus, authConfig)
             }
         }
         actuator(prometheus, motor)
