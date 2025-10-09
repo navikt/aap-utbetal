@@ -3,28 +3,22 @@ package no.nav.aap.utbetal.trekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.util.UUID
 
 class TrekkService(
-    private val tilkjentYtelseRepository: TilkjentYtelseRepository,
-    private val trekkRepository: TrekkRepository
+    private val trekkRepository: TrekkRepository,
 ) {
 
-    fun oppdaterTrekk(behandlingRef: UUID) {
-        val tilkjentYtelse = tilkjentYtelseRepository.hent(behandlingRef) ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
-        oppdaterTrekk(tilkjentYtelse)
+    fun oppdaterTrekk(tilkjentYtelse: TilkjentYtelse) {
+        lagreTrekk(tilkjentYtelse)
         var eksisterendeTrekk = trekkRepository.hentTrekk(tilkjentYtelse.saksnummer)
         kreditterPosteringerSomIkkeHarDekning(tilkjentYtelse, eksisterendeTrekk)
         eksisterendeTrekk = trekkRepository.hentTrekk(tilkjentYtelse.saksnummer)
         oppdaterMedNyeTrekkPosteringer(tilkjentYtelse, eksisterendeTrekk)
     }
 
-    private fun oppdaterTrekk(
-        tilkjentYtelse: TilkjentYtelse,
-    ) {
+    private fun lagreTrekk(tilkjentYtelse: TilkjentYtelse) {
         val eksisterendeTrekk = trekkRepository.hentTrekk(tilkjentYtelse.saksnummer)
         val eksisterendeMap = eksisterendeTrekk.tilDatoMap()
         tilkjentYtelse.trekk.forEach {
@@ -39,7 +33,6 @@ class TrekkService(
             }
         }
     }
-
 
     private fun oppdaterMedNyeTrekkPosteringer(tilkjentYtelse: TilkjentYtelse, eksisterendeTrekk: List<Trekk>) {
         eksisterendeTrekk.forEach { trekk ->
