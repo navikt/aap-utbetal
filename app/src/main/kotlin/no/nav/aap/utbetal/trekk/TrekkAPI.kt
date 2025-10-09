@@ -13,11 +13,11 @@ import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.hentTrekkListe(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
 
-    route("/trekk/{saksnummer}").authorizedGet<String, TrekkResponsDto>(routeConfig = authConfig) { saksnummer ->
+    route("/trekk/{saksnummer}").authorizedGet<TrekkRequestDto, TrekkResponsDto>(routeConfig = authConfig) { request ->
         prometheus.httpCallCounter("/trekk").increment()
 
         val trekkListe = dataSource.transaction(readOnly = true) { connection ->
-            TrekkRepository(connection).hentTrekk(Saksnummer(saksnummer))
+            TrekkRepository(connection).hentTrekk(Saksnummer(request.saksnummer))
         }
         respond(response = trekkListe.tilDto())
     }
