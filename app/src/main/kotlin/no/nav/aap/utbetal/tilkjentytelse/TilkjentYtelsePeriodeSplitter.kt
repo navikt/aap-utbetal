@@ -17,7 +17,7 @@ object TilkjentYtelsePeriodeSplitter {
         val allePerioder = mutableListOf<TilkjentYtelsePeriode>()
         tilkjentYtelse.perioder.forEach { tilkjentYtelsePeriode ->
             val tyPeriodeTidslinje = Tidslinje(listOf(Segment(tilkjentYtelsePeriode.periode, tilkjentYtelsePeriode.detaljer)))
-            val nyePerioder = tyPeriodeTidslinje.kombiner(trekkPosteringerTidslinje, prioriterHøyreDersomVestreSideFinnes())
+            val nyePerioder = tyPeriodeTidslinje.kombiner(trekkPosteringerTidslinje, prioriterHøyreDersomVenstreSideFinnes())
                     .segmenter()
                     .map { TilkjentYtelsePeriode(periode = it.periode, detaljer = it.verdi)}
             allePerioder.addAll(nyePerioder)
@@ -25,10 +25,10 @@ object TilkjentYtelsePeriodeSplitter {
         return tilkjentYtelse.copy(perioder  = allePerioder)
     }
 
-    private fun prioriterHøyreDersomVestreSideFinnes(): JoinStyle.OUTER_JOIN<YtelseDetaljer, TrekkPostering, YtelseDetaljer> {
+    private fun prioriterHøyreDersomVenstreSideFinnes(): JoinStyle.OUTER_JOIN<YtelseDetaljer, TrekkPostering, YtelseDetaljer> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (høyre != null && venstre != null) {
-                val nyRedusertDagsats = venstre.verdi.redusertDagsats.pluss(Beløp(-høyre.verdi.beløp))
+                val nyRedusertDagsats = venstre.verdi.redusertDagsats.minus(Beløp(høyre.verdi.beløp))
                 if (nyRedusertDagsats.verdi() < BigDecimal.ZERO) {
                     throw IllegalStateException("Redusert dagsats kan ikke være negativ (redusert dagsats: $nyRedusertDagsats)")
                 }
