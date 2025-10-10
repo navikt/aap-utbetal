@@ -32,7 +32,7 @@ class UtbetalingService(private val connection: DBConnection) {
     private fun byggTidslinje(utbetalinger: List<Utbetaling>): Tidslinje<UtbetalingData> {
         val segmenter = utbetalinger.flatMap { utbetaling ->
             utbetaling.perioder.map { periode ->
-                Segment<UtbetalingData>(periode = periode.periode, UtbetalingData(
+                Segment(periode = periode.periode, UtbetalingData(
                     utbetalingRef = utbetaling.utbetalingRef,
                     beløp = periode.beløp,
                     fastsattDagsats = periode.fastsattDagsats,
@@ -41,7 +41,7 @@ class UtbetalingService(private val connection: DBConnection) {
 
             }
         }
-        return Tidslinje<UtbetalingData>(segmenter)
+        return Tidslinje(segmenter)
     }
 
     private fun lagreUtbetalinger(saksnummer: Saksnummer, utbetalinger: Utbetalinger): Utbetalinger {

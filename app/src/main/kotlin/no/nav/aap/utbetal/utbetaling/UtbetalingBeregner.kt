@@ -75,7 +75,7 @@ class UtbetalingBeregner {
 
     private fun List<Utbetalingsperiode>.splittPerBeløp(): Map<UUID, List<Utbetalingsperiode>> {
         val perBeløp = groupBy {it.beløp}
-        return perBeløp.entries.associate {UUID.randomUUID() to it.value.sortedBy { it.periode.fom }}
+        return perBeløp.entries.associate {UUID.randomUUID() to it.value.sortedBy { utbetalingsperiode -> utbetalingsperiode.periode.fom }}
     }
 
     private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
@@ -129,7 +129,7 @@ class UtbetalingBeregner {
 
     private fun TilkjentYtelse.tilTidslinje() =
         Tidslinje(this.perioder.map { periode ->
-            Segment<YtelseDetaljer>(
+            Segment(
                 periode.periode,
                 periode.detaljer
             )
@@ -137,7 +137,7 @@ class UtbetalingBeregner {
 
     private fun List<Periode>.tilTidslinje() =
         Tidslinje(this.map { periode ->
-            Segment<Unit>(
+            Segment(
                 periode,
                 Unit
             )

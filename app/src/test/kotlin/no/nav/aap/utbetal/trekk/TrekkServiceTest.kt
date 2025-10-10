@@ -11,7 +11,6 @@ import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,14 +23,12 @@ class TrekkServiceTest {
     @Test
     fun `ingen nye og ingen eksisterende trekk`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
-            val tyRepo = TilkjentYtelseRepository(connection)
             val trekkRepo = TrekkRepository(connection)
-            val service = TrekkService(tyRepo, trekkRepo)
+            val service = TrekkService(trekkRepo)
 
             val ty = lagTilkjentYtelse()
-            tyRepo.lagreTilkjentYtelse(ty)
 
-            service.oppdaterTrekk(ty.behandlingsreferanse)
+            service.oppdaterTrekk(ty)
 
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
@@ -42,9 +39,8 @@ class TrekkServiceTest {
     @Test
     fun `ingen ny meldeperiode, skal føre til ingen nye trekk-posteringer men trekk skal lagres`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
-            val tyRepo = TilkjentYtelseRepository(connection)
             val trekkRepo = TrekkRepository(connection)
-            val service = TrekkService(tyRepo, trekkRepo)
+            val service = TrekkService(trekkRepo)
 
             val ty = lagTilkjentYtelse(trekk = listOf(
                 TilkjentYtelseTrekk(
@@ -52,9 +48,8 @@ class TrekkServiceTest {
                     beløp = 2000
                 )
             ))
-            tyRepo.lagreTilkjentYtelse(ty)
 
-            service.oppdaterTrekk(ty.behandlingsreferanse)
+            service.oppdaterTrekk(ty)
 
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
@@ -68,9 +63,8 @@ class TrekkServiceTest {
     @Test
     fun `trekk og meldeperiode skal føre til posteringer`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
-            val tyRepo = TilkjentYtelseRepository(connection)
             val trekkRepo = TrekkRepository(connection)
-            val service = TrekkService(tyRepo, trekkRepo)
+            val service = TrekkService(trekkRepo)
 
             val ty = lagTilkjentYtelse(
                 meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
@@ -81,9 +75,8 @@ class TrekkServiceTest {
                     )
                 ),
             )
-            tyRepo.lagreTilkjentYtelse(ty)
 
-            service.oppdaterTrekk(ty.behandlingsreferanse)
+            service.oppdaterTrekk(ty)
 
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
@@ -102,9 +95,8 @@ class TrekkServiceTest {
     @Test
     fun `tilbaketrekking av trekk skal føre til at posteringene fjernes`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
-            val tyRepo = TilkjentYtelseRepository(connection)
             val trekkRepo = TrekkRepository(connection)
-            val service = TrekkService(tyRepo, trekkRepo)
+            val service = TrekkService(trekkRepo)
 
             val ty = lagTilkjentYtelse(
                 meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
@@ -116,8 +108,7 @@ class TrekkServiceTest {
                 ),
             )
 
-            tyRepo.lagreTilkjentYtelse(ty)
-            service.oppdaterTrekk(ty.behandlingsreferanse)
+            service.oppdaterTrekk(ty)
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
             assertThat(trekkListe).hasSize(1)
@@ -141,8 +132,7 @@ class TrekkServiceTest {
                 ),
             )
 
-            tyRepo.lagreTilkjentYtelse(oppdatertTilkjentYtelseMedEndretTrekk)
-            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk.behandlingsreferanse)
+            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk)
             val trekkListeEtterEndretTrekk = trekkRepo.hentTrekk(oppdatertTilkjentYtelseMedEndretTrekk.saksnummer)
 
             assertThat(trekkListeEtterEndretTrekk).hasSize(1)
@@ -151,13 +141,50 @@ class TrekkServiceTest {
             assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(0)
         }
     }
+    @Test
+    fun `ingen endring av trekk skal ikke påvirke trekk tabellene`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(trekkRepo)
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = null,
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 1800
+                    )
+                ),
+            )
+
+            service.oppdaterTrekk(ty)
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(1800)
+            assertThat(trekkListe.first().posteringer).hasSize(0)
+
+            val oppdatertTilkjentYtelseMedEndretTrekk = ty.copy(
+                behandlingsreferanse = UUID.randomUUID(),
+            )
+
+            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk)
+            val trekkListeEtterEndretTrekk = trekkRepo.hentTrekk(oppdatertTilkjentYtelseMedEndretTrekk.saksnummer)
+
+            assertThat(trekkListeEtterEndretTrekk).hasSize(1)
+            assertThat(trekkListeEtterEndretTrekk.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListeEtterEndretTrekk.first().beløp).isEqualTo(1800)
+            assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(0)
+            assertThat(trekkListeEtterEndretTrekk.first().id).isEqualTo(trekkListe.first().id)
+        }
+    }
 
     @Test
     fun `endring av trekk skal føre til at posteringene justeres`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
-            val tyRepo = TilkjentYtelseRepository(connection)
             val trekkRepo = TrekkRepository(connection)
-            val service = TrekkService(tyRepo, trekkRepo)
+            val service = TrekkService(trekkRepo)
 
             val ty = lagTilkjentYtelse(
                 meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
@@ -169,8 +196,7 @@ class TrekkServiceTest {
                 ),
             )
 
-            tyRepo.lagreTilkjentYtelse(ty)
-            service.oppdaterTrekk(ty.behandlingsreferanse)
+            service.oppdaterTrekk(ty)
             val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
 
             assertThat(trekkListe).hasSize(1)
@@ -194,8 +220,7 @@ class TrekkServiceTest {
                 ),
             )
 
-            tyRepo.lagreTilkjentYtelse(oppdatertTilkjentYtelseMedEndretTrekk)
-            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk.behandlingsreferanse)
+            service.oppdaterTrekk(oppdatertTilkjentYtelseMedEndretTrekk)
             val trekkListeEtterEndretTrekk = trekkRepo.hentTrekk(oppdatertTilkjentYtelseMedEndretTrekk.saksnummer)
 
             assertThat(trekkListeEtterEndretTrekk).hasSize(1)

@@ -16,5 +16,6 @@ data class YtelseDetaljer(
     val antallBarn: Int,
     val barnetilleggsats: Beløp,
     val barnetillegg: Beløp,
-    val utbetalingsdato: LocalDate
+    val utbetalingsdato: LocalDate,
+    val trekkPosteringId: Long? = null,
 )

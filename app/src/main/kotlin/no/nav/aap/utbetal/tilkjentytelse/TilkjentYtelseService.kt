@@ -1,7 +1,11 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.utbetal.trekk.TrekkPostering
+import no.nav.aap.utbetal.trekk.TrekkRepository
+import no.nav.aap.utbetal.trekk.TrekkService
 import no.nav.aap.utbetal.utbetaling.KvitteringService
 import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
@@ -20,10 +24,12 @@ enum class TilkjentYtelseResponse {
      * Kan ikke motta ny tilkjent ytelse fordi en tidligere utbetaling ikke er ferdigbehandlet.
      */
     LOCKED,
+
     /**
      * Har mottatt en duplikat innsending av tilkjent ytelse som er forskjellig fra den forrige.
      */
     CONFLICT,
+
     /**
      * Tilkjent ytelse er mottatt.
      */
@@ -42,29 +48,49 @@ class TilkjentYtelseService(private val connection: DBConnection) {
 
         //Sjekk om det fortsatt mangler kvitteringer, eller er som av andre grunner ikke er BEKREFTET
         val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
-        val locked = utbetalingerForSak.any {it.utbetalingStatus != UtbetalingStatus.BEKREFTET}
+        val locked = utbetalingerForSak.any { it.utbetalingStatus != UtbetalingStatus.BEKREFTET }
         if (locked) {
             return TilkjentYtelseResponse.LOCKED
         }
 
         //Lagre tilkjent ytelse dersom den ikke er duplikat
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
+
+
+        //Oppdater tilkjent ytelse med trekk - kun i dev i første omgang
+        val oppdatertTilkjentYtelse = if (Miljø.erProd()) {
+            tilkjentYtelse
+        } else {
+            val trekkPosteringer = beregnTrekkPosteringer(tilkjentYtelse)//.associateBy { it.dato }
+            TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
+        }
+
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
-            val sakUtbetalingId = lagre(tilkjentYtelse)
+            val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
             UtbetalingJobbService(connection).opprettUtbetalingJobb(
                 sakUtbetalingId,
-                tilkjentYtelse.behandlingsreferanse
+                oppdatertTilkjentYtelse.behandlingsreferanse
             )
         } else {
             // Sjekk om duplikat ikke er lik, slik at det kan sendes Conflict http code til klienten
-            if (!eksisterendeTilkjentYtelse.erLik(tilkjentYtelse)) {
-                log.info("Duplikatkontroll på innsending av tilkjent ytelse $eksisterendeTilkjentYtelse er ikke like $tilkjentYtelse")
+            if (!eksisterendeTilkjentYtelse.erLik(oppdatertTilkjentYtelse)) {
+                log.info("Duplikatkontroll på innsending av tilkjent ytelse $eksisterendeTilkjentYtelse er ikke like $oppdatertTilkjentYtelse")
                 return TilkjentYtelseResponse.CONFLICT
             }
         }
         return TilkjentYtelseResponse.OK
     }
+
+
+    private fun beregnTrekkPosteringer(tilkjentYtelse: TilkjentYtelse): List<TrekkPostering> {
+        val trekkRepo = TrekkRepository(connection)
+        val trekkService = TrekkService(trekkRepo)
+        trekkService.oppdaterTrekk(tilkjentYtelse)
+        val trekkListe = trekkRepo.hentTrekk(tilkjentYtelse.saksnummer)
+        return trekkListe.map { it.posteringer }.flatten()
+    }
+
 
     private fun List<Utbetaling>.hentKvitteringerForSendteUtbetalinger() {
         val kvitteringService = KvitteringService(connection)
