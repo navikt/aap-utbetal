@@ -14,15 +14,15 @@ object TilkjentYtelsePeriodeSplitter {
     fun splitt(tilkjentYtelse: TilkjentYtelse, trekkPosteringer: List<TrekkPostering>): TilkjentYtelse {
         if (trekkPosteringer.isEmpty()) return tilkjentYtelse
         val trekkPosteringerTidslinje = byggTrekkPosteringTidslinje(trekkPosteringer)
-        val allePerioder = mutableListOf<TilkjentYtelsePeriode>()
-        tilkjentYtelse.perioder.forEach { tilkjentYtelsePeriode ->
-            val tyPeriodeTidslinje = Tidslinje(listOf(Segment(tilkjentYtelsePeriode.periode, tilkjentYtelsePeriode.detaljer)))
-            val nyePerioder = tyPeriodeTidslinje.kombiner(trekkPosteringerTidslinje, prioriterHøyreDersomVenstreSideFinnes())
-                    .segmenter()
-                    .map { TilkjentYtelsePeriode(periode = it.periode, detaljer = it.verdi)}
-            allePerioder.addAll(nyePerioder)
+        val perioderEtterTrekk = tilkjentYtelse.perioder.flatMap { tilkjentYtelsePeriode ->
+            val tyPeriodeTidslinje =
+                Tidslinje(listOf(Segment(tilkjentYtelsePeriode.periode, tilkjentYtelsePeriode.detaljer)))
+            tyPeriodeTidslinje
+                .kombiner(trekkPosteringerTidslinje, prioriterHøyreDersomVenstreSideFinnes())
+                .segmenter()
+                .map { TilkjentYtelsePeriode(periode = it.periode, detaljer = it.verdi) }
         }
-        return tilkjentYtelse.copy(perioder  = allePerioder)
+        return tilkjentYtelse.copy(perioder = perioderEtterTrekk)
     }
 
     private fun prioriterHøyreDersomVenstreSideFinnes(): JoinStyle.OUTER_JOIN<YtelseDetaljer, TrekkPostering, YtelseDetaljer> {
