@@ -93,6 +93,55 @@ class TrekkServiceTest {
     }
 
     @Test
+    fun `flere trekk og meldeperiode skal føre til posteringer på forskjellige datoer`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(trekkRepo)
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-01"),
+                        beløp = 1800
+                    ),
+                    TilkjentYtelseTrekk(
+                        dato = LocalDate.parse("2025-01-02"),
+                        beløp = 1800
+                    ),
+                ),
+            )
+
+            service.oppdaterTrekk(ty)
+
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer).sortedBy {it.dato}
+
+            assertThat(trekkListe).hasSize(2)
+            assertThat(trekkListe.first().dato).isEqualTo(LocalDate.parse("2025-01-01"))
+            assertThat(trekkListe.first().beløp).isEqualTo(1800)
+            assertThat(trekkListe.first().posteringer).hasSize(2)
+            assertThat(trekkListe.last().dato).isEqualTo(LocalDate.parse("2025-01-02"))
+            assertThat(trekkListe.last().beløp).isEqualTo(1800)
+            assertThat(trekkListe.last().posteringer).hasSize(2)
+
+            val posteringer1 = trekkListe.first().posteringer
+            assertThat(posteringer1[0].dato).isEqualTo(LocalDate.parse("2025-01-13"))
+            assertThat(posteringer1[0].beløp).isEqualTo(1000)
+            assertThat(posteringer1[1].dato).isEqualTo(LocalDate.parse("2025-01-14"))
+            assertThat(posteringer1[1].beløp).isEqualTo(800)
+
+            val posteringer2 = trekkListe.last().posteringer
+            assertThat(posteringer2[0].dato).isEqualTo(LocalDate.parse("2025-01-15"))
+            assertThat(posteringer2[0].beløp).isEqualTo(1000)
+            assertThat(posteringer2[1].dato).isEqualTo(LocalDate.parse("2025-01-16"))
+            assertThat(posteringer2[1].beløp).isEqualTo(800)
+        }
+    }
+
+
+
+
+    @Test
     fun `tilbaketrekking av trekk skal føre til at posteringene fjernes`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
             val trekkRepo = TrekkRepository(connection)

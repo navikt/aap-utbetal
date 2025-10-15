@@ -35,10 +35,16 @@ class TrekkService(
     }
 
     private fun oppdaterMedNyeTrekkPosteringer(tilkjentYtelse: TilkjentYtelse, eksisterendeTrekk: List<Trekk>) {
+        var muligeDatoerForTrekk = tilkjentYtelse.finnMuligeDatoerForTrekk()
+
         eksisterendeTrekk.forEach { trekk ->
             if (!trekk.erOppgjort()) {
-                val nyeTrekkPosteringer = finnNyeTrekkPosteringer(tilkjentYtelse, trekk)
+                val nyeTrekkPosteringer = finnNyeTrekkPosteringer(trekk, muligeDatoerForTrekk)
                 trekkRepository.lagre(trekk.id!!, nyeTrekkPosteringer)
+                //Oppdater mulige datoer for trekk, slik at de samme datoene ikke blir benyttet for andre trekk
+                muligeDatoerForTrekk = muligeDatoerForTrekk.filterNot { muligDato ->
+                    muligDato.dato in nyeTrekkPosteringer.map { it.dato }
+                }
             }
         }
     }
@@ -53,9 +59,8 @@ class TrekkService(
         }
     }
 
-    private fun finnNyeTrekkPosteringer(tilkjentYtelse: TilkjentYtelse, trekk: Trekk): List<TrekkPostering> {
+    private fun finnNyeTrekkPosteringer(trekk: Trekk, muligeDatoerForTrekk: List<DatoOgBeløp>): List<TrekkPostering> {
         var restTrekk = trekk.beløp
-        val muligeDatoerForTrekk = tilkjentYtelse.finnMuligeDatoerForTrekk()
 
         val nyePosteringer = mutableListOf<TrekkPostering>()
 

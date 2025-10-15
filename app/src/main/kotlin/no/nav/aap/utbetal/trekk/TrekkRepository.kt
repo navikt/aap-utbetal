@@ -46,6 +46,7 @@ class TrekkRepository(private val connection: DBConnection) {
                 TREKK 
             WHERE 
                 SAKSNUMMER = ? AND AKTIV = TRUE
+            ORDER BY DATO
         """.trimIndent()
 
         return  connection.queryList(selectTrekkSql) {
