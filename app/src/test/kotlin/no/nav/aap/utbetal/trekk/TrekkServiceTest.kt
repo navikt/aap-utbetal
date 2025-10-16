@@ -327,7 +327,7 @@ class TrekkServiceTest {
             val trekkListeOppdatert = trekkRepo.hentTrekk(ty2.saksnummer)
 
             assertThat(trekkListeOppdatert).hasSize(2)
-            val posteringerTrekk2 = trekkListe.last().posteringer
+            val posteringerTrekk2 = trekkListeOppdatert.last().posteringer
             assertThat(posteringerTrekk2[0].dato).isEqualTo(LocalDate.parse("2025-01-27"))
             assertThat(posteringerTrekk2[0].beløp).isEqualTo(700)
 

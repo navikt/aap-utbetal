@@ -14,7 +14,7 @@ data class Trekk(
     val beløp: Int,
     val posteringer: List<TrekkPostering> = emptyList(),
 ) {
-    fun erOppgjort() = beløp + posteringer.sumOf { it.beløp } == 0
+    fun erOppgjort() = beløp - posteringer.sumOf { it.beløp } == 0
 
     fun finnTrekkPosteringUtenDekning(tilkjentYtelse: TilkjentYtelse): List<TrekkPostering>  {
         val utbetalinger = mutableMapOf<LocalDate, Int>()
@@ -23,7 +23,7 @@ data class Trekk(
                 .filter {it.dayOfWeek in DayOfWeek.MONDAY..DayOfWeek.FRIDAY }
                 .forEach {utbetalinger[it] =  tyPeriode.detaljer.redusertDagsats.verdi.toInt() }
         }
-        return posteringer.filter {it.beløp <= (utbetalinger[it.dato]?:0)}
+        return posteringer.filterNot {it.beløp <= (utbetalinger[it.dato]?:0)}
     }
 
 }
