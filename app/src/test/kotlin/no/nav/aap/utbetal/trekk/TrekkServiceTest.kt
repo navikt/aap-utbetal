@@ -282,6 +282,61 @@ class TrekkServiceTest {
         }
     }
 
+    @Test
+    fun `skal støtte flere trekk på påfølgende tilkjente ytelser`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(trekkRepo)
+
+            val trekk1 = TilkjentYtelseTrekk(
+                dato = LocalDate.parse("2025-01-01"),
+                beløp = 1800
+            )
+            val trekk2 = TilkjentYtelseTrekk(
+                dato = LocalDate.parse("2025-01-02"),
+                beløp = 700
+            )
+
+            val ty1 = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(
+                    trekk1
+                ),
+            )
+
+            service.oppdaterTrekk(ty1)
+
+            val trekkListe = trekkRepo.hentTrekk(ty1.saksnummer).sortedBy {it.dato}
+
+            assertThat(trekkListe).hasSize(1)
+            val posteringerTrekk1 = trekkListe.first().posteringer
+            assertThat(posteringerTrekk1[0].dato).isEqualTo(LocalDate.parse("2025-01-13"))
+            assertThat(posteringerTrekk1[0].beløp).isEqualTo(1000)
+            assertThat(posteringerTrekk1[1].dato).isEqualTo(LocalDate.parse("2025-01-14"))
+            assertThat(posteringerTrekk1[1].beløp).isEqualTo(800)
+
+            val ty2 = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-27"), tom = LocalDate.parse("2025-02-10")),
+                trekk = listOf(
+                    trekk1,
+                    trekk2
+                ),
+            )
+
+            service.oppdaterTrekk(ty2)
+            val trekkListeOppdatert = trekkRepo.hentTrekk(ty2.saksnummer)
+
+            assertThat(trekkListeOppdatert).hasSize(2)
+            val posteringerTrekk2 = trekkListeOppdatert.last().posteringer
+            assertThat(posteringerTrekk2[0].dato).isEqualTo(LocalDate.parse("2025-01-27"))
+            assertThat(posteringerTrekk2[0].beløp).isEqualTo(700)
+
+
+
+        }
+    }
+
+
     private fun lagTilkjentYtelse(meldeperiode: Periode? = null, trekk: List<TilkjentYtelseTrekk> = emptyList()): TilkjentYtelse {
         return TilkjentYtelse(
             id = 123L,
@@ -294,7 +349,7 @@ class TrekkServiceTest {
             saksbehandlerId = "saksbehandler1",
             perioder = listOf(
                 TilkjentYtelsePeriode(
-                    periode = Periode(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-01-31")),
+                    periode = Periode(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-02-10")),
                     detaljer = YtelseDetaljer(
                         redusertDagsats = Beløp(1000),
                         gradering = Prosent(100),
