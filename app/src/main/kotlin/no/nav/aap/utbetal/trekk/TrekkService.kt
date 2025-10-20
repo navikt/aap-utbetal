@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.trekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
+import java.lang.IllegalStateException
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -60,11 +61,14 @@ class TrekkService(
     }
 
     private fun finnNyeTrekkPosteringer(trekk: Trekk, muligeDatoerForTrekk: List<DatoOgBeløp>): List<TrekkPostering> {
-        var restTrekk = trekk.beløp
+        var restTrekk = trekk.restBeløp()
 
         val nyePosteringer = mutableListOf<TrekkPostering>()
 
         for (muligDato in muligeDatoerForTrekk) {
+            if (restTrekk < 0) {
+                throw IllegalStateException("Rest trekk er negativt($restTrekk). TrekkId = ${trekk.id}")
+            }
             if (restTrekk == 0) break
             if (muligDato.beløp >= restTrekk) {
                 nyePosteringer.add(TrekkPostering(trekkId = trekk.id!!, dato = muligDato.dato, beløp = restTrekk))

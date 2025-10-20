@@ -14,7 +14,9 @@ data class Trekk(
     val beløp: Int,
     val posteringer: List<TrekkPostering> = emptyList(),
 ) {
-    fun erOppgjort() = beløp - posteringer.sumOf { it.beløp } == 0
+    fun erOppgjort() = restBeløp() == 0
+
+    fun restBeløp() = beløp - posteringer.sumOf { it.beløp }
 
     fun finnTrekkPosteringUtenDekning(tilkjentYtelse: TilkjentYtelse): List<TrekkPostering>  {
         val utbetalinger = mutableMapOf<LocalDate, Int>()
@@ -27,8 +29,6 @@ data class Trekk(
     }
 
 }
-
-fun List<Trekk>.erOppgjort() = all { it.erOppgjort() }
 
 data class TrekkPostering(
     val id: Long? = null,

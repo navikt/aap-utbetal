@@ -190,6 +190,7 @@ class TrekkServiceTest {
             assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(0)
         }
     }
+
     @Test
     fun `ingen endring av trekk skal ikke påvirke trekk tabellene`() {
         InitTestDatabase.freshDatabase().transaction { connection ->
@@ -226,6 +227,49 @@ class TrekkServiceTest {
             assertThat(trekkListeEtterEndretTrekk.first().beløp).isEqualTo(1800)
             assertThat(trekkListeEtterEndretTrekk.first().posteringer).hasSize(0)
             assertThat(trekkListeEtterEndretTrekk.first().id).isEqualTo(trekkListe.first().id)
+        }
+    }
+
+    @Test
+    fun `trekk som har rest fører til flere posteringer ved neste meldekort`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val trekkRepo = TrekkRepository(connection)
+            val service = TrekkService(trekkRepo)
+
+            val trekk = TilkjentYtelseTrekk(
+                dato = LocalDate.parse("2025-01-01"),
+                beløp = 11000
+            )
+
+            val ty = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-13"), tom = LocalDate.parse("2025-01-26")),
+                trekk = listOf(trekk),
+            )
+
+            service.oppdaterTrekk(ty)
+            val trekkListe = trekkRepo.hentTrekk(ty.saksnummer)
+
+            assertThat(trekkListe).hasSize(1)
+            val posteringerTrekk1 = trekkListe.first().posteringer
+            assertThat(posteringerTrekk1).hasSize(10)
+            posteringerTrekk1.forEach {
+                assertThat(it.beløp).isEqualTo(1000)
+            }
+
+            val ty2 = lagTilkjentYtelse(
+                meldeperiode = Periode(fom = LocalDate.parse("2025-01-27"), tom = LocalDate.parse("2025-02-10")),
+                trekk = listOf(trekk),
+            )
+
+            service.oppdaterTrekk(ty2)
+            val trekkListeOppdatert = trekkRepo.hentTrekk(ty2.saksnummer)
+
+            assertThat(trekkListeOppdatert).hasSize(1)
+            val posteringerTrekk2 = trekkListeOppdatert.last().posteringer
+            assertThat(posteringerTrekk2).hasSize(11)
+            posteringerTrekk2.forEach {
+                assertThat(it.beløp).isEqualTo(1000)
+            }
         }
     }
 
