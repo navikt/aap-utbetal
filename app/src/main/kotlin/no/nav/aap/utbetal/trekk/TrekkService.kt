@@ -53,10 +53,11 @@ class TrekkService(
     private fun kreditterPosteringerSomIkkeHarDekning(tilkjentYtelse: TilkjentYtelse, eksisterendeTrekk: List<Trekk>) {
         eksisterendeTrekk.forEach { trekk ->
             val posteringerUtenDekning = trekk.finnTrekkPosteringUtenDekning(tilkjentYtelse)
-            val kreditteringsPosteringer = posteringerUtenDekning
-                .map {postering -> postering.copy(id = null, beløp = -postering.beløp)}
-
-            trekkRepository.lagre(trekk.id!!,kreditteringsPosteringer)
+            if (posteringerUtenDekning.isNotEmpty()) {
+                //Dersom det finnes posteringer uten dekning, så slettes og opprettes trekket på nytt uten tilknyttede postering.
+                trekkRepository.slett(trekk.id!!)
+                trekkRepository.lagre(trekk.copy(id = null, posteringer = emptyList()))
+            }
         }
     }
 
