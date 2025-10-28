@@ -12,6 +12,7 @@ data class Trekk(
     val behandlingsreferanse: UUID,
     val dato: LocalDate,
     val beløp: Int,
+    val aktiv: Boolean,
     val posteringer: List<TrekkPostering> = emptyList(),
 ) {
     fun erOppgjort() = restBeløp() == 0

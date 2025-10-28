@@ -38,15 +38,15 @@ class TrekkRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentTrekk(saksnummer: Saksnummer): List<Trekk> {
+    fun hentTrekk(saksnummer: Saksnummer, alle: Boolean = false): List<Trekk> {
         val selectTrekkSql = """
             SELECT 
-                ID, SAKSNUMMER, BEHANDLINGSREFERANSE, DATO, BELOP 
+                ID, SAKSNUMMER, BEHANDLINGSREFERANSE, DATO, BELOP, AKTIV 
             FROM 
                 TREKK 
             WHERE 
-                SAKSNUMMER = ? AND AKTIV = TRUE
-            ORDER BY DATO
+                SAKSNUMMER = ? ${if (alle) "" else " AND AKTIV = TRUE"}
+            ORDER BY DATO, ID
         """.trimIndent()
 
         return  connection.queryList(selectTrekkSql) {
@@ -62,6 +62,7 @@ class TrekkRepository(private val connection: DBConnection) {
                     behandlingsreferanse = row.getUUID("BEHANDLINGSREFERANSE"),
                     dato = row.getLocalDate("DATO"),
                     beløp = row.getInt("BELOP"),
+                    aktiv = row.getBoolean("AKTIV"),
                     posteringer = hentTrekkPosteringer(row.getLong("ID"))
                 )
             }

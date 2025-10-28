@@ -28,6 +28,28 @@ class TrekkRepositoryTest {
     }
 
     @Test
+    fun `lagre og hente trekk historikk`() {
+        InitTestDatabase.freshDatabase().transaction { connection ->
+            val repo = TrekkRepository(connection)
+            val trekk = lagTrekk()
+            val trekkMedId1 = repo.lagre(lagTrekk())
+
+            val trekkListe1 = repo.hentTrekk(trekk.saksnummer)
+            assertThat(trekkListe1).hasSize(1)
+
+            repo.slett(trekkMedId1.id!!)
+            repo.lagre(lagTrekk())
+
+            val trekkListe2 = repo.hentTrekk(trekk.saksnummer)
+            assertThat(trekkListe2).hasSize(1)
+
+            val trekkListe3 = repo.hentTrekk(trekk.saksnummer, alle = true)
+            assertThat(trekkListe3).hasSize(2)
+        }
+    }
+
+
+    @Test
     fun `lagre og hente trekkposteringer`() {
 
         InitTestDatabase.freshDatabase().transaction { connection ->
@@ -83,6 +105,7 @@ class TrekkRepositoryTest {
             behandlingsreferanse = UUID.randomUUID(),
             dato = iDag,
             beløp = 1100,
+            aktiv = true,
         )
     }
 

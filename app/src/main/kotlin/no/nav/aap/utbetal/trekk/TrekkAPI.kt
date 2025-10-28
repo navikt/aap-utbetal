@@ -22,6 +22,18 @@ fun NormalOpenAPIRoute.hentTrekkListe(dataSource: DataSource, prometheus: Promet
         respond(response = trekkListe.tilDto())
     }
 
+fun NormalOpenAPIRoute.hentTrekkListeAlle(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
+
+    route("/trekk/{saksnummer}/alle").authorizedGet<TrekkRequestDto, TrekkResponsDto>(routeConfig = authConfig) { request ->
+        prometheus.httpCallCounter("/trekk/alle").increment()
+
+        val trekkListe = dataSource.transaction(readOnly = true) { connection ->
+            TrekkRepository(connection).hentTrekk(Saksnummer(request.saksnummer), true)
+        }
+        respond(response = trekkListe.tilDto())
+    }
+
+
 private fun List<Trekk>.tilDto() =
     TrekkResponsDto(map {
         TrekkDto(
@@ -29,6 +41,7 @@ private fun List<Trekk>.tilDto() =
             behandlingsreferanse = it.behandlingsreferanse,
             dato = it.dato,
             beløp = it.beløp,
+            aktiv = it.aktiv,
             posteringer = it.posteringer.tilDto(),
         )
     })

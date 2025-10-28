@@ -113,6 +113,7 @@ class TrekkService(
             behandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
             dato = this.dato,
             beløp = this.beløp,
+            aktiv = true,
             posteringer = emptyList(),
         )
     }

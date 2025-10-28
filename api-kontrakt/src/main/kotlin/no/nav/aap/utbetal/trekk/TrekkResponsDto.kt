@@ -9,6 +9,7 @@ data class TrekkDto(val saksnummer: String,
                     val behandlingsreferanse: UUID,
                     val dato: LocalDate,
                     val beløp: Int,
+                    val aktiv: Boolean,
                     val posteringer: List<TrekkPosteringDto>)
 
 data class TrekkPosteringDto(
