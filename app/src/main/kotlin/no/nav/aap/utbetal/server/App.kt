@@ -84,7 +84,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
         exception<Throwable> { call, cause ->
             LoggerFactory.getLogger(App::class.java)
                 .warn("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respond(status = HttpStatusCode.Companion.InternalServerError, message = ErrorRespons(cause.message))
+            call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
         }
     }
     install(CORS) {
@@ -168,7 +168,7 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
         }
 
         get("/live") {
-            val status = HttpStatusCode.Companion.OK
+            val status = HttpStatusCode.OK
             call.respond(status, "Oppe!")
         }
 

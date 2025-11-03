@@ -1,7 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.trekk.TrekkPostering
 import no.nav.aap.utbetal.trekk.TrekkRepository

@@ -5,7 +5,6 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
@@ -31,7 +30,7 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
             val utbetalinger = UtbetalingService(connection).simulerOpprettelseAvUtbetalinger(tilkjentYtelse)
             val klient = UtbetalingKlient()
             utbetalinger.alle().forEach { utbetaling ->
-                val (simulering, helvedUtbetaling) = if (utbetaling.perioder.isEmpty()) {
+                val (simulering, _) = if (utbetaling.perioder.isEmpty()) {
                     val helvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
                     klient.simuleringOpphør(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 } else {

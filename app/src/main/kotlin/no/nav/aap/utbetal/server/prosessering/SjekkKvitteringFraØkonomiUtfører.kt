@@ -42,7 +42,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
             return "Sjekk kvittering fra økonomi"
         }
 
-        override fun cron(): CronExpression? {
+        override fun cron(): CronExpression {
             //Hvert 10. minutt hele døgnet
             return CronExpression.create("0 0/10 * * * *")
         }
