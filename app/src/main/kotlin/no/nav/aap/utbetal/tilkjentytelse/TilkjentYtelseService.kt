@@ -57,13 +57,8 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
 
 
-        //Oppdater tilkjent ytelse med trekk - kun i dev i første omgang
-        val oppdatertTilkjentYtelse = if (Miljø.erProd()) {
-            tilkjentYtelse
-        } else {
-            val trekkPosteringer = beregnTrekkPosteringer(tilkjentYtelse)//.associateBy { it.dato }
-            TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
-        }
+        val trekkPosteringer = beregnTrekkPosteringer(tilkjentYtelse)
+        val oppdatertTilkjentYtelse = TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
 
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {

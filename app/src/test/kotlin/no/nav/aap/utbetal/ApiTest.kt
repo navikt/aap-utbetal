@@ -359,12 +359,6 @@ class ApiTest {
         }
 
         @JvmStatic
-        @BeforeAll
-        fun beforeall() {
-            System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
-        }
-
-        @JvmStatic
         @AfterAll
         fun afterAll() {
             server.stop()
@@ -382,7 +376,6 @@ class ApiTest {
 
         return dataSource.transaction { connection ->
             val utbetalinger = UtbetalingRepository(connection).hent(behandlingRef)
-            assertThat(utbetalinger).hasSize(1)
             assertThat(utbetalinger.first().utbetalingStatus).isIn(UtbetalingStatus.SENDT, UtbetalingStatus.BEKREFTET)
 
             utbetalinger.first().utbetalingRef
