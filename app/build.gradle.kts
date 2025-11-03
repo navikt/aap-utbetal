@@ -4,7 +4,7 @@ val ktorVersion = "3.3.1"
 val komponenterVersjon = "1.0.417"
 val behandlingsflytVersjon = "0.0.408"
 val tilgangVersjon = "1.0.143"
-val jacksonVersion = "2.20.0"
+val jacksonVersion = "2.20.1"
 val jupiterVersjon = "6.0.0"
 
 plugins {
