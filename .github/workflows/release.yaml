@@ -28,7 +28,7 @@ jobs:
         secrets: inherit
         with:
             publish-typescript: false
-    publish-kontrakt:
+    publiser-kontrakt:
         needs: gradle
         permissions:
             contents: write
@@ -97,7 +97,7 @@ jobs:
         permissions:
             contents: read
             id-token: write
-        needs: dev
+        needs: [ publiser-kontrakt, dev ]
         uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
         concurrency: deploy-prod
         secrets: inherit
