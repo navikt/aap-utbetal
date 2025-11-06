@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "3.3.1"
+val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.418"
 val behandlingsflytVersjon = "0.0.408"
 val tilgangVersjon = "1.0.149"
@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.1"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.3.1"
+    id("io.ktor.plugin") version "3.3.2"
 }
 
 application {
