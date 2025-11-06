@@ -2,7 +2,7 @@ package no.nav.aap.utbetal.trekk
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
@@ -12,17 +12,27 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekk
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.Test
 
 class TrekkServiceTest {
+    private lateinit var dataSource: TestDataSource
 
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
 
     @Test
     fun `ingen nye og ingen eksisterende trekk`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -38,7 +48,7 @@ class TrekkServiceTest {
 
     @Test
     fun `ingen ny meldeperiode, skal føre til ingen nye trekk-posteringer men trekk skal lagres`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -62,7 +72,7 @@ class TrekkServiceTest {
 
     @Test
     fun `trekk og meldeperiode skal føre til posteringer`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -94,7 +104,7 @@ class TrekkServiceTest {
 
     @Test
     fun `flere trekk og meldeperiode skal føre til posteringer på forskjellige datoer`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -143,7 +153,7 @@ class TrekkServiceTest {
 
     @Test
     fun `tilbaketrekking av trekk skal føre til at posteringene fjernes`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -193,7 +203,7 @@ class TrekkServiceTest {
 
     @Test
     fun `ingen endring av trekk skal ikke påvirke trekk tabellene`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -232,7 +242,7 @@ class TrekkServiceTest {
 
     @Test
     fun `trekk som har rest fører til flere posteringer ved neste meldekort`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -275,7 +285,7 @@ class TrekkServiceTest {
 
     @Test
     fun `endring av trekk skal føre til at posteringene justeres`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 
@@ -328,7 +338,7 @@ class TrekkServiceTest {
 
     @Test
     fun `skal støtte flere trekk på påfølgende tilkjente ytelser`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val service = TrekkService(trekkRepo)
 

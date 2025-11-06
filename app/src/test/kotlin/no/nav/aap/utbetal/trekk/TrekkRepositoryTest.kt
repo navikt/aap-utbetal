@@ -2,9 +2,11 @@ package no.nav.aap.utbetal.trekk
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
@@ -13,9 +15,19 @@ class TrekkRepositoryTest {
 
     private val iDag = LocalDate.now()
 
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
+
     @Test
     fun `lagre og hente trekk`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekk = TrekkRepository(connection).lagre(lagTrekk())
 
             val trekkListe = TrekkRepository(connection).hentTrekk(trekk.saksnummer)
@@ -29,7 +41,7 @@ class TrekkRepositoryTest {
 
     @Test
     fun `lagre og hente trekk historikk`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val repo = TrekkRepository(connection)
             val trekk = lagTrekk()
             val trekkMedId1 = repo.lagre(lagTrekk())
@@ -51,8 +63,7 @@ class TrekkRepositoryTest {
 
     @Test
     fun `lagre og hente trekkposteringer`() {
-
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val trekk = trekkRepo.lagre(lagTrekk())
 
@@ -78,7 +89,7 @@ class TrekkRepositoryTest {
 
     @Test
     fun `slett trekk`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val trekkRepo = TrekkRepository(connection)
             val trekk = trekkRepo.lagre(lagTrekk())
 
@@ -108,7 +119,5 @@ class TrekkRepositoryTest {
             aktiv = true,
         )
     }
-
-
 
 }

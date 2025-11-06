@@ -2,7 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
@@ -10,6 +10,8 @@ import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -19,9 +21,18 @@ import kotlin.test.assertNull
 
 class TilkjentYtelseRepositoryTest {
 
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
     @Test
     fun `Finner ingen tilkjentYtelse dersom ingen er lagret`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val tilkjentYtelseId = TilkjentYtelseRepository(connection).finnSisteTilkjentYtelse(Saksnummer("123"))
             assertNull(tilkjentYtelseId)
         }
@@ -30,7 +41,6 @@ class TilkjentYtelseRepositoryTest {
     @Test
     fun `Finner siste tilkjentYtelse dersom bare førstegangsbehandling`() {
         val saksnummer = Saksnummer("123")
-        val dataSource = InitTestDatabase.freshDatabase()
         val tilkjentYtelseId = dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
                 opprettTilkjentYtelse(
@@ -60,8 +70,6 @@ class TilkjentYtelseRepositoryTest {
         val saksnummer1 = Saksnummer("123")
         val saksnummer2 = Saksnummer("456")
 
-        val dataSource = InitTestDatabase.freshDatabase()
-
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null)
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef2, behandlingRef1)
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef3, behandlingRef2)
@@ -83,7 +91,6 @@ class TilkjentYtelseRepositoryTest {
         val behandlingRef4 = UUID.randomUUID()
         val behandlingRef5 = UUID.randomUUID()
 
-        val dataSource = InitTestDatabase.freshDatabase()
         // Fem tilkjent ytelse i litt random rekkefølge
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef1, null)
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef4, behandlingRef3)
@@ -91,7 +98,7 @@ class TilkjentYtelseRepositoryTest {
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef2, behandlingRef1)
         lagreTilkjentYtelse(dataSource, saksnummer1, behandlingRef3, behandlingRef2)
 
-        val tilkjentYtelseListe = InitTestDatabase.freshDatabase().transaction { connection ->
+        val tilkjentYtelseListe = dataSource.transaction { connection ->
             TilkjentYtelseRepository(connection).finnRekkefølgeTilkjentYtelse(saksnummer1)
         }
 
@@ -109,8 +116,6 @@ class TilkjentYtelseRepositoryTest {
     fun `Lagre tilkjent ytelse med avvent utbetaling`() {
         val behandlingRef1 = UUID.randomUUID()
         val saksnummer1 = Saksnummer("123")
-
-        val dataSource = InitTestDatabase.freshDatabase()
 
         val avvent = TilkjentYtelseAvvent(
             fom = LocalDate.parse("2025-01-01"),
@@ -134,8 +139,6 @@ class TilkjentYtelseRepositoryTest {
     fun `Lagre tilkjent ytelse med avvent utbetaling uten overføresdato`() {
         val behandlingRef1 = UUID.randomUUID()
         val saksnummer1 = Saksnummer("123")
-
-        val dataSource = InitTestDatabase.freshDatabase()
 
         val avvent = TilkjentYtelseAvvent(
             fom = LocalDate.parse("2025-01-01"),
