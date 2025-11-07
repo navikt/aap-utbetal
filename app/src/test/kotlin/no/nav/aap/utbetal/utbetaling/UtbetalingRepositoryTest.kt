@@ -3,23 +3,34 @@ package no.nav.aap.utbetal.utbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.Test
 
 class UtbetalingRepositoryTest {
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
 
     @Test
     fun `Lagre utbetaling`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val saksnummer = Saksnummer("001")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600001"
@@ -44,7 +55,7 @@ class UtbetalingRepositoryTest {
 
     @Test
     fun `Lagre utbetaling med avvent utbetaling`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val saksnummer = Saksnummer("001-1")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600001"
@@ -74,7 +85,7 @@ class UtbetalingRepositoryTest {
 
     @Test
     fun `Lagre utbetaling med avvent utbetaling uten overføresdato`() {
-        InitTestDatabase.freshDatabase().transaction { connection ->
+        dataSource.transaction { connection ->
             val saksnummer = Saksnummer("001-2")
             val behandlingRef = UUID.randomUUID()
             val personIdent = "12345600001"
@@ -109,7 +120,7 @@ class UtbetalingRepositoryTest {
         val behandlingRef = UUID.randomUUID()
         val personIdent = "12345600002"
 
-        val dataSource = InitTestDatabase.freshDatabase()
+        val dataSource = dataSource
 
         val utbetalingId = dataSource.transaction { connection ->
             val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
@@ -137,7 +148,7 @@ class UtbetalingRepositoryTest {
         val behandlingRef = UUID.randomUUID()
         val personIdent = "12345600003"
 
-        val dataSource = InitTestDatabase.freshDatabase()
+        val dataSource = dataSource
 
         val utbetalingId = dataSource.transaction { connection ->
             val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
@@ -176,7 +187,7 @@ class UtbetalingRepositoryTest {
 
     @Test
     fun `Skal hente sendte utbetalinger`() {
-        val dataSource = InitTestDatabase.freshDatabase()
+        val dataSource = dataSource
 
         dataSource.transaction { connection ->
             val saksnummer = Saksnummer("004")
@@ -223,7 +234,7 @@ class UtbetalingRepositoryTest {
 
     @Test
     fun `Skal også hente feilede utbetalinger`() {
-        val dataSource = InitTestDatabase.freshDatabase()
+        val dataSource = dataSource
 
         val utbetalingId = dataSource.transaction { connection ->
             val saksnummer = Saksnummer("005")
