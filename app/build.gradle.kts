@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "3.3.1"
+val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.430"
 val behandlingsflytVersjon = "0.0.481"
 val tilgangVersjon = "1.0.151"
@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.1"
 
 plugins {
     id("utbetal.conventions")
-    id("io.ktor.plugin") version "3.3.1"
+    id("io.ktor.plugin") version "3.3.2"
 }
 
 application {
@@ -45,18 +45,18 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.15.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.5")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.6")
