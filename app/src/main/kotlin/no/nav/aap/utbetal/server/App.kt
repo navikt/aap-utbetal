@@ -29,6 +29,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
+import no.nav.aap.utbetal.admin.hentStatus
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
@@ -106,6 +107,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 motorApi(dataSource)
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
+                hentStatus(dataSource, prometheus, authConfig)
             }
         }
         actuator(prometheus, motor)

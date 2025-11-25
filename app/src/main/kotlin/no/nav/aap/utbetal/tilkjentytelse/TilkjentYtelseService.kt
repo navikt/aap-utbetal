@@ -101,6 +101,8 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             saksnummer = saksnummer,
             behandlingsreferanse = behandlingsreferanse,
             utbetalingStatus = utbetalingStatus,
+            utbetalingOpprettet = utbetalingOversendt,
+            utbetalingEndret = utbetalingEndret,
             versjon = versjon,
         )
 

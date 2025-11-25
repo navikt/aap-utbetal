@@ -16,6 +16,8 @@ data class UtbetalingLight(
     val saksnummer: Saksnummer,
     val behandlingsreferanse: UUID,
     val utbetalingStatus: UtbetalingStatus,
+    val utbetalingOpprettet: LocalDateTime,
+    val utbetalingEndret: LocalDateTime?,
     val versjon: Long
 )
 
@@ -188,6 +190,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 SAKSNUMMER,
                 BEHANDLING_REF,
                 UTBETALING_STATUS,
+                UTBETALING_OPPRETTET,
+                UTBETALING_ENDRET,
                 VERSJON
             FROM 
                 UTBETALING
@@ -204,6 +208,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
+                    utbetalingOpprettet = row.getLocalDateTime("UTBETALING_OPPRETTET"),
+                    utbetalingEndret = row.getLocalDateTime("UTBETALING_ENDRET"),
                     versjon = row.getLong("VERSJON"),
                 )
             }
