@@ -13,6 +13,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,7 +25,12 @@ class UtbetalingBeregnerTest {
     @Test
     fun `Bare nye perioder`() {
         val start = LocalDate.of(2025, 1, 1)
-        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9), 1000.0, 1100.0, 1200.0)
+        val ty = opprettTilkjentYtelse(
+            startDato = start,
+            vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9),
+            utbetalingsdato = null,
+            1000.0, 1100.0, 1200.0
+        )
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
@@ -40,10 +46,46 @@ class UtbetalingBeregnerTest {
     }
 
     @Test
+    fun `Skal tillate utbetalingsperioder i inntil 4 uker etter vedtak`() {
+        val nå = LocalDate.now()
+        val start = nå.minusDays(nå.dayOfWeek.value - 1L) //mandag i denne uken
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, 1000.0)
+
+        val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
+
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
+        assertThat(utbetalinger.nyeUtbetalinger).hasSize(1)
+        val nyeUtbetalinger = utbetalinger.nyeUtbetalinger
+        val perioder = nyeUtbetalinger[0].perioder
+        assertThat(perioder.size).isEqualTo(2)
+        verifiserNyPeriode(perioder[0], 1000)
+        verifiserNyPeriode(perioder[1], 1000)
+    }
+
+
+    @Test
+    fun `Skal hindre utbetaling dersom utbetalingsperioder er over uker etter vedtak`() {
+        val nå = LocalDate.now()
+        val start = nå.minusDays(nå.dayOfWeek.value - 1L) //mandag i denne uken
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, 1000.0, 1000.0, 1000.0)
+
+        val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
+        assertThrows<IllegalArgumentException> {
+            UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
+        }
+    }
+
+
+    @Test
     fun `En endret og en ny periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 1000.0, 600.0, 500.0)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(
+            startDato = start,
+            vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
+            utbetalingsdato = null,
+            1000.0, 1000.0, 600.0, 500.0)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -65,7 +107,11 @@ class UtbetalingBeregnerTest {
     fun `Opphør av en periode`() {
         val start = LocalDate.of(2025, 1, 1)
         val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start, 1000, 1000, 1000)
-        val nyTilkjentYtelse = opprettTilkjentYtelse(startDato = start, vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9), 1000.0, 0.0, 1000.0)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(
+            startDato = start,
+            vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
+            utbetalingsdato = null,
+            1000.0, 0.0, 1000.0)
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -89,9 +135,14 @@ class UtbetalingBeregnerTest {
     }
 
 
-    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, vararg beløpListe: Double): TilkjentYtelse {
+    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, utbetalingsdato: LocalDate?, vararg beløpListe: Double): TilkjentYtelse {
         val perioder = beløpListe.mapIndexed { i, beløp ->
-            lagTilkjentYtelsePeriode(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), Beløp(BigDecimal(beløp)))
+            lagTilkjentYtelsePeriode(
+                fom = startDato.plusWeeks(i * 2L),
+                tom = startDato.plusWeeks(i * 2L).plusDays(13),
+                utbetalingsdato = utbetalingsdato,
+                beløp = Beløp(BigDecimal(beløp))
+            )
         }
         return TilkjentYtelse(
             id = 123L,
@@ -105,7 +156,7 @@ class UtbetalingBeregnerTest {
             perioder = perioder)
     }
 
-    private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, beløp: Beløp) =
+    private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, utbetalingsdato: LocalDate?, beløp: Beløp) =
         TilkjentYtelsePeriode(
             periode = Periode(fom, tom),
             detaljer = YtelseDetaljer(
@@ -118,7 +169,7 @@ class UtbetalingBeregnerTest {
                 grunnlagsfaktor = GUnit(BigDecimal.valueOf(0.008)),
                 barnetilleggsats = Beløp(36L),
                 redusertDagsats = beløp,
-                utbetalingsdato = tom.plusDays(9),
+                utbetalingsdato = utbetalingsdato ?: tom.plusDays(9),
             )
         )
 

@@ -110,11 +110,13 @@ class UtbetalingBeregner {
         val vedtaksdato = nyTilkjentYtelse.vedtakstidspunkt.toLocalDate()
         val min = nyTilkjentYtelse.perioder.minOfOrNull { it.periode.fom }
         val max = nyTilkjentYtelse.perioder
-            .filter { it.periode.tom <= vedtaksdato && it.detaljer.utbetalingsdato <= vedtaksdato}
+            .filter {it.detaljer.utbetalingsdato <= vedtaksdato}
             .maxOfOrNull { it.periode.tom }
         return if (min == null || max == null || min.isAfter(max)) {
             null
         } else {
+            //Safe-guard så vi ikke utbetaler for langt frem i tid. Utbetaling frem i tid skal tillates ifm f.eks. jul og påske.
+            require(max < LocalDate.now().plusWeeks(4)) {"Kan ikke utbetale mer en 4 uker frem i tid."}
             Periode(min, max)
         }
     }
