@@ -209,7 +209,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                     behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
                     utbetalingStatus = UtbetalingStatus.valueOf(row.getString("UTBETALING_STATUS")),
                     utbetalingOpprettet = row.getLocalDateTime("UTBETALING_OPPRETTET"),
-                    utbetalingEndret = row.getLocalDateTime("UTBETALING_ENDRET"),
+                    utbetalingEndret = row.getLocalDateTimeOrNull("UTBETALING_ENDRET"),
                     versjon = row.getLong("VERSJON"),
                 )
             }
