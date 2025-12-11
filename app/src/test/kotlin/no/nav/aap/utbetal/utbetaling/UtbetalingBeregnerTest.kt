@@ -2,12 +2,14 @@ package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.felles.finnHelger
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
@@ -120,6 +122,23 @@ class UtbetalingBeregnerTest {
         assertThat(utbetalinger.nyeUtbetalinger).isEmpty()
     }
 
+    @Test
+    fun `Opphør i en tidlig periode som ikke er med i tilkjent ytelse lengre`() {
+        val start = LocalDate.of(2025, 1, 1)
+        val utbetalingTidslinje = opprettTidslinjeUtbetalinger(start.minusDays(14), 1000, 1000, 1000, 1000)
+        val nyTilkjentYtelse = opprettTilkjentYtelse(
+            startDato = start,
+            vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
+            utbetalingsdato = null,
+            1000.0, 0.0, 1000.0)
+
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
+
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(2)
+        assertThat(utbetalinger.endringUtbetalinger[0].perioder).hasSize(0)
+        assertThat(utbetalinger.endringUtbetalinger[1].perioder).hasSize(0)
+        assertThat(utbetalinger.nyeUtbetalinger).isEmpty()
+    }
 
     private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
         verifiserPeriode(UtbetalingsperiodeType.ENDRET, utbetalingsperiode, beløp)
@@ -180,11 +199,23 @@ class UtbetalingBeregnerTest {
             lagUtbetalingData(startDato.plusWeeks(i * 2L), startDato.plusWeeks(i * 2L).plusDays(13), beløp)
         }
         perioder.forEach {
-            segmenter.add(Segment<UtbetalingData>(it.first, it.second))
+            segmenter.add(Segment(it.first, it.second))
         }
-        return Tidslinje<UtbetalingData>(initSegmenter = segmenter)
-
+        return fjernHelger(Tidslinje(initSegmenter = segmenter))
     }
+
+    private fun fjernHelger(utbetalinger: Tidslinje<UtbetalingData>): Tidslinje<UtbetalingData> {
+        val periode = Periode(
+            fom = utbetalinger.perioder().minBy { it.fom }.fom,
+            tom = utbetalinger.perioder().maxBy { it.tom }.tom,
+        )
+        val helger = periode.finnHelger()
+        val helgerTidslinje = helger.tilTidslinje()
+        return utbetalinger.kombiner(helgerTidslinje, StandardSammenslåere.minus())
+    }
+
+    private fun List<Periode>.tilTidslinje() =
+        Tidslinje(this.map { periode -> Segment(periode,Unit) })
 
     private fun lagUtbetalingData(fom: LocalDate, tom: LocalDate, beløp: Int) =
         Pair(

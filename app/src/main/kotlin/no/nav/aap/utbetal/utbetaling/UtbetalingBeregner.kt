@@ -187,8 +187,7 @@ class UtbetalingBeregner {
                     )
 
                 )
-            }
-            if (høyre != null) {
+            } else if (venstre == null && høyre != null) {
                 return@OUTER_JOIN Segment(
                     periode,
                     UtbetalingsperiodeMedReferanse(
@@ -203,6 +202,22 @@ class UtbetalingBeregner {
                     )
 
                 )
+            } else if (venstre != null && høyre == null) {
+                return@OUTER_JOIN Segment(
+                    periode,
+                    UtbetalingsperiodeMedReferanse(
+                        utbetalingRef = venstre.verdi.utbetalingRef,
+                        utbetalingsperiode =  Utbetalingsperiode(
+                            periode = periode,
+                            beløp = 0.toUInt(),
+                            fastsattDagsats = venstre.verdi.fastsattDagsats,
+                            utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
+                            utbetalingsdato = venstre.verdi.utbetalingsdato
+                        )
+                    )
+
+                )
+
             } else {
                 return@OUTER_JOIN null
             }
