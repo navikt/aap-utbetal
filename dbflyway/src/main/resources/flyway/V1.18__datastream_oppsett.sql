@@ -2,7 +2,7 @@ DO
 $$
     BEGIN
         IF EXISTS(SELECT * FROM pg_roles WHERE rolname = 'datastream') THEN
-            ALTER USER "aap-utbetal" WITH REPLICATION;
+            ALTER USER "utbetal" WITH REPLICATION;
             CREATE PUBLICATION "ds_publication" FOR ALL TABLES;
 
             ALTER DEFAULT PRIVILEGES IN SCHEMA PUBLIC GRANT SELECT ON TABLES TO "datastream";
