@@ -28,7 +28,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:verdityper:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
-    implementation("no.nav:ktor-openapi-generator:1.0.132")
+    implementation("no.nav:ktor-openapi-generator:1.0.134")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytVersjon")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
@@ -46,13 +46,13 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
-    implementation("ch.qos.logback:logback-classic:1.5.22")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.19.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
