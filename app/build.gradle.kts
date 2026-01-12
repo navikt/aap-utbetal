@@ -5,7 +5,7 @@ val komponenterVersjon = "1.0.479"
 val behandlingsflytVersjon = "0.0.518"
 val tilgangVersjon = "1.0.177"
 val jacksonVersion = "2.20.1"
-val jupiterVersjon = "6.0.1"
+val jupiterVersjon = "6.0.2"
 
 plugins {
     id("utbetal.conventions")
@@ -46,17 +46,17 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.1")
     runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.6")
