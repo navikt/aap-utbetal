@@ -26,7 +26,6 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvventDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekkDto
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
@@ -34,7 +33,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import java.io.BufferedWriter
 import java.io.FileWriter
@@ -215,12 +214,6 @@ class ApiTest {
         }
     }
 
-    private fun hentTilkjentYtelse(behandlingsreferanse: UUID) =
-        dataSource.transaction(readOnly = true) {
-            TilkjentYtelseRepository(it).hent(behandlingsreferanse)
-        }
-
-
     private fun hentTrekk(saksnummer: Saksnummer) =
         dataSource.transaction(readOnly = true) {
             TrekkRepository(it).hentTrekk(saksnummer)
@@ -383,8 +376,8 @@ class ApiTest {
 
 }
 
-private fun postgreSQLContainer(): PostgreSQLContainer<Nothing> {
-    val postgres = PostgreSQLContainer<Nothing>("postgres:16")
+private fun postgreSQLContainer(): PostgreSQLContainer {
+    val postgres = PostgreSQLContainer("postgres:16")
     postgres.waitingFor(HostPortWaitStrategy().withStartupTimeout(Duration.of(60L, ChronoUnit.SECONDS)))
     postgres.start()
     return postgres
