@@ -45,15 +45,15 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.2")
     implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.1")
-    runtimeOnly("org.postgresql:postgresql:42.7.8")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.2")
+    runtimeOnly("org.postgresql:postgresql:42.7.9")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
