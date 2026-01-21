@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
@@ -50,8 +51,19 @@ class UtbetalingBeregner {
             val utbetalingerTidslinje = tidligereUtbetalingerTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef))
             utbetalingerTidslinje.segmenter().map { it.verdi }
         }
-        val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
-        val utbetalingerMedNyePerioder =  nyeUtbetalingsperioder.splittPerBeløp().map { (utbetalingRef, utbetalingsperioder) ->
+        val splittedeUtbetalingsperioder = if (Miljø.erProd()) {
+            val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
+            nyeUtbetalingsperioder.splittPerBeløp()
+        } else {
+            val nyeUtbetalingsperioderMedBeløp = utbetalingsperioder.filter {it.utbetalingsperiode.beløp > 0.toUInt()}
+            val nyeUtbetalingsperioderMedNyUtbetalingsRef = nyeUtbetalingsperioderMedBeløp.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}
+            if (nyeUtbetalingsperioderMedNyUtbetalingsRef.isNotEmpty()) {
+                mapOf(nyUtbetalingRef to nyeUtbetalingsperioderMedNyUtbetalingsRef)
+            } else {
+                mapOf()
+            }
+        }
+        val utbetalingerMedNyePerioder =  splittedeUtbetalingsperioder.map { (utbetalingRef, utbetalingsperioder) ->
             Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,

@@ -23,13 +23,9 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 
+class UtbetalingBeregnerOldTest {
 
-class UtbetalingBeregnerTest {
-
-    @BeforeEach
-    fun beforeEach() {
-        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
-    }
+    // TODO: hele testen kan fjernes når Miljø.erProd() fjernes ifm splitting av utbetalingsperioder per beløp.
 
     @Test
     fun `Bare nye perioder`() {
