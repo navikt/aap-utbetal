@@ -14,7 +14,6 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
@@ -25,11 +24,6 @@ import java.util.*
 
 
 class UtbetalingBeregnerTest {
-
-    @BeforeEach
-    fun beforeEach() {
-        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
-    }
 
     @Test
     fun `Bare nye perioder`() {

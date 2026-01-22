@@ -1,6 +1,5 @@
 package no.nav.aap.utbetal.utbetaling
 
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
@@ -51,43 +50,37 @@ class UtbetalingBeregner {
             val utbetalingerTidslinje = tidligereUtbetalingerTidslinje.kombiner(klippetNyTilkjentYtelseTidslinje, prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef))
             utbetalingerTidslinje.segmenter().map { it.verdi }
         }
-        val splittedeUtbetalingsperioder = if (Miljø.erProd()) {
-            val nyeUtbetalingsperioder = utbetalingsperioder.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}.filter {it.beløp > 0.toUInt()}
-            nyeUtbetalingsperioder.splittPerBeløp()
-        } else {
-            val nyeUtbetalingsperioderMedBeløp = utbetalingsperioder.filter {it.utbetalingsperiode.beløp > 0.toUInt()}
-            val nyeUtbetalingsperioderMedNyUtbetalingsRef = nyeUtbetalingsperioderMedBeløp.filter {it.utbetalingRef == nyUtbetalingRef}.map {it.utbetalingsperiode}
-            if (nyeUtbetalingsperioderMedNyUtbetalingsRef.isNotEmpty()) {
-                mapOf(nyUtbetalingRef to nyeUtbetalingsperioderMedNyUtbetalingsRef)
-            } else {
-                mapOf()
-            }
-        }
-        val utbetalingerMedNyePerioder =  splittedeUtbetalingsperioder.map { (utbetalingRef, utbetalingsperioder) ->
-            Utbetaling(
-                saksnummer = nyTilkjentYtelse.saksnummer,
-                behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
-                tilkjentYtelseId = nyTilkjentYtelse.id,
-                personIdent = nyTilkjentYtelse.personIdent,
-                vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
-                beslutterId = nyTilkjentYtelse.beslutterId,
-                saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
-                utbetalingOversendt = LocalDateTime.now(),
-                utbetalingStatus = UtbetalingStatus.OPPRETTET,
-                perioder = utbetalingsperioder,
-                avvent = nyTilkjentYtelse.avvent?.tilUtbetalingAvvent(),
-                utbetalingRef = utbetalingRef
+        //Finn nye perioder med beløp større enn 0
+        val nyeUtbetalingsperioder = utbetalingsperioder
+            .map {it.utbetalingsperiode}
+            .filter {it.beløp > 0.toUInt()}
+            .filter {it.utbetalingsperiodeType == UtbetalingsperiodeType.NY }
+
+        val utbetalingerMedNyePerioder = if (nyeUtbetalingsperioder.isNotEmpty()) {
+            listOf(
+                Utbetaling(
+                    saksnummer = nyTilkjentYtelse.saksnummer,
+                    behandlingsreferanse = nyTilkjentYtelse.behandlingsreferanse,
+                    tilkjentYtelseId = nyTilkjentYtelse.id,
+                    personIdent = nyTilkjentYtelse.personIdent,
+                    vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
+                    beslutterId = nyTilkjentYtelse.beslutterId,
+                    saksbehandlerId = nyTilkjentYtelse.saksbehandlerId,
+                    utbetalingOversendt = LocalDateTime.now(),
+                    utbetalingStatus = UtbetalingStatus.OPPRETTET,
+                    perioder = nyeUtbetalingsperioder,
+                    avvent = nyTilkjentYtelse.avvent?.tilUtbetalingAvvent(),
+                    utbetalingRef = nyUtbetalingRef,
+                )
             )
+        } else {
+            emptyList()
         }
+
         return Utbetalinger(
             endringUtbetalinger = utbetalingsperioder.lagUtbetalingerForEndringer(nyTilkjentYtelse),
             nyeUtbetalinger = utbetalingerMedNyePerioder
         )
-    }
-
-    private fun List<Utbetalingsperiode>.splittPerBeløp(): Map<UUID, List<Utbetalingsperiode>> {
-        val perBeløp = groupBy {it.beløp}
-        return perBeløp.entries.associate {UUID.randomUUID() to it.value.sortedBy { utbetalingsperiode -> utbetalingsperiode.periode.fom }}
     }
 
     private fun List<UtbetalingsperiodeMedReferanse>.lagUtbetalingerForEndringer(nyTilkjentYtelse: TilkjentYtelse): List<Utbetaling> {
