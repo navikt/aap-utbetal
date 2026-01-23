@@ -33,8 +33,8 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
-import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.io.BufferedWriter
 import java.io.FileWriter
 import java.math.BigDecimal
@@ -191,6 +191,8 @@ class ApiTest {
         )
 
         postTilkjentYtelse(tilkjentYtelse2)
+        ventPåMotor(dataSource, tilkjentYtelse.saksnummer, tilkjentYtelse.behandlingsreferanse)
+
         val trekkListe2 = hentTrekk(Saksnummer(tilkjentYtelse.saksnummer))
 
         assertThat(trekkListe2).hasSize(1)
