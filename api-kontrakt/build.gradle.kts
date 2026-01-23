@@ -1,5 +1,5 @@
 plugins {
-    id("utbetal.conventions")
+    id("aap.conventions")
     `maven-publish`
     `java-library`
 }

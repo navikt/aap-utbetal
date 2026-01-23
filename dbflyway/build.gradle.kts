@@ -1,3 +1,3 @@
 plugins {
-    id("utbetal.conventions")
+    id("aap.conventions")
 }

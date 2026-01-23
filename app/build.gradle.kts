@@ -8,7 +8,7 @@ val jacksonVersion = "2.20.1"
 val jupiterVersjon = "6.0.2"
 
 plugins {
-    id("utbetal.conventions")
+    id("aap.conventions")
     id("io.ktor.plugin") version "3.3.3"
 }
 
