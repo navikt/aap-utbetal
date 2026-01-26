@@ -59,7 +59,7 @@ dependencies {
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
-    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
     testImplementation(kotlin("test"))
 }
