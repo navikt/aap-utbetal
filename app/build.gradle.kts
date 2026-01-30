@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val komponenterVersjon = "1.0.934"
 val behandlingsflytVersjon = "0.0.538"
 val tilgangVersjon = "1.0.178"
@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.2"
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
 }
 
 application {
@@ -46,13 +46,13 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.2")
-    implementation("ch.qos.logback:logback-classic:1.5.25")
+    implementation("ch.qos.logback:logback-classic:1.5.26")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.2")
+    implementation("org.flywaydb:flyway-database-postgresql:11.20.3")
     runtimeOnly("org.postgresql:postgresql:42.7.9")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
