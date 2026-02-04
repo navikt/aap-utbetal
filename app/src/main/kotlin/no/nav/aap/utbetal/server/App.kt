@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -87,10 +86,6 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 .warn("Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
             call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
         }
-    }
-    install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.ContentType)
     }
 
     val dataSource = initDatasource(dbConfig)
