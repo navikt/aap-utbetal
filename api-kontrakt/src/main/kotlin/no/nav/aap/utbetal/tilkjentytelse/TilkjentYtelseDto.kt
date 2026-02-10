@@ -41,7 +41,8 @@ data class TilkjentYtelseDetaljerDto(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
-    val utbetalingsdato: LocalDate
+    val utbetalingsdato: LocalDate,
+    val meldeperiodeDto: MeldeperiodeDto? = null,
 )
 
 data class TilkjentYtelseAvventDto(
