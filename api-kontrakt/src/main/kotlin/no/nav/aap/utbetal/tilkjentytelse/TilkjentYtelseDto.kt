@@ -42,7 +42,7 @@ data class TilkjentYtelseDetaljerDto(
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
     val utbetalingsdato: LocalDate,
-    val meldeperiodeDto: MeldeperiodeDto? = null,
+    val meldeperiode: MeldeperiodeDto? = null,
 )
 
 data class TilkjentYtelseAvventDto(
