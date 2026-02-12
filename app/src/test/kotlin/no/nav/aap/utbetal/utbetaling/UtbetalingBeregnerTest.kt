@@ -190,6 +190,7 @@ class UtbetalingBeregnerTest {
                 barnetilleggsats = Beløp(36L),
                 redusertDagsats = beløp,
                 utbetalingsdato = utbetalingsdato ?: tom.plusDays(9),
+                meldeperiode = Periode(fom, tom),
             )
         )
 

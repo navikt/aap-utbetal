@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.felles
 
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
@@ -18,4 +19,5 @@ data class YtelseDetaljer(
     val barnetillegg: Beløp,
     val utbetalingsdato: LocalDate,
     val trekkPosteringId: Long? = null,
+    val meldeperiode: Periode?,
 )

@@ -41,6 +41,7 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
                 barnetilleggsats = Beløp(detaljerDto.barnetilleggsats),
                 barnetillegg = Beløp(detaljerDto.barnetillegg),
                 utbetalingsdato = detaljerDto.utbetalingsdato,
+                meldeperiode = detaljerDto.meldeperiode?.tilPeriode(),
             )
         )
     }

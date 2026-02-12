@@ -89,7 +89,8 @@ class TilkjentYtelsePeriodeSplitterTest {
                         antallBarn = 0,
                         barnetilleggsats = Beløp(0),
                         barnetillegg = Beløp(0),
-                        utbetalingsdato = LocalDate.now()
+                        utbetalingsdato = LocalDate.now(),
+                        meldeperiode = meldeperiode,
                     )
                 )
             ),
