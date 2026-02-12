@@ -56,9 +56,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     REDUSERT_DAGSATS,
                     TILKJENT_YTELSE_ID,
                     UTBETALINGSDATO,
-                    TREKK_POSTERING_ID
+                    TREKK_POSTERING_ID,
+                    MELDEPERIODE
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange)
         """.trimIndent()
 
 
@@ -77,6 +78,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setLong(11, tilkjentYtelseId)
                 setLocalDate(12, it.detaljer.utbetalingsdato)
                 setLong(13, it.detaljer.trekkPosteringId)
+                setPeriode(14, it.detaljer.meldeperiode)
             }
         }
     }
@@ -268,7 +270,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 BARNETILLEGGSATS,
                 REDUSERT_DAGSATS,
                 UTBETALINGSDATO,
-                TREKK_POSTERING_ID
+                TREKK_POSTERING_ID,
+                MELDEPERIODE
             FROM TILKJENT_PERIODE
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
@@ -294,6 +297,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                         redusertDagsats = Beløp(row.getBigDecimal("REDUSERT_DAGSATS")),
                         utbetalingsdato = row.getLocalDate("UTBETALINGSDATO"),
                         trekkPosteringId = row.getLongOrNull("TREKK_POSTERING_ID"),
+                        meldeperiode = row.getPeriodeOrNull("MELDEPERIODE"),
                     )
                 )
             }

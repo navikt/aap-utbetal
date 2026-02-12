@@ -192,8 +192,9 @@ class TilkjentYtelseRepositoryTest {
         avvent: TilkjentYtelseAvvent? = null,
     ): TilkjentYtelse {
         val perioder = (0 until antallPerioder).map {
+            val periode = Periode(startDato.plusWeeks(it * 2L), startDato.plusWeeks(it * 2L).plusDays(13))
             TilkjentYtelsePeriode(
-                periode = Periode(startDato.plusWeeks(it * 2L), startDato.plusWeeks(it * 2L).plusDays(13)),
+                periode = periode,
                 YtelseDetaljer(
                     gradering = Prosent.`0_PROSENT`,
                     dagsats = beløp,
@@ -204,7 +205,8 @@ class TilkjentYtelseRepositoryTest {
                     grunnlagsfaktor = GUnit("0.008"),
                     barnetilleggsats = Beløp(36L),
                     redusertDagsats = beløp,
-                    utbetalingsdato = startDato.plusWeeks(it * 2L).plusDays(14)
+                    utbetalingsdato = startDato.plusWeeks(it * 2L).plusDays(14),
+                    meldeperiode = periode,
                 )
             )
         }
