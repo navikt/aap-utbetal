@@ -13,7 +13,7 @@ val jacksonVersion = "2.21.0"
 
 dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    api("no.nav.aap.kelvin:ktor-openapi-generator:1.0.937")
+    api("no.nav.aap.kelvin:ktor-openapi-generator:2.0.1")
 }
 
 java {
