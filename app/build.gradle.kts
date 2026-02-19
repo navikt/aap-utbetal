@@ -5,7 +5,7 @@ val komponenterVersjon = "2.0.1"
 val behandlingsflytVersjon = "0.0.551"
 val tilgangVersjon = "1.0.179"
 val jacksonVersion = "2.21.0"
-val jupiterVersjon = "6.0.2"
+val jupiterVersjon = "6.0.3"
 
 plugins {
     id("aap.conventions")
@@ -45,7 +45,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
-    implementation("ch.qos.logback:logback-classic:1.5.29")
+    implementation("ch.qos.logback:logback-classic:1.5.31")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
     implementation(project(":dbflyway"))
