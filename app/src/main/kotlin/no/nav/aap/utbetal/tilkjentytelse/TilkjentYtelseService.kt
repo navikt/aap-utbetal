@@ -42,11 +42,13 @@ class TilkjentYtelseService(private val connection: DBConnection) {
     fun håndterNyTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): TilkjentYtelseResponse {
         val utbetalingRepo = UtbetalingRepository(connection)
 
-        //Prøv å hente alle manglende kvitteringer
-        utbetalingRepo.hent(tilkjentYtelse.saksnummer).hentKvitteringerForSendteUtbetalinger()
+        val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
+            .also { utbetalinger ->
+                //Prøv å hente alle manglende kvitteringer
+                utbetalinger.hentKvitteringerForSendteUtbetalinger()
+            }
 
         //Sjekk om det fortsatt mangler kvitteringer, eller er som av andre grunner ikke er BEKREFTET
-        val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
         val locked = utbetalingerForSak.any { it.utbetalingStatus != UtbetalingStatus.BEKREFTET }
         if (locked) {
             return TilkjentYtelseResponse.LOCKED

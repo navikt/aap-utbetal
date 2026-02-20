@@ -322,7 +322,7 @@ class ApiTest {
         private val fakes = Fakes()
 
         private val dbConfig = DbConfig(
-            jdbcUrL = postgres.jdbcUrl,
+            jdbcUrl = postgres.jdbcUrl,
             database = postgres.databaseName,
             username = postgres.username,
             password = postgres.password

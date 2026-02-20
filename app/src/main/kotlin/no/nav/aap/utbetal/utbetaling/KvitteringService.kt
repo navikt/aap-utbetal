@@ -19,7 +19,7 @@ class KvitteringService(private val connection: DBConnection) {
     fun sjekkKvittering(utbetaling: UtbetalingLight) {
         val utbetalingRepo = UtbetalingRepository(connection)
         val status = try {
-            UtbetalingKlient().hentStatus(utbetaling.utbetalingRef)
+            UtbetalingKlient.hentStatus(utbetaling.utbetalingRef)
         } catch (_: IkkeFunnetException) {
             null
         }

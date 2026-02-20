@@ -28,14 +28,13 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
         dataSource.transaction(readOnly = true) { connection ->
             val tilkjentYtelse = dto.tilTilkjentYtelse()
             val utbetalinger = UtbetalingService(connection).simulerOpprettelseAvUtbetalinger(tilkjentYtelse)
-            val klient = UtbetalingKlient()
             utbetalinger.alle().forEach { utbetaling ->
                 val (simulering, _) = if (utbetaling.perioder.isEmpty()) {
-                    val helvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
-                    klient.simuleringOpphør(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
+                    val helvedUtbetaling = UtbetalingKlient.hentUtbetaling(utbetaling.utbetalingRef)
+                    UtbetalingKlient.simuleringOpphør(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 } else {
                     val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
-                    klient.simuleringUtbetaling(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
+                    UtbetalingKlient.simuleringUtbetaling(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 }
 //                val klippetSimulering = simulering.klipp(helvedUtbetaling.perioder.map { Periode(it.fom, it.tom) })
                 utbetalingerOgSimuleringer.add(UtbetalingOgSimuleringDto(
