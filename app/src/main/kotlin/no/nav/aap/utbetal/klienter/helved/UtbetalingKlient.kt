@@ -24,7 +24,7 @@ enum class UtbetalingStatus {
     OK_UTEN_UTBETALING,
 }
 
-class UtbetalingKlient {
+object UtbetalingKlient {
 
     private val log = LoggerFactory.getLogger(UtbetalingKlient::class.java)
 

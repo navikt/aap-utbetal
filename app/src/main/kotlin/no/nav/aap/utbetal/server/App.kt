@@ -65,8 +65,6 @@ fun main() {
 }
 
 internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig) {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-
     commonKtorModule(
         prometheus, AzureConfig(), InfoModel(
             title = "AAP - Utbetal",
@@ -139,14 +137,14 @@ fun Application.motor(dataSource: DataSource, prometheus: MeterRegistry): Motor 
 
 
 class DbConfig(
-    val jdbcUrL: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_JDBC_URL"),
+    val jdbcUrl: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_JDBC_URL"),
     val database: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_DATABASE"),
     val username: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_USERNAME"),
     val password: String = System.getenv("NAIS_DATABASE_UTBETAL_UTBETAL_PASSWORD")
 )
 
 fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.jdbcUrL
+    jdbcUrl = dbConfig.jdbcUrl
     username = dbConfig.username
     password = dbConfig.password
     maximumPoolSize = 10 + (ANTALL_WORKERS * 2)

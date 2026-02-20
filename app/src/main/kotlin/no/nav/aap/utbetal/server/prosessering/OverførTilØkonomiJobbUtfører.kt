@@ -26,15 +26,15 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
 
         if (utbetaling.harNyePerioder()) {
             log.info("Overfører nye periode til økonomi for utbetalingId: $utbetalingId")
-            UtbetalingKlient().iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
+            UtbetalingKlient.iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
         } else {
             if (utbetaling.perioder.isEmpty()) {
                 log.info("Opphør av utbetalingId: $utbetalingId")
-                val helvedUtbetaling = UtbetalingKlient().hentUtbetaling(utbetaling.utbetalingRef)
-                UtbetalingKlient().opphør(utbetaling.utbetalingRef, helvedUtbetaling)
+                val helvedUtbetaling = UtbetalingKlient.hentUtbetaling(utbetaling.utbetalingRef)
+                UtbetalingKlient.opphør(utbetaling.utbetalingRef, helvedUtbetaling)
             } else {
                 log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
-                UtbetalingKlient().iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+                UtbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
             }
         }
         utbetalingRepo.oppdaterStatus(utbetalingId, utbetaling.versjon, UtbetalingStatus.SENDT)

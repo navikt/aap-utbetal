@@ -22,7 +22,7 @@ fun main() {
     embeddedServer(Netty, port = 8080) {
         val dbConfig = DbConfig(
             database = "test",
-            jdbcUrL = postgres.jdbcUrl,
+            jdbcUrl = postgres.jdbcUrl,
             username = postgres.username,
             password = postgres.password
         )
