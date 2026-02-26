@@ -9,7 +9,7 @@ group = "no.nav.aap.utbetal"
 apply(plugin = "maven-publish")
 apply(plugin = "java-library")
 
-val jacksonVersion = "2.21.0"
+val jacksonVersion = "2.21.1"
 
 dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
