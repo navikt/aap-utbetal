@@ -48,8 +48,6 @@ spec:
         initialDelay: 5
         periodSeconds: 5
         failureThreshold: 5
-    secureLogs:
-        enabled: true
     accessPolicy:
         inbound:
             rules:
