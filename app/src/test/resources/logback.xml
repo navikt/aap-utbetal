@@ -11,10 +11,6 @@
         <appender-ref ref="pretty"/>
     </root>
 
-    <logger name="secureLog" level="TRACE" additivity="false">
-        <appender-ref ref="pretty"/>
-    </logger>
-
     <logger name="io.netty" level="INFO" />
     <logger name="no.nav" level="INFO" />
 
