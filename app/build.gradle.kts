@@ -47,6 +47,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
+    implementation("org.apache.kafka:kafka-clients:4.1.1")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
