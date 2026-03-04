@@ -17,6 +17,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
@@ -29,6 +31,10 @@ import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.utbetal.admin.hentStatus
+import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
+import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
+import no.nav.aap.utbetal.hendelse.konsument.UTBETALING_STATUS_TOPIC
+import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusKonsument
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.simulering.simulering
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
@@ -38,6 +44,7 @@ import no.nav.aap.utbetal.utbetaling.hent
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.seconds
 
 private const val ANTALL_WORKERS = 4
 
@@ -90,6 +97,11 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
     Migrering.migrate(dataSource)
 
     val motor = motor(dataSource, prometheus)
+
+    //TODO: kommentert ut for å unngå at konsumenten starter før den er klar.
+    //if (!Miljø.erLokal() && !Miljø.erProd()) {
+    //    startUtbetalingStatusEventKonsument(dataSource)
+    //}
 
     routing {
         authenticate(AZURE) {
@@ -176,5 +188,45 @@ private fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) 
             }
         }
     }
+}
+
+fun Application.startUtbetalingStatusEventKonsument(dataSource: DataSource): KafkaKonsument<String, String> {
+    val konsument = UtbetalingStatusKonsument(
+        config = KafkaKonsumentKonfig(),
+        dataSource = dataSource,
+        closeTimeout = AppConfig.stansArbeidTimeout
+    )
+    monitor.subscribe(ApplicationStarted) {
+        val t = Thread {
+            konsument.konsumer()
+        }
+        t.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e ->
+            log.error("Konsumering av $UTBETALING_STATUS_TOPIC ble lukket pga uhåndtert feil", e)
+        }
+        t.start()
+    }
+    monitor.subscribe(ApplicationStopping) { env ->
+        // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
+        env.launch(Dispatchers.IO) {
+            konsument.lukk()
+        }
+    }
+
+    return konsument
+}
+
+private object AppConfig {
+    // Matcher terminationGracePeriodSeconds for podden i Kubernetes-manifestet ("nais.yaml")
+    private val kubernetesTimeout = 30.seconds
+
+    // Tid før ktor avslutter uansett. Må være litt mindre enn `kubernetesTimeout`.
+    private val shutdownTimeout = kubernetesTimeout - 2.seconds
+
+    // Tid appen får til å fullføre påbegynte requests, jobber etc. Må være mindre enn `endeligShutdownTimeout`.
+    private val shutdownGracePeriod = shutdownTimeout - 3.seconds
+
+    // Tid appen får til å avslutte Motor, Kafka, etc
+    val stansArbeidTimeout = shutdownGracePeriod - 1.seconds
+
 }
 

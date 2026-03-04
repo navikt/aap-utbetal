@@ -27,6 +27,8 @@ spec:
             destinations:
                 - id: elastic
                 - id: loki
+    kafka:
+        pool: nav-prod
     prometheus:
         enabled: true
         path: /actuator/metrics

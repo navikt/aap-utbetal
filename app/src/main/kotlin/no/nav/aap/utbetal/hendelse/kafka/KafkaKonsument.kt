@@ -1,0 +1,66 @@
+package no.nav.aap.utbetal.hendelse.kafka
+
+import org.apache.kafka.clients.consumer.CloseOptions
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.errors.WakeupException
+import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
+
+abstract class KafkaKonsument<K, V>(
+    val topic: String,
+    config: KafkaKonsumentKonfig<K, V>,
+    consumerName: String,
+    private val pollTimeout: Duration,
+    private val closeTimeout: Duration,
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val lukket: AtomicBoolean = AtomicBoolean(false)
+    private val konsument = KafkaConsumer<K, V>(config.consumerProperties(consumerName = consumerName))
+
+    var antallMeldinger = 0
+        private set
+
+
+    fun lukk() {
+        log.info("Lukker konsument av $topic")
+        lukket.set(true)
+        konsument.wakeup() // Trigger en WakeupException for å avslutte polling
+    }
+
+    fun konsumer() {
+        try {
+            log.info("Starter konsumering av $topic")
+            konsument.subscribe(listOf(topic))
+            while (!lukket.get()) {
+                val meldinger: ConsumerRecords<K, V> = konsument.poll(pollTimeout.toJavaDuration())
+                håndter(meldinger)
+                konsument.commitSync()
+                antallMeldinger += meldinger.count()
+            }
+        } catch (e: WakeupException) {
+            // Ignorerer exception hvis vi stenger ned
+            log.info("Konsument av $topic ble lukket med WakeupException")
+            if (!lukket.get()) throw e
+        } catch (e: Exception) {
+            log.error("Feil ved innlesing av $topic", e)
+        } finally {
+            log.info("Ferdig med å lese hendelser fra $${this.javaClass.name} - lukker konsument")
+            try {
+                konsument.close(CloseOptions.timeout(closeTimeout.toJavaDuration()))
+                lukket.set(true)
+            } catch (e: Exception) {
+                log.error("Feil ved lukking av konsument", e)
+            }
+        }
+    }
+
+    fun erLukket(): Boolean {
+        return lukket.get()
+    }
+
+    abstract fun håndter(meldinger: ConsumerRecords<K, V>)
+
+}
