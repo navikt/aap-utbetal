@@ -39,6 +39,7 @@ data class TilkjentYtelseDetaljerDto(
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
+    val barnepensjonDagsats: BigDecimal,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
     val utbetalingsdato: LocalDate,

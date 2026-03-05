@@ -161,6 +161,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             if (detaljer1.antallBarn != detaljer2.antallBarn) return false
             if (detaljer1.barnetilleggsats.avrundet() != detaljer2.barnetilleggsats.avrundet()) return false
             if (detaljer1.barnetillegg.avrundet() != detaljer2.barnetillegg.avrundet()) return false
+            if (detaljer1.barnepensjonDagsats.avrundet() != detaljer2.barnepensjonDagsats.avrundet()) return false
             if (detaljer1.utbetalingsdato != detaljer2.utbetalingsdato) return false
         }
         if (nyMeldeperiode != tilkjentYtelse.nyMeldeperiode) return false
