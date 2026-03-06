@@ -256,6 +256,7 @@ class ApiTest {
                     antallBarn = 0,
                     barnetillegg = BigDecimal.valueOf(0L),
                     grunnlagsfaktor = BigDecimal.valueOf(0.008),
+                    barnepensjonDagsats = BigDecimal.valueOf(0.00),
                     barnetilleggsats = BigDecimal.valueOf(36L),
                     redusertDagsats = beløp,
                     utbetalingsdato = startDato.plusWeeks(index * 2L).plusDays(14)
@@ -284,6 +285,7 @@ class ApiTest {
                     grunnlag = beløp,
                     grunnbeløp = BigDecimal.valueOf(100000L) ,
                     antallBarn = 0,
+                    barnepensjonDagsats = BigDecimal.valueOf(0.00),
                     barnetillegg = BigDecimal.valueOf(0L),
                     grunnlagsfaktor = BigDecimal.valueOf(0.008),
                     barnetilleggsats = BigDecimal.valueOf(36L),

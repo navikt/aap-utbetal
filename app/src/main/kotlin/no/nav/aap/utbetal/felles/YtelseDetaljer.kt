@@ -15,6 +15,7 @@ data class YtelseDetaljer(
     val grunnlagsfaktor: GUnit,
     val grunnbeløp: Beløp,
     val antallBarn: Int,
+    val barnepensjonDagsats: Beløp,
     val barnetilleggsats: Beløp,
     val barnetillegg: Beløp,
     val utbetalingsdato: LocalDate,

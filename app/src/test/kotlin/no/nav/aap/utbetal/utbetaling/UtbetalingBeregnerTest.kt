@@ -191,6 +191,7 @@ class UtbetalingBeregnerTest {
                 redusertDagsats = beløp,
                 utbetalingsdato = utbetalingsdato ?: tom.plusDays(9),
                 meldeperiode = Periode(fom, tom),
+                barnepensjonDagsats = Beløp(0)
             )
         )
 
