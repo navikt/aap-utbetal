@@ -39,7 +39,7 @@ data class TilkjentYtelseDetaljerDto(
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
-    val barnepensjonDagsats: BigDecimal,
+    val barnepensjonDagsats: BigDecimal = BigDecimal.ZERO,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
     val utbetalingsdato: LocalDate,
