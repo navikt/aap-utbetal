@@ -57,9 +57,10 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     TILKJENT_YTELSE_ID,
                     UTBETALINGSDATO,
                     TREKK_POSTERING_ID,
-                    MELDEPERIODE
+                    MELDEPERIODE,
+                    BARNEPENSJON_DAGSATS
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange, ?)
         """.trimIndent()
 
 
@@ -79,6 +80,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 setLocalDate(12, it.detaljer.utbetalingsdato)
                 setLong(13, it.detaljer.trekkPosteringId)
                 setPeriode(14, it.detaljer.meldeperiode)
+                setBigDecimal(15, it.detaljer.barnepensjonDagsats.verdi())
             }
         }
     }
@@ -99,7 +101,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         connection.execute(sqlInsertAvvent) {
             setParams {
                 setLong(1, tilkjentYtelseId)
-                setPeriode(2, Periode(avvent.fom , avvent.tom))
+                setPeriode(2, Periode(avvent.fom, avvent.tom))
                 setLocalDate(3, avvent.overføres)
                 setString(4, avvent.årsak?.name)
                 setBoolean(5, avvent.feilregistrering)
@@ -271,7 +273,8 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 REDUSERT_DAGSATS,
                 UTBETALINGSDATO,
                 TREKK_POSTERING_ID,
-                MELDEPERIODE
+                MELDEPERIODE,
+                BARNEPENSJON_DAGSATS
             FROM TILKJENT_PERIODE
             WHERE TILKJENT_YTELSE_ID = ? 
         """.trimIndent()
@@ -290,6 +293,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                         grunnlag = Beløp(row.getBigDecimal("GRUNNLAG")),
                         gradering = Prosent(row.getInt("GRADERING")),
                         grunnbeløp = Beløp(row.getBigDecimal("GRUNNBELOP")),
+                        barnepensjonDagsats = Beløp(row.getBigDecimal("BARNEPENSJON_DAGSATS")),
                         antallBarn = row.getInt("ANTALL_BARN"),
                         barnetillegg = Beløp(row.getBigDecimal("BARNETILLEGG")),
                         grunnlagsfaktor = GUnit(row.getBigDecimal("GRUNNLAGSFAKTOR")),

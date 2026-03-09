@@ -207,6 +207,7 @@ class TilkjentYtelseRepositoryTest {
                     redusertDagsats = beløp,
                     utbetalingsdato = startDato.plusWeeks(it * 2L).plusDays(14),
                     meldeperiode = periode,
+                    barnepensjonDagsats = Beløp(0)
                 )
             )
         }

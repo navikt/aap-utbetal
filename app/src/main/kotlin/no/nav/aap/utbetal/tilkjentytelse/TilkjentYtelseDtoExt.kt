@@ -38,6 +38,7 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
                 grunnlagsfaktor = GUnit(detaljerDto.grunnlagsfaktor),
                 grunnbeløp = Beløp(detaljerDto.grunnbeløp),
                 antallBarn = detaljerDto.antallBarn,
+                barnepensjonDagsats = Beløp(detaljerDto.barnepensjonDagsats),
                 barnetilleggsats = Beløp(detaljerDto.barnetilleggsats),
                 barnetillegg = Beløp(detaljerDto.barnetillegg),
                 utbetalingsdato = detaljerDto.utbetalingsdato,
