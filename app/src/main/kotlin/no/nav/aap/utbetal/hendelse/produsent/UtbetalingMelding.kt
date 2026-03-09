@@ -1,6 +1,6 @@
 package no.nav.aap.utbetal.hendelse.produsent
 
-import java.time.LocalDate
+import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDateTime
 
 /**
@@ -21,14 +21,13 @@ data class UtbetalingMelding(
     val saksbehandling: String,
     /** Beslutters ident. */
     val beslutter: String,
-
-    )
+)
 
 data class Utbetaling(
-    /** Meldekortperiode i formatet YYYYMMDD-YYYYMMDD. */
+    /** Meldekortperiode identifikator. */
     val meldeperiode: String,
-    /** Dato for utbetalingen. */
-    val dato: LocalDate,
+    /** Periode for utbetalingen. */
+    val periode: Periode,
     /** Sats i kroner per dag. */
     val sats: UInt,
     /** Utbetalt beløp i kroner per dag. */

@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.utbetal.MigreringService
 import no.nav.aap.utbetal.trekk.TrekkPostering
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.trekk.TrekkService
@@ -64,10 +65,15 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
             val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
-            UtbetalingJobbService(connection).opprettUtbetalingJobb(
-                sakUtbetalingId,
-                oppdatertTilkjentYtelse.behandlingsreferanse
-            )
+            val migreringService = MigreringService()
+            if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent)) {
+                TODO("Ikke implementert migrering til nytt grensesnitt for person ${oppdatertTilkjentYtelse.personIdent}")
+            } else {
+                UtbetalingJobbService(connection).opprettUtbetalingJobb(
+                    sakUtbetalingId,
+                    oppdatertTilkjentYtelse.behandlingsreferanse
+                )
+            }
         } else {
             // Sjekk om duplikat ikke er lik, slik at det kan sendes Conflict http code til klienten
             if (!eksisterendeTilkjentYtelse.erLik(oppdatertTilkjentYtelse)) {
