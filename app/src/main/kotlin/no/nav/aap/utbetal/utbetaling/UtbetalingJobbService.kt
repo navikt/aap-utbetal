@@ -5,6 +5,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
 import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.SendUtbetalingUtfører
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -28,6 +29,19 @@ class UtbetalingJobbService(private val connection: DBConnection) {
             JobbInput(OverførTilØkonomiJobbUtfører)
                 .forSak(sakUtbetaling.id!!)
                 .medParameter("utbetalingId", utbetalingId.toString())
+        )
+    }
+
+    /**
+     * Oppretter jobb for å sende utbetalinger gitt behandlingsRef.
+     * (nytt grensesnitt)
+     */
+    fun overførUtbetalingJobbPåNyttGrensesnitt(sakUtbetalingId: Long, behandlingsreferanse: UUID) {
+        log.info("Oppretter jobb for å overføre utbetalinger til økonomi for alle utbetalinger som ikke er overført")
+        FlytJobbRepository(connection).leggTil(
+            JobbInput(SendUtbetalingUtfører)
+                .forSak(sakUtbetalingId)
+                .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
         )
     }
 
