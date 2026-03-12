@@ -21,15 +21,14 @@ class UtbetalingService(private val connection: DBConnection) {
     }
 
     private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
-        val utbetalingListe = UtbetalingRepository(connection).hent(nyTilkjentYtelse.saksnummer)
-
-        val utbetalingTidslinje = byggTidslinje(utbetalingListe)
+        val utbetalingTidslinje = lagUtbetalingTidslinje(nyTilkjentYtelse.saksnummer)
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
         return utbetalinger
     }
 
-    private fun byggTidslinje(utbetalinger: List<Utbetaling>): Tidslinje<UtbetalingData> {
+    fun lagUtbetalingTidslinje(saksnummer: Saksnummer): Tidslinje<UtbetalingData> {
+        val utbetalinger = UtbetalingRepository(connection).hent(saksnummer)
         val segmenter = utbetalinger.flatMap { utbetaling ->
             utbetaling.perioder.map { periode ->
                 Segment(periode = periode.periode, UtbetalingData(

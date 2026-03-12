@@ -67,11 +67,14 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
             val migreringService = MigreringService()
             if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent)) {
-                TODO("Ikke implementert migrering til nytt grensesnitt for person ${oppdatertTilkjentYtelse.personIdent}")
+                UtbetalingJobbService(connection).overførUtbetalingJobbPåNyttGrensesnitt(
+                    sakUtbetalingId = sakUtbetalingId,
+                    behandlingsreferanse = oppdatertTilkjentYtelse.behandlingsreferanse
+                )
             } else {
                 UtbetalingJobbService(connection).opprettUtbetalingJobb(
-                    sakUtbetalingId,
-                    oppdatertTilkjentYtelse.behandlingsreferanse
+                    sakUtbetalingId = sakUtbetalingId,
+                    behandlingsreferanse = oppdatertTilkjentYtelse.behandlingsreferanse
                 )
             }
         } else {
