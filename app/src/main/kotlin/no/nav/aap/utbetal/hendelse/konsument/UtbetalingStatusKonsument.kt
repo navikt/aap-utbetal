@@ -4,9 +4,12 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
+import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.slf4j.LoggerFactory
+import java.util.UUID
 import javax.sql.DataSource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -34,7 +37,6 @@ class UtbetalingStatusKonsument(
     }
 
     private fun håndterEnMelding(melding: ConsumerRecord<String, String>) {
-
         log.info(
             "Behandler utbetaling-status-record med id: {}, partition {}, offset: {}",
             melding.key(),
@@ -43,10 +45,11 @@ class UtbetalingStatusKonsument(
         )
         try {
             dataSource.transaction { connection ->
-                val utbetalingStatus = DefaultJsonMapper.fromJson<UtbetalingStatus>(melding.value())
-                //TODO: Håndter melding
-                //UtbetalingStatusService(connection).håndterUtbetalingStatus(melding.value())
-
+                val utbetalingStatusHendelse = DefaultJsonMapper.fromJson<UtbetalingStatusHendelse>(melding.value())
+                val behandlingRef = UUID.fromString(melding.key())
+                val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+                    ?: throw IllegalStateException("Fant ikke tilkjent ytelse for behandlingRef: $behandlingRef")
+                UtbetalingStatusRepository(connection).lagre(tilkjentYtelse, utbetalingStatusHendelse)
             }
         } catch (exception: Exception) {
             log.error("Kunne ikke håndtere melding fra utbetaling-status: ${melding.key()}", exception)
@@ -54,7 +57,6 @@ class UtbetalingStatusKonsument(
             throw exception
         }
     }
-
 
 }
 
