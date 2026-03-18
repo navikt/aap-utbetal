@@ -4,6 +4,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingLinje
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
+import java.time.LocalDate
 import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
@@ -33,6 +34,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                 TY.BEHANDLING_REF = ? AND
                 US.AKTIV = TRUE
             ORDER BY US.ID DESC
+            LIMIT 1
         """.trimIndent()
 
 
@@ -61,9 +63,10 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                 VEDTAKSSATS, 
                 BELOP, 
                 KLASSEKODE
-            FROM UTBETALING_STATUS_LINJE USL
+            FROM UTBETALING_STATUS_LINJE
             WHERE 
                 UTBETALING_STATUS_ID = ?
+            ORDER BY FOM, TOM
         """.trimIndent()
 
         return connection.queryList(hentUtbetalingStatusLinjerSql) {
@@ -72,8 +75,8 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 UtbetalingStatusLinje(
-                    fom = row.getLocalDate("FOM").toString(),
-                    tom = row.getLocalDate("TOM").toString(),
+                    fom = row.getLocalDate("FOM"),
+                    tom = row.getLocalDate("TOM"),
                     vedtakssats = row.getIntOrNull("VEDTAKSSATS"),
                     beløp = row.getInt("BELOP"),
                     klassekode = row.getString("KLASSEKODE"),
@@ -143,8 +146,8 @@ data class UtbetalingStatus(
 )
 
 data class UtbetalingStatusLinje(
-    val fom: String,
-    val tom: String,
+    val fom: LocalDate,
+    val tom: LocalDate,
     val vedtakssats: Int?,
     val beløp: Int,
     val klassekode: String,
