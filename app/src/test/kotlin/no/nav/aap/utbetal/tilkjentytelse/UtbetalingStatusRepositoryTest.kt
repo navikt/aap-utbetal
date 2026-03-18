@@ -50,7 +50,7 @@ class UtbetalingStatusRepositoryTest {
 
 
     @Test
-    fun `oppdatere utbettalingstatus`() {
+    fun `oppdatere utbetalingstatus`() {
         val behandlingRef = UUID.randomUUID()
         opprettTilkjentYtelse(behandlingRef)
 
@@ -79,7 +79,7 @@ class UtbetalingStatusRepositoryTest {
     }
 
     @Test
-    fun `utbettalingstatus med feilet status`() {
+    fun `utbetalingstatus med feilet status`() {
         val behandlingRef = UUID.randomUUID()
         opprettTilkjentYtelse(behandlingRef)
 

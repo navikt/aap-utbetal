@@ -32,6 +32,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
             WHERE 
                 TY.BEHANDLING_REF = ? AND
                 US.AKTIV = TRUE
+            ORDER BY US.ID DESC
         """.trimIndent()
 
 
@@ -41,11 +42,11 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 UtbetalingStatus(
-                    id = row.getLong("id"),
-                    status = row.getEnum("status"),
-                    httpStatusKode = row.getIntOrNull("http_status_kode"),
-                    feilMelding = row.getStringOrNull("feilmelding"),
-                    dokumentasjonReferanse = row.getStringOrNull("dokumentasjon_referanse"),
+                    id = row.getLong("ID"),
+                    status = row.getEnum("STATUS"),
+                    httpStatusKode = row.getIntOrNull("HTTP_STATUS_KODE"),
+                    feilMelding = row.getStringOrNull("FEILMELDING"),
+                    dokumentasjonReferanse = row.getStringOrNull("DOKUMENTASJON_REFERANSE"),
                     linjer = listOf() //Legger til linjene senere, da det krever en egen spørring for å hente ut linjene til en utbetaling status
                 )
             }
@@ -71,11 +72,11 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 UtbetalingStatusLinje(
-                    fom = row.getLocalDate("fom").toString(),
-                    tom = row.getLocalDate("tom").toString(),
-                    vedtakssats = row.getIntOrNull("vedtakssats"),
-                    beløp = row.getInt("belop"),
-                    klassekode = row.getString("klassekode"),
+                    fom = row.getLocalDate("FOM").toString(),
+                    tom = row.getLocalDate("TOM").toString(),
+                    vedtakssats = row.getIntOrNull("VEDTAKSSATS"),
+                    beløp = row.getInt("BELOP"),
+                    klassekode = row.getString("KLASSEKODE"),
                 )
             }
         }
@@ -138,7 +139,8 @@ data class UtbetalingStatus(
     val httpStatusKode: Int?,
     val feilMelding: String?,
     val dokumentasjonReferanse: String?,
-    val linjer: List<UtbetalingStatusLinje>,)
+    val linjer: List<UtbetalingStatusLinje>,
+)
 
 data class UtbetalingStatusLinje(
     val fom: String,
