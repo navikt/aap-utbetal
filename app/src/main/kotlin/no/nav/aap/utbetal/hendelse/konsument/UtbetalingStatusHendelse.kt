@@ -3,7 +3,7 @@ package no.nav.aap.utbetal.hendelse.konsument
 import java.time.LocalDate
 
 
-data class UtbetalingStatus(
+data class UtbetalingStatusHendelse(
     val status: Status,
     val detaljer: UtbetalingDetaljer,
     val error: UtbetalingError? = null,
@@ -24,10 +24,10 @@ data class UtbetalingError(
 
 data class UtbetalingDetaljer(
     val ytelse: String,
-    val linjer: List<UtbetalingLinjer>,
+    val linjer: List<UtbetalingLinje>,
 )
 
-data class UtbetalingLinjer(
+data class UtbetalingLinje(
     val behandlingId: String,
     val fom: LocalDate,
     val tom: LocalDate,

@@ -1,0 +1,25 @@
+CREATE TABLE UTBETALING_STATUS
+(
+    ID                      BIGSERIAL       NOT NULL PRIMARY KEY,
+    TILKJENT_YTELSE_ID      BIGINT          NOT NULL REFERENCES TILKJENT_YTELSE(ID),
+    STATUS                  VARCHAR(20)     NOT NULL,
+    HTTP_STATUS_KODE        INT             ,
+    FEILMELDING             TEXT            ,
+    DOKUMENTASJON_REFERANSE TEXT            ,
+    AKTIV                   BOOLEAN         NOT NULL DEFAULT TRUE
+);
+
+CREATE INDEX IDX_UTBETALING_STATSUS_TILKJENT_YTELSE_ID ON UTBETALING_STATUS (TILKJENT_YTELSE_ID);
+
+CREATE TABLE UTBETALING_STATUS_LINJE
+(
+    ID                              BIGSERIAL       NOT NULL PRIMARY KEY,
+    UTBETALING_STATUS_ID            BIGINT          NOT NULL REFERENCES UTBETALING_STATUS(ID),
+    FOM                             DATE            NOT NULL,
+    TOM                             DATE            NOT NULL,
+    VEDTAKSSATS                     INT             ,
+    BELOP                           INT             NOT NULL,
+    KLASSEKODE                      VARCHAR(20)     NOT NULL
+);
+
+CREATE INDEX IDX_UTBETALING_STATUS_LINJE_UTBETALING_STATUS_ID ON UTBETALING_STATUS_LINJE (UTBETALING_STATUS_ID);
