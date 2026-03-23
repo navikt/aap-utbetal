@@ -44,7 +44,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.4")
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.apache.kafka:kafka-clients:4.2.0")
@@ -60,7 +60,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.4")
     testImplementation(kotlin("test"))
 }
 
