@@ -21,9 +21,10 @@ class UtbetalingStatusKonsument(
     config: KafkaKonsumentKonfig<String, String>,
     pollTimeout: Duration = 10.seconds,
     closeTimeout: Duration = 30.seconds,
+    topic: String = UTBETALING_STATUS_TOPIC,
     private val dataSource: DataSource,
 ) : KafkaKonsument<String, String>(
-    topic = UTBETALING_STATUS_TOPIC,
+    topic = topic,
     config = config,
     pollTimeout = pollTimeout,
     closeTimeout = closeTimeout,
