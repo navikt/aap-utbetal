@@ -291,12 +291,11 @@ class UtbetalingRepositoryTest {
     }
 
     private fun opprettSakUtbetaling(connection: DBConnection, saksnummer: Saksnummer): Long {
-        return SakUtbetalingRepository(connection).lagre(
-            SakUtbetaling(
-                saksnummer = saksnummer,
-                opprettetTidspunkt = LocalDateTime.now()
-            )
+        val sakUtbetaling =  SakUtbetaling(
+            saksnummer = saksnummer,
+            opprettetTidspunkt = LocalDateTime.now()
         )
+        return SakUtbetalingRepository(connection).lagre(sakUtbetaling, true)
     }
 
 }

@@ -21,13 +21,17 @@ class SakUtbetalingRepository(val connection: DBConnection) {
 
     private val alleSakUtbetalingFelter = "ID, SAKSNUMMER, OPPRETTET_TIDSPUNKT"
 
-    fun lagre(sakUtbetaling: SakUtbetaling): Long {
-        val sql = "INSERT INTO SAK_UTBETALING (SAKSNUMMER, OPPRETTET_TIDSPUNKT) VALUES (?, ?)"
+    fun lagre(sakUtbetaling: SakUtbetaling, migrertTilKafka: Boolean): Long {
+        val sql = """
+            INSERT INTO SAK_UTBETALING (SAKSNUMMER, OPPRETTET_TIDSPUNKT, MIGRERT_TIL_KAFKA) 
+            VALUES (?, ?, ?)
+        """.trimIndent()
 
         return connection.executeReturnKey(sql) {
             setParams {
                 setString(1, sakUtbetaling.saksnummer.toString())
                 setLocalDateTime(2, sakUtbetaling.opprettetTidspunkt)
+                setLocalDateTime(3, if (migrertTilKafka) LocalDateTime.now() else null)
             }
         }
     }
@@ -40,6 +44,16 @@ class SakUtbetalingRepository(val connection: DBConnection) {
             }
         }
 
+    }
+
+    fun settMigrertTilKafka(saksnummer: Saksnummer) {
+        val sql = "UPDATE SAK_UTBETALING SET MIGRERT_TIL_KAFKA = ? WHERE SAKSNUMMER = ?"
+        return connection.execute(sql) {
+            setParams {
+                setLocalDateTime(1, LocalDateTime.now())
+                setString(2, saksnummer.toString())
+            }
+        }
     }
 
     fun hent(saksnummer: Saksnummer): SakUtbetaling? {

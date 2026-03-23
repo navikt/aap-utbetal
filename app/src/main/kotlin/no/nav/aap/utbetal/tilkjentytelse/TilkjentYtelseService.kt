@@ -126,15 +126,16 @@ class TilkjentYtelseService(private val connection: DBConnection) {
      */
     private fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sakUtbetalingRepo = SakUtbetalingRepository(connection)
+        val migrertTilKafka = MigreringService().skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)
         val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
-            sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
+            sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer), migrertTilKafka)
         } else {
             val sakUtbetaling = sakUtbetalingRepo.hent(tilkjentYtelse.saksnummer)
             if (sakUtbetaling != null) {
                 sakUtbetaling.id!!
             } else {
                 // Opprett SakUtbetaling dersom den ikke finnes.
-                sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer))
+                sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer), migrertTilKafka)
             }
         }
         TilkjentYtelseRepository(connection).lagreTilkjentYtelse(tilkjentYtelse)
