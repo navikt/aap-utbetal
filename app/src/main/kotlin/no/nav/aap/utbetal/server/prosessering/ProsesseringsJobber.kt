@@ -10,6 +10,7 @@ object ProsesseringsJobber {
             OpprettUtbetalingUtfører,
             OverførTilØkonomiJobbUtfører,
             SjekkKvitteringFraØkonomiUtfører,
+            SendUtbetalingUtfører,
         )
     }
 }
