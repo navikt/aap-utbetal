@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.hendelse.produsent
 
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.utbetal.helved.UtbetalingMelding
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusent
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
 
