@@ -15,8 +15,18 @@ class MigreringService {
         return false
     }
 
+    // Dette er fnr som brukes til testing av nytt utbetalings-api. Skal bare brukes i test, men må ligge i prod scope av kode.
+    // Slettes når testing er fullført.
     private val whitelisteMigrerteFødselsnummer = setOf<String>(
-        //TODO: Hent liste fra dolly
+        "29509000997",
+        "01509033583",
+        "30519028723",
+        "15419137747",
+        "13429149309",
+        "04509024311",
+        "31529003245",
+        "06509025930",
+        "26529003764",
     )
 
 }
