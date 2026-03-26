@@ -13,8 +13,8 @@ fun TilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap: MeldeperiodeU
         behandlingId = this.behandlingsreferanse.toBase64(),
         ident = this.personIdent,
         utbetalinger = this.perioder.tilUtbetalinger(meldeperiodeUtbetalingMap),
-        vedtakstidspunkt = this.vedtakstidspunkt,
-        saksbehandling = this.saksbehandlerId,
+        vedtakstidspunktet = this.vedtakstidspunkt,
+        saksbehandler = this.saksbehandlerId,
         beslutter = this.beslutterId,
         avvent = this.avvent?.tilAvvent(),
     )

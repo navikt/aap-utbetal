@@ -17,9 +17,9 @@ data class UtbetalingMelding(
     /** Alle utbetalingers om inngår i denne meldingen. */
     val utbetalinger: List<Utbetaling>,
     /** Tidspunkt for vedtaket som førte til utbetalingen. */
-    val vedtakstidspunkt: LocalDateTime,
+    val vedtakstidspunktet: LocalDateTime,
     /** Saksbehandlers ident. */
-    val saksbehandling: String,
+    val saksbehandler: String,
     /** Beslutters ident. */
     val beslutter: String,
     /** Avvent utbetaling. */
