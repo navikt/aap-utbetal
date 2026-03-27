@@ -4,7 +4,7 @@ val ktorVersion = "3.4.1"
 val komponenterVersjon = "2.0.17"
 val behandlingsflytVersjon = "0.0.575"
 val tilgangVersjon = "1.0.182"
-val jacksonVersion = "2.21.1"
+val jacksonVersion = "2.21.2"
 val jupiterVersjon = "6.0.3"
 
 plugins {
@@ -44,7 +44,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.4")
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.apache.kafka:kafka-clients:4.2.0")
@@ -60,8 +60,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
-    testImplementation("org.testcontainers:testcontainers-kafka:2.0.3")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.4")
+    testImplementation("org.testcontainers:testcontainers-kafka:2.0.4")
     testImplementation(kotlin("test"))
 }
 
