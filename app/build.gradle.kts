@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.3"
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.1"
+    id("io.ktor.plugin") version "3.4.2"
 }
 
 application {
