@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.3"
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.1"
+    id("io.ktor.plugin") version "3.4.2"
 }
 
 application {
@@ -52,11 +52,11 @@ dependencies {
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:12.2.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.3.0")
     runtimeOnly("org.postgresql:postgresql:42.7.10")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.8")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.7")
