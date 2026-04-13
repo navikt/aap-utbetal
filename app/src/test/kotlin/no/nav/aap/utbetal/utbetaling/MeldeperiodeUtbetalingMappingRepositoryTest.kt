@@ -143,12 +143,7 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
     private fun opprettSakUtbetaling(saksnummer: Saksnummer): Long {
         return dataSource.transaction { connection ->
             val sakUtbetalingRepo = SakUtbetalingRepository(connection)
-            val sakUtbetaling = SakUtbetaling(
-                id = 1,
-                saksnummer = saksnummer,
-                opprettetTidspunkt = LocalDateTime.now(),
-            )
-            sakUtbetalingRepo.lagre(sakUtbetaling, true)
+            sakUtbetalingRepo.lagre(saksnummer, true)
 
         }
     }

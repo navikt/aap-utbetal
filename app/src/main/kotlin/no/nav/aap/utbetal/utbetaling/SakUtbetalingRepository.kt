@@ -10,6 +10,7 @@ data class SakUtbetaling(
     val id: Long? = null,
     val saksnummer: Saksnummer,
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
+    val migrertTilKafka: LocalDateTime?,
 )
 
 data class SakOgBehandling(
@@ -19,19 +20,21 @@ data class SakOgBehandling(
 
 class SakUtbetalingRepository(val connection: DBConnection) {
 
-    private val alleSakUtbetalingFelter = "ID, SAKSNUMMER, OPPRETTET_TIDSPUNKT"
+    private val alleSakUtbetalingFelter = "ID, SAKSNUMMER, OPPRETTET_TIDSPUNKT, MIGRERT_TIL_KAFKA"
 
-    fun lagre(sakUtbetaling: SakUtbetaling, migrertTilKafka: Boolean): Long {
+    fun lagre(saksnummer: Saksnummer, migrertTilKafka: Boolean): Long {
         val sql = """
             INSERT INTO SAK_UTBETALING (SAKSNUMMER, OPPRETTET_TIDSPUNKT, MIGRERT_TIL_KAFKA) 
             VALUES (?, ?, ?)
         """.trimIndent()
 
+        val nå = LocalDateTime.now()
+
         return connection.executeReturnKey(sql) {
             setParams {
-                setString(1, sakUtbetaling.saksnummer.toString())
-                setLocalDateTime(2, sakUtbetaling.opprettetTidspunkt)
-                setLocalDateTime(3, if (migrertTilKafka) LocalDateTime.now() else null)
+                setString(1, saksnummer.toString())
+                setLocalDateTime(2, nå)
+                setLocalDateTime(3, if (migrertTilKafka) nå else null)
             }
         }
     }
@@ -105,7 +108,8 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         SakUtbetaling(
             id = this.getLong("ID"),
             saksnummer = Saksnummer(this.getString("SAKSNUMMER")),
-            opprettetTidspunkt = this.getLocalDateTime("OPPRETTET_TIDSPUNKT")
+            opprettetTidspunkt = this.getLocalDateTime("OPPRETTET_TIDSPUNKT"),
+            migrertTilKafka = this.getLocalDateTimeOrNull("MIGRERT_TIL_KAFKA")
         )
 
 

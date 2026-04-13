@@ -15,9 +15,12 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetaling.helved.toBase64
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.internals.RecordHeader
 import org.apache.kafka.common.serialization.StringSerializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -45,6 +48,7 @@ class UtbetalingStatusKonsumentTest {
         )
         val behandlingRef = UUID.randomUUID()
         lagreTilkjentYtelse(behandlingRef, periode)
+        lagreSakUtbetaling(behandlingRef)
 
         val producerProps = Properties().apply {
             put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
@@ -56,7 +60,7 @@ class UtbetalingStatusKonsumentTest {
             val hendelse = lagUtbetalingStatusHendelse(behandlingRef, periode)
             val value = DefaultJsonMapper.toJson(hendelse)
             produsent.send(
-                ProducerRecord(LOKAL_UTBETALING_STATUS_TOPIC,behandlingRef.toString(), value)
+                ProducerRecord(LOKAL_UTBETALING_STATUS_TOPIC, null,behandlingRef.toString(), value, listOf(RecordHeader("fagsystem", "AAP".toByteArray())))
             )
             produsent.flush()
         }
@@ -80,6 +84,13 @@ class UtbetalingStatusKonsumentTest {
             val utbetalingStatus = UtbetalingStatusRepository(connection).hent(behandlingRef)
             assertThat(utbetalingStatus).isNotNull()
             assertThat(utbetalingStatus?.status).isEqualTo(Status.OK)
+        }
+    }
+
+    private fun lagreSakUtbetaling(behandlingRef: UUID) {
+        dataSource.transaction { connection ->
+            val saksnummer = TilkjentYtelseRepository(connection).hent(behandlingRef)!!.saksnummer
+            SakUtbetalingRepository(connection).lagre(saksnummer, true)
         }
     }
 
@@ -131,7 +142,7 @@ class UtbetalingStatusKonsumentTest {
                 ytelse = "AAP",
                 linjer = listOf(
                     UtbetalingLinje(
-                        behandlingId = behandlingRef.toString(),
+                        behandlingId = behandlingRef.toBase64(),
                         fom = periode.fom,
                         tom = periode.tom,
                         vedtakssats = 1000u,

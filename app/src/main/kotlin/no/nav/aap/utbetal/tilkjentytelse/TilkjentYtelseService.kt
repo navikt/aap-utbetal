@@ -7,7 +7,6 @@ import no.nav.aap.utbetal.trekk.TrekkPostering
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.trekk.TrekkService
 import no.nav.aap.utbetal.utbetaling.KvitteringService
-import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
@@ -128,14 +127,14 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val sakUtbetalingRepo = SakUtbetalingRepository(connection)
         val migrertTilKafka = MigreringService().skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)
         val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
-            sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer), migrertTilKafka)
+            sakUtbetalingRepo.lagre(tilkjentYtelse.saksnummer, migrertTilKafka)
         } else {
             val sakUtbetaling = sakUtbetalingRepo.hent(tilkjentYtelse.saksnummer)
             if (sakUtbetaling != null) {
                 sakUtbetaling.id!!
             } else {
                 // Opprett SakUtbetaling dersom den ikke finnes.
-                sakUtbetalingRepo.lagre(SakUtbetaling(saksnummer = tilkjentYtelse.saksnummer), migrertTilKafka)
+                sakUtbetalingRepo.lagre(tilkjentYtelse.saksnummer, migrertTilKafka)
             }
         }
         TilkjentYtelseRepository(connection).lagreTilkjentYtelse(tilkjentYtelse)
