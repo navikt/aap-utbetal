@@ -162,7 +162,7 @@ class UtbetalingRepositoryTest {
 
             // En annen transaksjon kommer i mellom og oppdaterer til BEKREFTET
             dataSource.transaction { innerConnection ->
-                val utbetalingRepo2 = UtbetalingRepository(connection)
+                val utbetalingRepo2 = UtbetalingRepository(innerConnection)
                 val utbetaling = utbetalingRepo2.hentUtbetaling(utbetalingId)
                 utbetalingRepo2.oppdaterStatus(utbetaling.id!!, utbetaling.versjon, UtbetalingStatus.BEKREFTET)
 
@@ -291,11 +291,7 @@ class UtbetalingRepositoryTest {
     }
 
     private fun opprettSakUtbetaling(connection: DBConnection, saksnummer: Saksnummer): Long {
-        val sakUtbetaling =  SakUtbetaling(
-            saksnummer = saksnummer,
-            opprettetTidspunkt = LocalDateTime.now()
-        )
-        return SakUtbetalingRepository(connection).lagre(sakUtbetaling, true)
+        return SakUtbetalingRepository(connection).lagre(saksnummer, true)
     }
 
 }
