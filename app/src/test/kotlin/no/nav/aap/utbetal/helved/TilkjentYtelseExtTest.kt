@@ -6,7 +6,9 @@ import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
+import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvvent
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
 import org.assertj.core.api.Assertions.assertThat
@@ -189,6 +191,54 @@ class TilkjentYtelseExtTest {
         assertThat(melding.beslutter).isEqualTo("beslutter1")
         assertThat(melding.vedtakstidspunktet).isEqualTo(vedtakstidspunkt)
         assertThat(melding.avvent).isNull()
+    }
+
+    @Test
+    fun `tilAvvent mapper felter korrekt`() {
+        val fom = "2026-04-01"
+        val tom = "2026-04-14"
+        val overføres = "2026-04-15"
+        val årsak = "AVVENT_AVREGNING"
+        val feilregistrering = false
+
+        val tilkjentYtelseAvvent = TilkjentYtelseAvvent(
+            fom = LocalDate.parse(fom),
+            tom = LocalDate.parse(tom),
+            overføres = LocalDate.parse(overføres),
+            AvventÅrsak.valueOf(årsak),
+            feilregistrering
+        )
+
+        val avvent = tilkjentYtelseAvvent.tilAvvent()
+
+        assertThat(avvent.fom).isEqualTo(fom)
+        assertThat(avvent.tom).isEqualTo(tom)
+        assertThat(avvent.overføres).isEqualTo(overføres)
+        assertThat(avvent.årsak).isEqualTo(årsak)
+        assertThat(avvent.feilregistrering).isEqualTo(feilregistrering)
+    }
+
+    @Test
+    fun `tilAvvent med nullverdier mapper felter korrekt`() {
+        val fom = "2026-04-01"
+        val tom = "2026-04-14"
+        val feilregistrering = false
+
+        val tilkjentYtelseAvvent = TilkjentYtelseAvvent(
+            fom = LocalDate.parse(fom),
+            tom = LocalDate.parse(tom),
+            overføres = null,
+            årsak = null,
+            feilregistrering
+        )
+
+        val avvent = tilkjentYtelseAvvent.tilAvvent()
+
+        assertThat(avvent.fom).isEqualTo(fom)
+        assertThat(avvent.tom).isEqualTo(tom)
+        assertThat(avvent.overføres).isNull()
+        assertThat(avvent.årsak).isNull()
+        assertThat(avvent.feilregistrering).isEqualTo(feilregistrering)
     }
 
     private fun lagTilkjentYtelse(perioder: List<TilkjentYtelsePeriode>): TilkjentYtelse {
