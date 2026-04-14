@@ -4,18 +4,12 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class SakUtbetaling(
     val id: Long? = null,
     val saksnummer: Saksnummer,
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
     val migrertTilKafka: LocalDateTime?,
-)
-
-data class SakOgBehandling(
-    val saksnummer: Saksnummer,
-    val behandlingRef: UUID
 )
 
 class SakUtbetalingRepository(val connection: DBConnection) {
@@ -39,16 +33,6 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         }
     }
 
-    fun avslutt(saksnummer: Saksnummer) {
-        val sql = "UPDATE SAK_UTBETALING SET AKTIV = FALSE WHERE SAKSNUMMER = ?"
-        return connection.execute(sql) {
-            setParams {
-                setString(1, saksnummer.toString())
-            }
-        }
-
-    }
-
     fun settMigrertTilKafka(saksnummer: Saksnummer) {
         val sql = "UPDATE SAK_UTBETALING SET MIGRERT_TIL_KAFKA = ? WHERE SAKSNUMMER = ?"
         return connection.execute(sql) {
@@ -70,40 +54,6 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         }
     }
 
-    fun finnÅpneSakerOgSisteBehandling(): List<SakOgBehandling> {
-        val finnSisteTilkjentYtelseSql = """
-            SELECT
-                TY.SAKSNUMMER,
-                TY.BEHANDLING_REF
-            FROM 
-                TILKJENT_YTELSE TY,
-                SAK_UTBETALING SU
-            WHERE
-                TY.BEHANDLING_REF NOT IN (
-                    SELECT FORRIGE_BEHANDLING_REF FROM TILKJENT_YTELSE WHERE SAKSNUMMER = TY.SAKSNUMMER AND FORRIGE_BEHANDLING_REF IS NOT NULL
-                ) AND
-                TY.SAKSNUMMER = SU.SAKSNUMMER
-        """.trimIndent()
-
-        return connection.queryList<SakOgBehandling>(finnSisteTilkjentYtelseSql) {
-            setRowMapper { row ->
-                SakOgBehandling(
-                    saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
-                    behandlingRef = row.getUUID("BEHANDLING_REF")
-                )
-            }
-        }
-    }
-
-    fun finnAktiveSaker(): List<SakUtbetaling> {
-        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE AKTIV = TRUE"
-
-        return connection.queryList(sql) {
-            setRowMapper { it.tilSakUtbetaling() }
-        }
-
-    }
-
     private fun Row.tilSakUtbetaling() =
         SakUtbetaling(
             id = this.getLong("ID"),
@@ -111,6 +61,5 @@ class SakUtbetalingRepository(val connection: DBConnection) {
             opprettetTidspunkt = this.getLocalDateTime("OPPRETTET_TIDSPUNKT"),
             migrertTilKafka = this.getLocalDateTimeOrNull("MIGRERT_TIL_KAFKA")
         )
-
 
 }
