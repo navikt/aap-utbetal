@@ -8,7 +8,13 @@ import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
-import java.util.UUID
+import java.time.LocalDateTime
+import java.util.*
+
+data class AvventPeriode (
+    val avvent: Periode,
+    val vedtakstidspunkt: LocalDateTime,
+)
 
 class TilkjentYtelseRepository(private val connection: DBConnection) {
 
@@ -39,6 +45,31 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         return tilkjentYtelseId
     }
 
+    fun hentTilkjentYtelseAvventHistorikk(saksnummer: Saksnummer): List<AvventPeriode> {
+        val sql = """
+            SELECT 
+                PERIODE,
+                VEDTAKSTIDSPUNKT
+            FROM TILKJENT_YTELSE_AVVENT
+            JOIN TILKJENT_YTELSE ON TILKJENT_YTELSE.ID = TILKJENT_YTELSE_AVVENT.TILKJENT_YTELSE_ID
+            WHERE SAKSNUMMER = ?
+            ORDER BY VEDTAKSTIDSPUNKT
+        """.trimIndent()
+
+        return connection.queryList(sql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+
+            setRowMapper {
+                AvventPeriode(
+                    avvent = it.getPeriode("PERIODE"),
+                    vedtakstidspunkt = it.getLocalDateTime("VEDTAKSTIDSPUNKT"),
+                )
+            }
+        }
+
+    }
 
     private fun lagreTilkjentYtelsePerioder(tilkjentYtelseId: Long, tilkjentPerioder: List<TilkjentYtelsePeriode>) {
         val sqlInsertTilkjentPeriode = """
@@ -175,60 +206,6 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         )
     }
 
-    fun finnSisteTilkjentYtelse(saksnummer: Saksnummer): Long? {
-        val finnSisteTilkjentYtelseSql = """
-            SELECT
-                ID
-            FROM 
-                TILKJENT_YTELSE
-            WHERE
-                SAKSNUMMER = ? AND
-                BEHANDLING_REF NOT IN (
-                    SELECT FORRIGE_BEHANDLING_REF FROM TILKJENT_YTELSE WHERE SAKSNUMMER = ? AND FORRIGE_BEHANDLING_REF IS NOT NULL
-                )
-        """.trimIndent()
-
-        return connection.queryFirstOrNull<Long>(finnSisteTilkjentYtelseSql) {
-            setParams {
-                setString(1, saksnummer.toString())
-                setString(2, saksnummer.toString())
-            }
-            setRowMapper { row -> row.getLong("ID") }
-        }
-    }
-
-    fun finnRekkefølgeTilkjentYtelse(saksnummer: Saksnummer): List<TilkjentYtelseLight> {
-        val sql = """
-            WITH RECURSIVE sorted_rows AS (
-                SELECT id, behandling_ref, forrige_behandling_ref, 1 AS depth
-                FROM tilkjent_ytelse
-                WHERE forrige_behandling_ref IS NULL and saksnummer = ?
-            
-                UNION ALL
-            
-                SELECT ty.id, ty.behandling_ref, ty.forrige_behandling_ref, sr.depth +1
-                FROM tilkjent_ytelse ty
-                JOIN sorted_rows sr ON ty.forrige_behandling_ref = sr.behandling_ref
-            )
-            SELECT id, behandling_ref, forrige_behandling_ref
-            FROM sorted_rows
-            ORDER BY depth
-        """.trimIndent()
-
-        return connection.queryList(sql) {
-            setParams {
-                setString(1, saksnummer.toString())
-            }
-            setRowMapper { row ->
-                TilkjentYtelseLight(
-                    id = row.getLong("ID"),
-                    behandlingRef = row.getUUID("BEHANDLING_REF"),
-                    forrigeBehandlingRef = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
-                )
-            }
-        }
-    }
-
     private fun hentAvvent(tilkjentYtelseId: Long): TilkjentYtelseAvvent? {
         val sqlHentAvvent = """
             SELECT
@@ -331,10 +308,3 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     }
 
 }
-
-data class TilkjentYtelseLight(
-    val id: Long,
-    val behandlingRef: UUID,
-    val forrigeBehandlingRef: UUID?
-)
-
