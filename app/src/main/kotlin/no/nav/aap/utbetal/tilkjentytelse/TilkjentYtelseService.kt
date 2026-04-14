@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.MigreringService
 import no.nav.aap.utbetal.trekk.TrekkPostering
@@ -57,9 +58,11 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         //Lagre tilkjent ytelse dersom den ikke er duplikat
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
 
-
         val trekkPosteringer = beregnTrekkPosteringer(tilkjentYtelse)
-        val oppdatertTilkjentYtelse = TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
+        var oppdatertTilkjentYtelse = TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
+        if (!Miljø.erProd()) {
+            oppdatertTilkjentYtelse = oppdaterFeilregistreringBasertPåForrigeAvvent(oppdatertTilkjentYtelse)
+        }
 
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
@@ -182,6 +185,21 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             if (periode1.beløp != periode2.beløp) return false
         }
         return true
+    }
+
+    private fun oppdaterFeilregistreringBasertPåForrigeAvvent(
+        tilkjentYtelse: TilkjentYtelse,
+    ): TilkjentYtelse {
+        val avventHistorikk = TilkjentYtelseRepository(connection).hentTilkjentYtelseAvventHistorikk(tilkjentYtelse.saksnummer)
+        if (avventHistorikk.isEmpty()) return tilkjentYtelse
+
+        val nyAvvent = tilkjentYtelse.avvent ?: return tilkjentYtelse
+        val gammelAvventPeriode = avventHistorikk.last().avvent ?: return tilkjentYtelse
+        if (nyAvvent.fom != gammelAvventPeriode.fom || nyAvvent.tom != gammelAvventPeriode.tom) {
+            log.info("Oppdaterte feilregistrering fordi ny avvent periode ${nyAvvent.fom}-${nyAvvent.tom} er forskjellig fra tidligere ${gammelAvventPeriode.fom}-${gammelAvventPeriode.tom}")
+            return tilkjentYtelse.copy(avvent = nyAvvent.copy(feilregistrering = true))
+        }
+        return tilkjentYtelse
     }
 
     private fun Beløp.avrundet() = verdi.toLong()
