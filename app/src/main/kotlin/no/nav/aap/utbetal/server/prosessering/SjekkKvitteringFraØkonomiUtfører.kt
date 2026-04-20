@@ -10,6 +10,8 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import kotlin.time.measureTime
 
 class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): JobbUtfører {
 
@@ -19,10 +21,15 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
         val utbetalingerSomManglerKvitteringer = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
         val sendtMenManglerKvittering = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.SENDT}
         val feiletStatus = utbetalingerSomManglerKvitteringer.count {it.utbetalingStatus == UtbetalingStatus.FEILET}
-        log.info("Mangler kvitteringer på $sendtMenManglerKvittering utbetalinger")
+        val for10MinutterSiden = LocalDateTime.now().minusMinutes(10)
+        val antallUtbetalingMedForsinkedeKvitteringer = utbetalingerSomManglerKvitteringer.count {it.utbetalingOpprettet < for10MinutterSiden  }
+        log.info("Mangler kvitteringer på $sendtMenManglerKvittering utbetalinger. Antall som er mer enn 10 minutter gamle: $antallUtbetalingMedForsinkedeKvitteringer")
         log.info("Feilet status på $feiletStatus utbetalinger")
         val kvitteringService = KvitteringService(connection)
-        utbetalingerSomManglerKvitteringer.forEach { kvitteringService.sjekkKvittering(it) }
+        val tid = measureTime {
+            utbetalingerSomManglerKvitteringer.forEach { kvitteringService.sjekkKvittering(it) }
+        }
+        log.info("Henting av kvittering for ${sendtMenManglerKvittering + feiletStatus} utbetalinger tok $tid")
     }
 
     companion object: Jobb {
