@@ -7,6 +7,8 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -22,6 +24,8 @@ data class UtbetalingLight(
 )
 
 class UtbetalingRepository(private val connection: DBConnection) {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     fun lagre(sakUtbetalingId: Long, utbetaling: Utbetaling): Long {
         slettTidligereUtbetaling(utbetaling.utbetalingRef)
@@ -173,9 +177,9 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 TY.BEHANDLING_REF = ? AND
                 TY.ID = U.TILKJENT_YTELSE_ID
         """.trimIndent()
-        
+
         return connection.queryList(hentUtbetalingerSql) {
-            setParams { 
+            setParams {
                 setUUID(1, behandlingsreferanse)
             }
             setRowMapper { mapUtbetaling(it) }
@@ -367,7 +371,12 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 setLong(2, utbetalingId)
                 setLong(3, versjon)
             }
-            setResultValidator { require(it == 1) }
+            setResultValidator {
+                if (it != 1) {
+                    log.warn("Utbetaling med status $status oppdatert for utbetalingId $utbetalingId, versjon $versjon. Antall rader oppdatert: $it")
+                }
+                require(it == 1)
+            }
         }
     }
 
