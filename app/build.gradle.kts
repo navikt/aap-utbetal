@@ -60,8 +60,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersjon")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersjon")
     testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.4")
-    testImplementation("org.testcontainers:testcontainers-kafka:2.0.4")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-kafka:2.0.5")
     testImplementation(kotlin("test"))
 }
 
