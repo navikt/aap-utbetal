@@ -33,6 +33,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.io.BufferedWriter
@@ -58,6 +59,7 @@ class ApiTest {
     @AfterTest
     fun cleanup() {
         fakes.utbetalinger.clear()
+        fakes.kall.clear()
     }
 
     @Test
@@ -206,6 +208,117 @@ class ApiTest {
     }
 
 
+    @Test
+    fun `Endring av avvent-periode skal feilregistrere gammel periode før ny periode sendes`() {
+        // Opprett første behandling med avvent
+        val saksnummer = Random().nextInt(999999999).toString()
+        val startDato = LocalDate.of(2024, 12, 1)
+
+        val gammelAvvent = TilkjentYtelseAvventDto(
+            fom = LocalDate.of(2024, 12, 1),
+            tom = LocalDate.of(2024, 12, 31),
+            overføres = LocalDate.of(2025, 1, 21),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        val ty1 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(500L)).copy(avvent = gammelAvvent)
+
+        // Send første tilkjent ytelse og vent på motor
+        postTilkjentYtelse(ty1)
+        val uid1 = ventPåMotor(dataSource, ty1.saksnummer, ty1.behandlingsreferanse)
+        settUtbetalingTilBekreftet(uid1)
+
+        // Opprett andre tilkjent ytelse med endring i avvent periode
+        val nyAvvent = TilkjentYtelseAvventDto(
+            fom = LocalDate.of(2024, 11, 15),
+            tom = LocalDate.of(2024, 12, 31),
+            overføres = LocalDate.of(2025, 1, 21),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        val ty2 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(600L)).copy(
+            forrigeBehandlingsreferanse = ty1.behandlingsreferanse,
+            avvent = nyAvvent,
+        )
+
+        // Send andre tilkjent ytelse og vent på motor
+        postTilkjentYtelse(ty2)
+        ventPåMotor(dataSource, ty2.saksnummer, ty1.behandlingsreferanse)
+        ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
+
+        // Sjekk feilregistreringskall
+        val feilregistrerte = fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }
+        assertThat(feilregistrerte).hasSize(1)
+        val feilregKall = feilregistrerte.single()
+        assertThat(feilregKall.metode).isEqualTo("PUT")
+        assertThat(feilregKall.utbetalingRef).isNotEqualTo(uid1)
+        assertThat(feilregKall.utbetaling.avvent!!.fom).isEqualTo(gammelAvvent.fom)
+        assertThat(feilregKall.utbetaling.avvent.tom).isEqualTo(gammelAvvent.tom)
+        assertThat(feilregKall.utbetaling.avvent.årsak).isEqualTo(gammelAvvent.årsak)
+        assertThat(feilregKall.utbetaling.avvent.overføres).isEqualTo(gammelAvvent.overføres)
+        assertThat(feilregKall.utbetaling.avvent.feilregistrering).isTrue()
+
+        // Sjekk om det kommer et kall med ny avvent etter feilregistreringskallet
+        val feilregIndex = fakes.kall.indexOf(feilregKall)
+        val nyAvventKallIndex = fakes.kall.indexOfFirst {
+            it.utbetaling.avvent?.feilregistrering == false
+                && it.utbetaling.avvent.fom == nyAvvent.fom
+                && it.utbetaling.avvent.tom == nyAvvent.tom
+        }
+        assertThat(nyAvventKallIndex).isGreaterThan(feilregIndex)
+    }
+
+    @Test
+    fun `Uendret avvent-periode skal ikke føre til feilregistrering`() {
+        val saksnummer = Random().nextInt(999999999).toString()
+        val startDato = LocalDate.of(2024, 12, 1)
+
+        val avvent = TilkjentYtelseAvventDto(
+            fom = LocalDate.of(2024, 12, 1),
+            tom = LocalDate.of(2024, 12, 31),
+            overføres = LocalDate.of(2025, 1, 21),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        val ty1 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(500L)).copy(avvent = avvent)
+        postTilkjentYtelse(ty1)
+        val uid1 = ventPåMotor(dataSource, ty1.saksnummer, ty1.behandlingsreferanse)
+        settUtbetalingTilBekreftet(uid1)
+
+        val ty2 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(600L)).copy(
+            forrigeBehandlingsreferanse = ty1.behandlingsreferanse,
+            avvent = avvent,
+        )
+        postTilkjentYtelse(ty2)
+        ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
+
+        assertThat(fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }).isEmpty()
+    }
+
+    @Test
+    fun `Første gang avvent settes skal ikke føre til feilregistrering`() {
+        val saksnummer = Random().nextInt(999999999).toString()
+        val startDato = LocalDate.of(2024, 12, 1)
+
+        val ty1 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(500L))
+        postTilkjentYtelse(ty1)
+        val uid1 = ventPåMotor(dataSource, ty1.saksnummer, ty1.behandlingsreferanse)
+        settUtbetalingTilBekreftet(uid1)
+
+        val nyAvvent = TilkjentYtelseAvventDto(
+            fom = LocalDate.of(2024, 12, 15),
+            tom = LocalDate.of(2025, 1, 15),
+            overføres = LocalDate.of(2025, 2, 1),
+            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        )
+        val ty2 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(600L)).copy(
+            forrigeBehandlingsreferanse = ty1.behandlingsreferanse,
+            avvent = nyAvvent,
+        )
+        postTilkjentYtelse(ty2)
+        ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
+
+        assertThat(fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }).isEmpty()
+    }
+
+
     private fun settUtbetalingTilBekreftet(uid: UUID) {
         dataSource.transaction { connection ->
             connection.execute("update utbetaling set utbetaling_status = 'BEKREFTET' where utbetaling_ref = ?") {
@@ -340,6 +453,13 @@ class ApiTest {
             server(dbConfig = dbConfig, NoAuthConfig)
             module(fakes)
         }.start()
+
+
+        @JvmStatic
+        @BeforeAll
+        fun beforeall() {
+            System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+        }
 
         @AfterTest
         fun resetDatabase() {

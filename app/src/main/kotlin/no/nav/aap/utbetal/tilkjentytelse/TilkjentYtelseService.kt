@@ -1,7 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.MigreringService
 import no.nav.aap.utbetal.trekk.TrekkPostering
@@ -59,10 +58,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val tilkjentYtelseRepo = TilkjentYtelseRepository(connection)
 
         val trekkPosteringer = beregnTrekkPosteringer(tilkjentYtelse)
-        var oppdatertTilkjentYtelse = TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
-        if (!Miljø.erProd()) {
-            oppdatertTilkjentYtelse = oppdaterFeilregistreringBasertPåForrigeAvvent(oppdatertTilkjentYtelse)
-        }
+        val oppdatertTilkjentYtelse = TilkjentYtelsePeriodeSplitter.splitt(tilkjentYtelse, trekkPosteringer)
 
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
@@ -95,7 +91,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val trekkService = TrekkService(trekkRepo)
         trekkService.oppdaterTrekk(tilkjentYtelse)
         val trekkListe = trekkRepo.hentTrekk(tilkjentYtelse.saksnummer)
-        return trekkListe.map { it.posteringer }.flatten()
+        return trekkListe.flatMap { it.posteringer }
     }
 
 
@@ -187,6 +183,8 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         return true
     }
 
+    /* Fungerer ikke for gammelt api. Mulig vi kan bruke denne koden for nytt grensesnitt
+
     private fun oppdaterFeilregistreringBasertPåForrigeAvvent(
         tilkjentYtelse: TilkjentYtelse,
     ): TilkjentYtelse {
@@ -194,13 +192,15 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         if (avventHistorikk.isEmpty()) return tilkjentYtelse
 
         val nyAvvent = tilkjentYtelse.avvent ?: return tilkjentYtelse
-        val gammelAvventPeriode = avventHistorikk.last().avvent ?: return tilkjentYtelse
+        val gammelAvventPeriode = avventHistorikk.last().avvent
         if (nyAvvent.fom != gammelAvventPeriode.fom || nyAvvent.tom != gammelAvventPeriode.tom) {
             log.info("Oppdaterte feilregistrering fordi ny avvent periode ${nyAvvent.fom}-${nyAvvent.tom} er forskjellig fra tidligere ${gammelAvventPeriode.fom}-${gammelAvventPeriode.tom}")
             return tilkjentYtelse.copy(avvent = nyAvvent.copy(feilregistrering = true))
         }
         return tilkjentYtelse
     }
+
+     */
 
     private fun Beløp.avrundet() = verdi.toLong()
 
