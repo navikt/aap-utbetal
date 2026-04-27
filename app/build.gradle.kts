@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val ktorVersion = "3.4.2"
+val ktorVersion = "3.4.3"
 val komponenterVersjon = "2.0.46"
 val behandlingsflytVersjon = "0.0.591"
 val tilgangVersjon = "1.0.196"
@@ -9,7 +9,7 @@ val jupiterVersjon = "6.0.3"
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.2"
+    id("io.ktor.plugin") version "3.4.3"
 }
 
 application {
