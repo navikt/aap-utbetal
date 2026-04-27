@@ -13,7 +13,10 @@ import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
 import no.nav.aap.utbetal.simulering.SimuleringDto
 import java.util.*
 
-fun Application.helvedUtbetalingFake(utbetalinger: MutableMap<UUID, Utbetaling>) {
+fun Application.helvedUtbetalingFake(
+    utbetalinger: MutableMap<UUID, Utbetaling>,
+    kall: MutableList<HelvedKall> = mutableListOf(),
+) {
 
     routing {
         install(ContentNegotiation) {
@@ -25,12 +28,14 @@ fun Application.helvedUtbetalingFake(utbetalinger: MutableMap<UUID, Utbetaling>)
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
             utbetalinger[utbetalingRef] = utbetaling
+            kall.add(HelvedKall("POST", utbetalingRef, utbetaling))
             call.respond(HttpStatusCode.Created)
         }
         put("/utbetalinger/{uid}") {
             val utbetalingRef = UUID.fromString(call.parameters["uid"])
             val utbetaling = call.receive<Utbetaling>()
             utbetalinger[utbetalingRef] = utbetaling
+            kall.add(HelvedKall("PUT", utbetalingRef, utbetaling))
             call.respond(HttpStatusCode.NoContent)
         }
         delete("/utbetalinger/{uid}") {

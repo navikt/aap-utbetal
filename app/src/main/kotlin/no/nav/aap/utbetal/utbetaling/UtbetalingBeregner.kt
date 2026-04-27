@@ -30,10 +30,14 @@ data class UtbetalingsperiodeMedReferanse(
 )
 
 data class Utbetalinger(
+    val utbetalingMedSlettingAvAvventPeriode: Utbetaling? = null,
     val endringUtbetalinger: List<Utbetaling>,
     val nyeUtbetalinger: List<Utbetaling>,
 ) {
-    fun alle(): List<Utbetaling> = endringUtbetalinger + nyeUtbetalinger
+    fun alle(): List<Utbetaling> =
+        listOfNotNull(utbetalingMedSlettingAvAvventPeriode) +
+        endringUtbetalinger +
+        nyeUtbetalinger
 }
 
 class UtbetalingBeregner {

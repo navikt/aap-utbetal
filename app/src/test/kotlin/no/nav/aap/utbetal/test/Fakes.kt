@@ -5,12 +5,20 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
-class Fakes() : AutoCloseable{
+data class HelvedKall(
+    val metode: String,
+    val utbetalingRef: UUID,
+    val utbetaling: Utbetaling,
+)
+
+class Fakes : AutoCloseable{
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = FakeServer(module = { azureFake() }, port = 8081)
     val utbetalinger = ConcurrentHashMap<UUID, Utbetaling>()
-    private val helvedUtbetaling = FakeServer(module = {helvedUtbetalingFake(utbetalinger)})
+    val kall: MutableList<HelvedKall> = CopyOnWriteArrayList()
+    private val helvedUtbetaling = FakeServer(module = {helvedUtbetalingFake(utbetalinger, kall)})
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure

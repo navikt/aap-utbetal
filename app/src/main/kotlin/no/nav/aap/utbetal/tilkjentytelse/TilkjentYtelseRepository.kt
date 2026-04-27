@@ -8,11 +8,17 @@ import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 data class AvventPeriode (
+    val tilkjentYtelseId: Long,
+    val behandlingRef: UUID,
     val avvent: Periode,
+    val overføres: LocalDate?,
+    val årsak: AvventÅrsak?,
+    val feilregistrering: Boolean,
     val vedtakstidspunkt: LocalDateTime,
 )
 
@@ -48,7 +54,12 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
     fun hentTilkjentYtelseAvventHistorikk(saksnummer: Saksnummer): List<AvventPeriode> {
         val sql = """
             SELECT 
+                TILKJENT_YTELSE.ID AS TILKJENT_YTELSE_ID,
+                BEHANDLING_REF,
                 PERIODE,
+                OVERFORES,
+                ARSAK,
+                FEILREGISTRERING,
                 VEDTAKSTIDSPUNKT
             FROM TILKJENT_YTELSE_AVVENT
             JOIN TILKJENT_YTELSE ON TILKJENT_YTELSE.ID = TILKJENT_YTELSE_AVVENT.TILKJENT_YTELSE_ID
@@ -63,7 +74,12 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
 
             setRowMapper {
                 AvventPeriode(
+                    tilkjentYtelseId = it.getLong("tilkjent_ytelse_id"),
+                    behandlingRef = it.getUUID("BEHANDLING_REF"),
                     avvent = it.getPeriode("PERIODE"),
+                    overføres = it.getLocalDateOrNull("OVERFORES"),
+                    årsak = AvventÅrsak.valueOf(it.getString("ARSAK")),
+                    feilregistrering = it.getBoolean("FEILREGISTRERING"),
                     vedtakstidspunkt = it.getLocalDateTime("VEDTAKSTIDSPUNKT"),
                 )
             }
@@ -180,7 +196,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         """.trimIndent()
 
 
-        val tilkjentYtelse = connection.queryFirstOrNull<TilkjentYtelse>(selectTilkjentYtelse) {
+        val tilkjentYtelse = connection.queryFirstOrNull(selectTilkjentYtelse) {
             setParams {
                 setUUID(1, behandlingReferanse)
             }
