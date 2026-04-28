@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
@@ -108,8 +109,7 @@ class UtbetalingStatusRepositoryTest {
                 linjer = listOf(
                     UtbetalingLinje(
                         behandlingId = UUID.randomUUID().toString(),
-                        fom = LocalDate.now(),
-                        tom = LocalDate.now().plusMonths(1),
+                        periode = Periode(LocalDate.now(), LocalDate.now().plusMonths(1)),
                         vedtakssats = 1000u,
                         beløp = 1000u,
                         klassekode = "AAP"
