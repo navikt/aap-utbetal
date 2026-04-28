@@ -25,7 +25,7 @@ class SendUtbetalingUtfører(private val connection: DBConnection): JobbUtfører
             ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
 
         val meldeperiodeUtbetalingMap = MeldeperiodeUtbetalingMappingRepository(connection)
-            .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse)
+            .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse, true)
 
         val utbetalingMelding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
 

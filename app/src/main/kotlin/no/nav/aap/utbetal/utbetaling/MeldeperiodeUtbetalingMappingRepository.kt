@@ -35,7 +35,7 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
         return sakUtbetalingMappingList.associate { it.meldeperiode to it.utbetalingId }
     }
 
-    fun oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse): MeldeperiodeUtbetalingIdMap {
+    fun oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse, lagreResultat: Boolean): MeldeperiodeUtbetalingIdMap {
         val meldeperiodeUtbetalingMap = hentMeldeperiodeUtbetalingMapping(sakUtbetalingId).toMutableMap()
 
         tilkjentYtelse.perioder.forEach { tilkjentYtelsePeriode ->
@@ -46,7 +46,9 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
                 .firstOrNull { it.overlapper(meldeperiode) }
             if (lagretMeldeperiode == null) {
                 val utbetalingId = UUID.randomUUID()
-                lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, meldeperiode, utbetalingId)
+                if (lagreResultat) {
+                    lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, meldeperiode, utbetalingId)
+                }
                 meldeperiodeUtbetalingMap[meldeperiode] = utbetalingId
             }
         }

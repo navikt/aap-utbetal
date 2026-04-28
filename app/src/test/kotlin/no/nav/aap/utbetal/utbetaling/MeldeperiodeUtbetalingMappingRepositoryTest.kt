@@ -49,6 +49,7 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
             repository.oppdatereMeldeperiodeUtbetalingMapping(
                 sakUtbetalingId = sakUtbetalingId,
                 tilkjentYtelse = tilkjentYtelse,
+                lagreResultat = true,
             )
 
             val meldeperiodeUtbetalingMapEtterOppdatering = repository.hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)
@@ -78,6 +79,7 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
             repository.oppdatereMeldeperiodeUtbetalingMapping(
                 sakUtbetalingId = sakUtbetalingId,
                 tilkjentYtelse = tilkjentYtelse1,
+                lagreResultat = true,
             )
 
             val meldeperiodeUtbetalingMapEtterOppdatering = repository.hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)
@@ -92,6 +94,7 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
             repository.oppdatereMeldeperiodeUtbetalingMapping(
                 sakUtbetalingId = sakUtbetalingId,
                 tilkjentYtelse = tilkjentYtelse2,
+                lagreResultat = true,
             )
 
             val meldeperiodeUtbetalingMapEtterEndaEnOppdatering = repository.hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)
