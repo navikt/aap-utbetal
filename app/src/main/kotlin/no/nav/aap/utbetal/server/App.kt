@@ -37,6 +37,7 @@ import no.nav.aap.utbetal.hendelse.konsument.UTBETALING_STATUS_TOPIC
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusKonsument
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.simulering.simulering
+import no.nav.aap.utbetal.simulering.simuleringV2
 import no.nav.aap.utbetal.tilkjentytelse.tilkjentYtelse
 import no.nav.aap.utbetal.trekk.hentTrekkListe
 import no.nav.aap.utbetal.trekk.hentTrekkListeAlle
@@ -113,6 +114,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
                 hentStatus(dataSource, prometheus, authConfig)
+                simuleringV2(dataSource, prometheus, authConfig)
             }
         }
         actuator(prometheus, motor)
