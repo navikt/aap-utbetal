@@ -143,8 +143,7 @@ class UtbetalingStatusKonsumentTest {
                 linjer = listOf(
                     UtbetalingLinje(
                         behandlingId = behandlingRef.toBase64(),
-                        fom = periode.fom,
-                        tom = periode.tom,
+                        periode = periode,
                         vedtakssats = 1000u,
                         beløp = 1000u,
                         klassekode = "ABC",
