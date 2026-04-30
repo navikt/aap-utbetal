@@ -6,6 +6,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvvent
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
 import no.nav.aap.utbetaling.helved.toBase64
+import org.jetbrains.annotations.VisibleForTesting
 import java.time.LocalDate
 
 fun TilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap: MeldeperiodeUtbetalingIdMap): UtbetalingMelding {
@@ -22,11 +23,12 @@ fun TilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap: MeldeperiodeU
     return utbetalingMelding
 }
 
-private fun TilkjentYtelseAvvent.tilAvvent() =
+@VisibleForTesting
+internal fun TilkjentYtelseAvvent.tilAvvent() =
     Avvent(
         fom = this.fom.toString(),
         tom = this.tom.toString(),
-        overføres = this.overføres.toString(),
+        overføres = this.overføres?.toString(),
         årsak = this.årsak?.toString()
     )
 
