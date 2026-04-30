@@ -40,17 +40,8 @@ class TilkjentYtelseService(private val connection: DBConnection) {
     private val log: Logger = LoggerFactory.getLogger(TilkjentYtelseService::class.java)
 
     fun håndterNyTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): TilkjentYtelseResponse {
-        val utbetalingRepo = UtbetalingRepository(connection)
-
-        val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
-            .also { utbetalinger ->
-                //Prøv å hente alle manglende kvitteringer
-                utbetalinger.hentKvitteringerForSendteUtbetalinger()
-            }
-
-        //Sjekk om det fortsatt mangler kvitteringer, eller er som av andre grunner ikke er BEKREFTET
-        val locked = utbetalingerForSak.any { it.utbetalingStatus != UtbetalingStatus.BEKREFTET }
-        if (locked) {
+        // Send LOCKED respons dersom ikke alle kvitteringer er ok.
+        if (!sjekkOmTidligereUtbetalingerHarFåttKvittering(tilkjentYtelse)) {
             return TilkjentYtelseResponse.LOCKED
         }
 
@@ -83,6 +74,29 @@ class TilkjentYtelseService(private val connection: DBConnection) {
             }
         }
         return TilkjentYtelseResponse.OK
+    }
+
+    /***
+     * Sjekker om alle tidligere utbetalinger for saksnummmer har fått kvittering OK.
+     *
+     * @param tilkjentYtelse ny tilkjent ytelse.
+     *
+     * @return true hvis alle kvitteringer er mottatt, ellers false.
+     */
+    private fun sjekkOmTidligereUtbetalingerHarFåttKvittering(tilkjentYtelse: TilkjentYtelse): Boolean {
+        if (MigreringService().skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)) {
+            return UtbetalingStatusRepository(connection).erAlleUtbetalingerBekreftet(tilkjentYtelse.saksnummer)
+        } else {
+            val utbetalingRepo = UtbetalingRepository(connection)
+
+            val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
+                .also { utbetalinger ->
+                    //Prøv å hente alle manglende kvitteringer
+                    utbetalinger.hentKvitteringerForSendteUtbetalinger()
+                }
+
+            return  utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
+        }
     }
 
 
@@ -182,25 +196,6 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         }
         return true
     }
-
-    /* Fungerer ikke for gammelt api. Mulig vi kan bruke denne koden for nytt grensesnitt
-
-    private fun oppdaterFeilregistreringBasertPåForrigeAvvent(
-        tilkjentYtelse: TilkjentYtelse,
-    ): TilkjentYtelse {
-        val avventHistorikk = TilkjentYtelseRepository(connection).hentTilkjentYtelseAvventHistorikk(tilkjentYtelse.saksnummer)
-        if (avventHistorikk.isEmpty()) return tilkjentYtelse
-
-        val nyAvvent = tilkjentYtelse.avvent ?: return tilkjentYtelse
-        val gammelAvventPeriode = avventHistorikk.last().avvent
-        if (nyAvvent.fom != gammelAvventPeriode.fom || nyAvvent.tom != gammelAvventPeriode.tom) {
-            log.info("Oppdaterte feilregistrering fordi ny avvent periode ${nyAvvent.fom}-${nyAvvent.tom} er forskjellig fra tidligere ${gammelAvventPeriode.fom}-${gammelAvventPeriode.tom}")
-            return tilkjentYtelse.copy(avvent = nyAvvent.copy(feilregistrering = true))
-        }
-        return tilkjentYtelse
-    }
-
-     */
 
     private fun Beløp.avrundet() = verdi.toLong()
 

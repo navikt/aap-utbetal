@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.hendelse.konsument.Status
@@ -19,6 +20,38 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         val utbetalingStatus = hentUtbetalingStatus(behandlingRef) ?: return null
         return utbetalingStatus.copy(linjer = hentUtbetalingStatusLinjer(utbetalingStatus.id))
     }
+
+    fun erAlleUtbetalingerBekreftet(saksnummer: Saksnummer): Boolean {
+        val hentUtbetalingStatusSql = """
+            SELECT 
+                US.ID,                                                                        
+                US.STATUS,
+                TY.ID AS TILKJENT_YTELSE_ID
+            FROM UTBETALING_STATUS US
+            JOIN TILKJENT_YTELSE TY ON TY.ID = US.TILKJENT_YTELSE_ID
+            WHERE 
+                TY.SAKSNUMMER = ? AND
+                US.AKTIV = TRUE
+            ORDER BY US.ID DESC
+            LIMIT 1
+        """.trimIndent()
+
+
+        val utbetalinger = connection.queryList<UtbetalingStatusLight>(hentUtbetalingStatusSql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+            setRowMapper { row ->
+                UtbetalingStatusLight(
+                    id = row.getLong("ID"),
+                    status = row.getEnum("STATUS"),
+                    tilkjentYtelseId = row.getLong("TILKJENT_YTELSE_ID"),
+                )
+            }
+        }
+        return utbetalinger.all {it.status == Status.OK}
+    }
+
 
     private fun hentUtbetalingStatus(behandlingRef: UUID): UtbetalingStatus? {
         val hentUtbetalingStatusSql = """
@@ -132,6 +165,11 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
 
 }
 
+data class UtbetalingStatusLight(
+    val id: Long,
+    val status: Status,
+    val tilkjentYtelseId: Long,
+)
 
 data class UtbetalingStatus(
     val id: Long,
