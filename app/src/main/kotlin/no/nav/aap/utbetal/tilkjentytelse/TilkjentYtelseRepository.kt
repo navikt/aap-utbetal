@@ -222,6 +222,35 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         )
     }
 
+
+    fun hentTilkjentYtelseLight(behandlingReferanse: UUID): TilkjentYtelseLight? {
+        val selectTilkjentYtelse = """
+            SELECT 
+                ID,
+                SAKSNUMMER,
+                BEHANDLING_REF
+            FROM 
+                TILKJENT_YTELSE
+            WHERE
+                BEHANDLING_REF = ?
+        """.trimIndent()
+
+
+        return connection.queryFirstOrNull(selectTilkjentYtelse) {
+            setParams {
+                setUUID(1, behandlingReferanse)
+            }
+            setRowMapper { row ->
+                TilkjentYtelseLight(
+                    id = row.getLong("ID"),
+                    saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
+                    behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
+                )
+            }
+        }
+    }
+
+
     private fun hentAvvent(tilkjentYtelseId: Long): TilkjentYtelseAvvent? {
         val sqlHentAvvent = """
             SELECT

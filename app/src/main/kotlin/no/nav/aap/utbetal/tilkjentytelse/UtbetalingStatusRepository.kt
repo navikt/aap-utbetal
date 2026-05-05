@@ -10,10 +10,9 @@ import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
 
-
-    fun lagre(tilkjentYtelse: TilkjentYtelse, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
-        slettTidligereStatus(tilkjentYtelse.id!!)
-        lagreUtbetalingStatus(tilkjentYtelse.id, utbetalingStatusHendelse)
+    fun oppdaterUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
+        slettTidligereStatus(tilkjentYtelseId)
+        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse)
     }
 
     fun hent(behandlingRef: UUID): UtbetalingStatus? {
