@@ -35,7 +35,7 @@ class SendUtbetalingUtfører(private val connection: DBConnection): JobbUtfører
         // Lagrer utbetaling status SENDT før vi sender utbetalingshendelsen, slik at vi har en status i databasen som
         // indikerer at vi har sendt utbetalingen til utsjekk. Hvis vi skulle fått en feil i det å sende ut meldingen
         // til utsjekk, så vil vi fortsatt ha en status i databasen som indikerer at vi har forsøkt å sende utbetalingen.
-        UtbetalingStatusRepository(connection).lagre(tilkjentYtelse, UtbetalingStatusHendelse(
+        UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(tilkjentYtelse.id!!, UtbetalingStatusHendelse(
             status = Status.SENDT,
             detaljer = UtbetalingDetaljer(
                 ytelse = "AAP",

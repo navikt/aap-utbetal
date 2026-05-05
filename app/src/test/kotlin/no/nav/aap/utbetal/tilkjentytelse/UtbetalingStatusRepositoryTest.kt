@@ -38,8 +38,8 @@ class UtbetalingStatusRepositoryTest {
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
 
-            UtbetalingStatusRepository(connection).lagre(
-                tilkjentYtelse!!,
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
+                tilkjentYtelse!!.id!!,
                 lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
             )
 
@@ -58,8 +58,8 @@ class UtbetalingStatusRepositoryTest {
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
 
-            UtbetalingStatusRepository(connection).lagre(
-                tilkjentYtelse!!,
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
+                tilkjentYtelse!!.id!!,
                 lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
             )
 
@@ -67,8 +67,8 @@ class UtbetalingStatusRepositoryTest {
             assertThat(utbetalingStatus).isNotNull()
             assertThat(utbetalingStatus!!.status).isEqualTo(Status.HOS_OPPDRAG)
 
-            UtbetalingStatusRepository(connection).lagre(
-                tilkjentYtelse,
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
+                tilkjentYtelse.id,
                 lagUtbetalingStatusHendelse(Status.OK)
             )
 
@@ -87,8 +87,8 @@ class UtbetalingStatusRepositoryTest {
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
 
-            UtbetalingStatusRepository(connection).lagre(
-                tilkjentYtelse!!,
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
+                tilkjentYtelse!!.id!!,
                 lagUtbetalingStatusHendelse(Status.FEILET)
             )
 

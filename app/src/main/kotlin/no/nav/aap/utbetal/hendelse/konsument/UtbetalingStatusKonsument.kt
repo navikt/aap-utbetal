@@ -18,6 +18,8 @@ import kotlin.time.Duration.Companion.seconds
 
 const val UTBETALING_STATUS_TOPIC = "helved.status.v1"
 
+const val FAGSYSTEM_KEY = "fagsystem"
+const val FAGSYSTEM_AAP_VALUE = "AAP"
 
 class UtbetalingStatusKonsument(
     config: KafkaKonsumentKonfig<String, String>,
@@ -46,8 +48,11 @@ class UtbetalingStatusKonsument(
             melding.partition(),
             melding.offset(),
         )
-        val fagsystem = melding.headers().lastHeader("fagsystem")
-        if (!"AAP".equals(fagsystem.value().toString(Charsets.UTF_8))) {
+        val fagsystem = melding.headers().lastHeader(FAGSYSTEM_KEY)
+        if (fagsystem == null) {
+            log.info("Fagsystem header ikke funnet. Hopper over melding: ${melding.value()}")
+            return
+        } else if  (fagsystem.value().toString(Charsets.UTF_8) != FAGSYSTEM_AAP_VALUE) {
             log.info("Melding fra utbetaling-status med id: {} er for et annet fagsystem, hopper over", melding.key())
             return
         }
@@ -56,13 +61,13 @@ class UtbetalingStatusKonsument(
                 val utbetalingStatusHendelse = DefaultJsonMapper.fromJson<UtbetalingStatusHendelse>(melding.value())
                 val behandlingRef = UUID.fromString(melding.key())
 
-                val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+                val tilkjentYtelse = TilkjentYtelseRepository(connection).hentTilkjentYtelseLight(behandlingRef)
                 if (tilkjentYtelse != null) {
                     verifisertUtbetalingslinjer(behandlingRef, utbetalingStatusHendelse)
                     val sakUtbetaling = SakUtbetalingRepository(connection).hent(tilkjentYtelse.saksnummer)
                     if (sakUtbetaling != null) {
                         if (sakUtbetaling.migrertTilKafka != null) {
-                            UtbetalingStatusRepository(connection).lagre(tilkjentYtelse, utbetalingStatusHendelse)
+                            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(tilkjentYtelse.id, utbetalingStatusHendelse)
                         } else {
                             throw IllegalStateException("Kunne ikke lagre tilkjent ytelse for utbetaling-status")
                         }
