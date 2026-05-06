@@ -53,7 +53,7 @@ dependencies {
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.10")
+    runtimeOnly("org.postgresql:postgresql:42.7.11")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
