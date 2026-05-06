@@ -1,6 +1,6 @@
 package no.nav.aap.utbetal.hendelse.konsument
 
-import no.nav.aap.komponenter.type.Periode
+import java.time.LocalDate
 
 
 data class UtbetalingStatusHendelse(
@@ -46,7 +46,8 @@ data class UtbetalingDetaljer(
 
 data class UtbetalingLinje(
     val behandlingId: String,
-    val periode: Periode,
+    val fom: LocalDate,
+    val tom: LocalDate,
     val vedtakssats: UInt?,
     val beløp: UInt,
     val klassekode: String,

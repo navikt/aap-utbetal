@@ -154,7 +154,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         connection.executeBatch(sql, utbetalingLinjer) {
             setParams {
                 setLong(1, utbetalingStatusId)
-                setPeriode(2, it.periode)
+                setPeriode(2, Periode(it.fom, it.tom))
                 setInt(3, it.vedtakssats?.toInt())
                 setInt(4, it.beløp.toInt())
                 setString(5, it.klassekode)
