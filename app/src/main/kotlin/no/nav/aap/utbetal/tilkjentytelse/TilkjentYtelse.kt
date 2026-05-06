@@ -40,3 +40,9 @@ data class TilkjentYtelseTrekk(
     val dato: LocalDate,
     val beløp: Int,
 )
+
+data class TilkjentYtelseLight(
+    val id: Long,
+    val saksnummer: Saksnummer,
+    val behandlingsreferanse: UUID,
+)

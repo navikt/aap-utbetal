@@ -23,6 +23,7 @@ import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
@@ -99,10 +100,10 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
 
     val motor = motor(dataSource, prometheus)
 
-    //TODO: kommentert ut for å unngå at konsumenten starter før den er klar.
-    //if (!Miljø.erLokal() && !Miljø.erProd()) {
-    //    startUtbetalingStatusEventKonsument(dataSource)
-    //}
+    // NB: Ikke gjør dette lokalt eller
+    if (!Miljø.erLokal() && !Miljø.erProd()) {
+        startUtbetalingStatusEventKonsument(dataSource)
+    }
 
     routing {
         authenticate(AZURE) {
