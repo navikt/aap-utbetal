@@ -71,6 +71,8 @@ class UtbetalingStatusKonsument(
                         } else {
                             throw IllegalStateException("Kunne ikke lagre tilkjent ytelse for utbetaling-status")
                         }
+                    } else {
+                        throw IllegalStateException("Finner ikke sak-utbetaling for saksnummer ${tilkjentYtelse.saksnummer}")
                     }
                 } else {
                     log.info("Fant ikke behandling for $behandlingRef. Tolker derfor denne til å være utbetaling_id og tilhører gammel utbetalingsløsning.")
@@ -84,7 +86,7 @@ class UtbetalingStatusKonsument(
     }
 
     private fun verifisertUtbetalingslinjer(behandlingRef: UUID, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
-        if (utbetalingStatusHendelse.detaljer.linjer.isEmpty()) {
+        if (utbetalingStatusHendelse.detaljer?.linjer?.isEmpty() ?: true) {
             return
         }
         val unikeBehandlingRefs = utbetalingStatusHendelse.detaljer.linjer.map { it.behandlingId.base64ToUUID() }.toSet()
