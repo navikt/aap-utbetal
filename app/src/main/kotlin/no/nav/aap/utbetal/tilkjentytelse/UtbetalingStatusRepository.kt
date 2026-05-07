@@ -142,7 +142,9 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                 setString(5, utbetalingStatusHendelse.error?.doc)
             }
         }
-        lagreUtbetalingLinjer(utbetalingStatusId, utbetalingStatusHendelse.detaljer.linjer)
+        if (utbetalingStatusHendelse.detaljer != null) {
+            lagreUtbetalingLinjer(utbetalingStatusId, utbetalingStatusHendelse.detaljer.linjer)
+        }
     }
 
     private fun lagreUtbetalingLinjer(utbetalingStatusId: Long, utbetalingLinjer: List<UtbetalingLinje>) {
