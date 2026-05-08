@@ -6,13 +6,15 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingLinje
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
+import java.time.LocalDateTime
 import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
 
     fun oppdaterUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
-        slettTidligereStatus(tilkjentYtelseId)
-        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse)
+        val nå = LocalDateTime.now()
+        slettTidligereStatus(tilkjentYtelseId, nå)
+        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, nå)
     }
 
     fun hent(behandlingRef: UUID): UtbetalingStatus? {
@@ -115,23 +117,24 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun slettTidligereStatus(tilkjentYtelseId: Long) {
+    private fun slettTidligereStatus(tilkjentYtelseId: Long, endretTidspunkt: LocalDateTime) {
         val sql = """
             UPDATE UTBETALING_STATUS
-            SET AKTIV = FALSE
+            SET AKTIV = FALSE, ENDRET_TID = ?
             WHERE TILKJENT_YTELSE_ID = ?
         """.trimIndent()
         connection.execute(sql) {
             setParams {
-                setLong(1, tilkjentYtelseId)
+                setLocalDateTime(1, endretTidspunkt)
+                setLong(2, tilkjentYtelseId)
             }
         }
     }
 
-    private fun lagreUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
+    private fun lagreUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, opprettetTidspunkt: LocalDateTime) {
         val sql = """
-            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE, OPPRETTET_TID)
+            VALUES (?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val utbetalingStatusId = connection.executeReturnKey(sql) {
             setParams {
@@ -140,6 +143,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                 setInt(3, utbetalingStatusHendelse.error?.statusKode)
                 setString(4, utbetalingStatusHendelse.error?.msg)
                 setString(5, utbetalingStatusHendelse.error?.doc)
+                setLocalDateTime(6, opprettetTidspunkt)
             }
         }
         if (utbetalingStatusHendelse.detaljer != null) {
