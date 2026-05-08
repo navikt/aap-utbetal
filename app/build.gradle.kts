@@ -4,7 +4,7 @@ val ktorVersion = "3.4.3"
 val komponenterVersjon = "2.0.51"
 val behandlingsflytVersjon = "0.0.598"
 val tilgangVersjon = "1.0.202"
-val jacksonVersion = "2.21.2"
+val jacksonVersion = "2.21.3"
 val jupiterVersjon = "6.0.3"
 
 plugins {
@@ -52,8 +52,8 @@ dependencies {
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.10")
+    implementation("org.flywaydb:flyway-database-postgresql:12.5.0")
+    runtimeOnly("org.postgresql:postgresql:42.7.11")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.9")
