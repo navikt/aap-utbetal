@@ -245,21 +245,21 @@ class ApiTest {
         ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
 
         // Sjekk feilregistreringskall
-        val feilregistrerte = fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }
+        val feilregistrerte = fakes.kall.filter { it.slettAvvent?.avvent?.feilregistrering == true }
         assertThat(feilregistrerte).hasSize(1)
         val feilregKall = feilregistrerte.single()
-        assertThat(feilregKall.metode).isEqualTo("PUT")
+        assertThat(feilregKall.metode).isEqualTo("POST")
         assertThat(feilregKall.utbetalingRef).isNotEqualTo(uid1)
-        assertThat(feilregKall.utbetaling.avvent!!.fom).isEqualTo(gammelAvvent.fom)
-        assertThat(feilregKall.utbetaling.avvent.tom).isEqualTo(gammelAvvent.tom)
-        assertThat(feilregKall.utbetaling.avvent.årsak).isEqualTo(gammelAvvent.årsak)
-        assertThat(feilregKall.utbetaling.avvent.overføres).isEqualTo(gammelAvvent.overføres)
-        assertThat(feilregKall.utbetaling.avvent.feilregistrering).isTrue()
+        assertThat(feilregKall.slettAvvent!!.avvent.fom).isEqualTo(gammelAvvent.fom)
+        assertThat(feilregKall.slettAvvent.avvent.tom).isEqualTo(gammelAvvent.tom)
+        assertThat(feilregKall.slettAvvent.avvent.årsak).isEqualTo(gammelAvvent.årsak)
+        assertThat(feilregKall.slettAvvent.avvent.overføres).isEqualTo(gammelAvvent.overføres)
+        assertThat(feilregKall.slettAvvent.avvent.feilregistrering).isTrue()
 
         // Sjekk om det kommer et kall med ny avvent etter feilregistreringskallet
         val feilregIndex = fakes.kall.indexOf(feilregKall)
         val nyAvventKallIndex = fakes.kall.indexOfFirst {
-            it.utbetaling.avvent?.feilregistrering == false
+            it.utbetaling?.avvent?.feilregistrering == false
                 && it.utbetaling.avvent.fom == nyAvvent.fom
                 && it.utbetaling.avvent.tom == nyAvvent.tom
         }
@@ -289,7 +289,8 @@ class ApiTest {
         postTilkjentYtelse(ty2)
         ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
 
-        assertThat(fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }).isEmpty()
+        assertThat(fakes.kall.filter { it.utbetaling?.avvent?.feilregistrering == true }).isEmpty()
+        assertThat(fakes.kall.filter { it.slettAvvent?.avvent?.feilregistrering == true }).isEmpty()
     }
 
     @Test
@@ -315,7 +316,8 @@ class ApiTest {
         postTilkjentYtelse(ty2)
         ventPåMotor(dataSource, ty2.saksnummer, ty2.behandlingsreferanse)
 
-        assertThat(fakes.kall.filter { it.utbetaling.avvent?.feilregistrering == true }).isEmpty()
+        assertThat(fakes.kall.filter { it.utbetaling?.avvent?.feilregistrering == true }).isEmpty()
+        assertThat(fakes.kall.filter { it.slettAvvent?.avvent?.feilregistrering == true }).isEmpty()
     }
 
 
