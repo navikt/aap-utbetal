@@ -8,6 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.utbetal.klienter.helved.SlettAvvent
 import no.nav.aap.utbetal.klienter.helved.Utbetaling
 import no.nav.aap.utbetal.klienter.helved.UtbetalingStatus
 import no.nav.aap.utbetal.simulering.SimuleringDto
@@ -15,6 +16,7 @@ import java.util.*
 
 fun Application.helvedUtbetalingFake(
     utbetalinger: MutableMap<UUID, Utbetaling>,
+    slettAvventMap: MutableMap<UUID, SlettAvvent>,
     kall: MutableList<HelvedKall> = mutableListOf(),
 ) {
 
@@ -59,6 +61,13 @@ fun Application.helvedUtbetalingFake(
             val utbetaling = call.receive<Utbetaling>()
             utbetalinger[utbetalingRef] = utbetaling
             call.respond(status = HttpStatusCode.OK, SimuleringDto(perioder = listOf()))
+        }
+        post("/utbetalinger/{uid}/avvent") {
+            val utbetalingRef = UUID.fromString(call.parameters["uid"])
+            val slettAvvent = call.receive<SlettAvvent>()
+            slettAvventMap[utbetalingRef] = slettAvvent
+            kall.add(HelvedKall("POST", utbetalingRef, null, slettAvvent))
+            call.respond(HttpStatusCode.Created)
         }
     }
 

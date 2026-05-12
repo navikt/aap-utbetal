@@ -20,6 +20,21 @@ class HelvedUtbetalingOppretter {
         )
     }
 
+    fun opprettSlettAvvent(utbetaling: no.nav.aap.utbetal.utbetaling.Utbetaling): SlettAvvent {
+        return SlettAvvent(
+            sakId = utbetaling.saksnummer.toString(),
+            personident = utbetaling.personIdent,
+            saksbehandlerId = utbetaling.saksbehandlerId,
+            avvent = Avvent(
+                fom = utbetaling.avvent?.fom!!,
+                tom = utbetaling.avvent.tom,
+                overføres = utbetaling.avvent.overføres,
+                årsak = utbetaling.avvent.årsak,
+                feilregistrering = true
+            )
+        )
+    }
+
     private fun UtbetalingAvvent.tilHelvedUtbetalingAvvent(): Avvent {
         return Avvent(
             fom = this.fom,

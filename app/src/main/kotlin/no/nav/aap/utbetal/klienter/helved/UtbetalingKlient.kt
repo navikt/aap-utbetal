@@ -43,14 +43,21 @@ object UtbetalingKlient {
         log.info("Iverksett ny utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve("utbetalinger/$utbetalingRef")
         val request = PostRequest(body = helvedUtbetaling)
-        client.post<Utbetaling, Unit>(iverksettUrl, request) { _, _ -> }
+        client.post(iverksettUrl, request) { _, _ -> }
     }
 
     fun iverksettEndring(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Iverksett endring utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef"))
         val request = PutRequest(body = helvedUtbetaling)
-        client.put<Utbetaling, Unit>(iverksettUrl, request) { _, _ -> }
+        client.put(iverksettUrl, request) { _, _ -> }
+    }
+
+    fun iverksettSlettAvvent(utbetalingRef: UUID, slettAvvent: SlettAvvent) {
+        log.info("Iverksett sletting av avvent utbetaling periode for saksnummer ${slettAvvent.sakId} og utbetalingRef $utbetalingRef")
+        val iverksettUrl = url.resolve("utbetalinger/$utbetalingRef/avvent")
+        val request = PostRequest(body = slettAvvent)
+        client.post(iverksettUrl, request) { _, _ -> }
     }
 
     fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {

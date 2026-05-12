@@ -32,3 +32,11 @@ data class Avvent(
     val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
 )
+
+data class SlettAvvent(
+    val stønad: String = "AAP_UNDER_ARBEIDSAVKLARING",
+    val sakId: String,
+    val personident: String,
+    val saksbehandlerId: String,
+    val avvent: Avvent,
+)

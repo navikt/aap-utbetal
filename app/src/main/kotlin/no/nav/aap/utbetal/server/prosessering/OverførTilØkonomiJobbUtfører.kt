@@ -22,13 +22,14 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         val utbetalingRepo = UtbetalingRepository(connection)
         val utbetalingId = input.parameter("utbetalingId").toLong()
         val utbetaling = utbetalingRepo.hentUtbetaling(utbetalingId)
-        val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
 
         if (utbetaling.erSlettAvventPeriode()) {
             log.info("Overfører sletting av avvent periode til økonomi for utbetalingId: $utbetalingId")
-            UtbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+            val helvedUtbetaling = HelvedUtbetalingOppretter().opprettSlettAvvent(utbetaling)
+            UtbetalingKlient.iverksettSlettAvvent(utbetaling.utbetalingRef, helvedUtbetaling)
         } else if (utbetaling.harNyePerioder()) {
             log.info("Overfører nye periode til økonomi for utbetalingId: $utbetalingId")
+            val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
             UtbetalingKlient.iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
         } else {
             if (utbetaling.perioder.isEmpty()) {
@@ -37,6 +38,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
                 UtbetalingKlient.opphør(utbetaling.utbetalingRef, helvedUtbetaling)
             } else {
                 log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
+                val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
                 UtbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
             }
         }
