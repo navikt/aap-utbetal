@@ -36,7 +36,7 @@ class UtbetalingMedSlettingAvAvventUtbetalingBeregninger {
                     årsak = forrigeAvventPeriode.årsak,
                     feilregistrering = true
                 ),
-                utbetalingRef = utbetalingRef //TODO hva skal denne være?
+                utbetalingRef = utbetalingRef
             )
         }
         return null
