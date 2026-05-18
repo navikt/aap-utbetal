@@ -42,7 +42,20 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
                 UtbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
             }
         }
-        utbetalingRepo.oppdaterStatus(utbetalingId, utbetaling.versjon, UtbetalingStatus.SENDT)
+
+        if (utbetaling.erSlettAvventPeriode()) {
+            // NB! Setter denne utbetalingen direkte til BEKREFTET siden vi ikke får kvitteringen på sletting på
+            // gammelt grensesnitt(REST). Når vi henter status på utbetaling fra Kafka vil denne kvitteringen komme
+            // sammen med de andre oppdateringene, og denne kodelinjen kan slettes.
+            UtbetalingRepository(connection).oppdaterStatus(
+                utbetalingId,
+                utbetaling.versjon,
+                UtbetalingStatus.BEKREFTET
+            )
+        } else {
+            utbetalingRepo.oppdaterStatus(utbetalingId, utbetaling.versjon, UtbetalingStatus.SENDT)
+        }
+
     }
 
     private fun Utbetaling.erSlettAvventPeriode() = avvent != null && avvent.feilregistrering
