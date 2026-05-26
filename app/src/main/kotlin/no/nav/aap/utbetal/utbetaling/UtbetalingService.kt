@@ -24,17 +24,18 @@ class UtbetalingService(private val connection: DBConnection) {
     private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
         val utbetalingTidslinje = lagUtbetalingTidslinje(nyTilkjentYtelse.saksnummer)
 
-        val utbetalingMedSlettingAvAvventPeriode = opprettUtbetalingMedSlettingAvAvventPeriode(nyTilkjentYtelse)
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
+
+        val utbetalingMedSlettingAvAvventPeriode = if (utbetalinger.alle().isNotEmpty()) {
+            opprettUtbetalingMedSlettingAvAvventPeriode(nyTilkjentYtelse)
+        } else null
 
         return utbetalinger.copy(utbetalingMedSlettingAvAvventPeriode = utbetalingMedSlettingAvAvventPeriode)
     }
 
     private fun opprettUtbetalingMedSlettingAvAvventPeriode(nyTilkjentYtelse: TilkjentYtelse): Utbetaling? {
         if (!Miljø.erProd()) {
-            val avventHistorikk =
-                TilkjentYtelseRepository(connection).hentTilkjentYtelseAvventHistorikk(nyTilkjentYtelse.saksnummer)
-                    .filter { it.behandlingRef != nyTilkjentYtelse.behandlingsreferanse }
+            val avventHistorikk = UtbetalingRepository(connection).hentUtbetalingAvventHistorikk(nyTilkjentYtelse.saksnummer)
             if (avventHistorikk.isNotEmpty()) {
                 val forrigeAvventPeriode = avventHistorikk.last()
                 if (!forrigeAvventPeriode.feilregistrering) {
