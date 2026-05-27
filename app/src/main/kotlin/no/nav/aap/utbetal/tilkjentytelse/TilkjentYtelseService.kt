@@ -2,7 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Beløp
-import no.nav.aap.utbetal.MigreringService
+import no.nav.aap.utbetal.migrering.SjekkMigreringService
 import no.nav.aap.utbetal.trekk.TrekkPostering
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.trekk.TrekkService
@@ -54,7 +54,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         val eksisterendeTilkjentYtelse = tilkjentYtelseRepo.hent(tilkjentYtelse.behandlingsreferanse)
         if (eksisterendeTilkjentYtelse == null) {
             val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
-            val migreringService = MigreringService()
+            val migreringService = SjekkMigreringService(connection)
             if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent)) {
                 UtbetalingJobbService(connection).overførUtbetalingJobbPåNyttGrensesnitt(
                     sakUtbetalingId = sakUtbetalingId,
@@ -84,7 +84,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
      * @return true hvis alle kvitteringer er mottatt, ellers false.
      */
     private fun sjekkOmTidligereUtbetalingerHarFåttKvittering(tilkjentYtelse: TilkjentYtelse): Boolean {
-        if (MigreringService().skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)) {
+        if (SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)) {
             return UtbetalingStatusRepository(connection).erAlleUtbetalingerBekreftet(tilkjentYtelse.saksnummer)
         } else {
             val utbetalingRepo = UtbetalingRepository(connection)
@@ -138,7 +138,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
      */
     private fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sakUtbetalingRepo = SakUtbetalingRepository(connection)
-        val migrertTilKafka = MigreringService().skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)
+        val migrertTilKafka = SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)
         val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
             sakUtbetalingRepo.lagre(tilkjentYtelse.saksnummer, migrertTilKafka)
         } else {

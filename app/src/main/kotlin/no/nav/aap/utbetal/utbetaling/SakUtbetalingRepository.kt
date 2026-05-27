@@ -62,4 +62,15 @@ class SakUtbetalingRepository(val connection: DBConnection) {
             migrertTilKafka = this.getLocalDateTimeOrNull("MIGRERT_TIL_KAFKA")
         )
 
+    fun hentSakerForMigrering(maxAntall: Int): List<SakUtbetaling> {
+        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE MIGRERT_TIL_KAFKA IS NULL AND  AKTIV = TRUE LIMIT ?"
+
+        return connection.queryList(sql) {
+            setParams {
+                setInt(1, maxAntall)
+            }
+            setRowMapper { it.tilSakUtbetaling() }
+        }
+    }
+
 }

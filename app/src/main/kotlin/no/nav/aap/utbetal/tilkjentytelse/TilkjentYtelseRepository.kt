@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.dbconnect.Row
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
@@ -152,20 +153,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             setParams {
                 setUUID(1, behandlingReferanse)
             }
-            setRowMapper { row ->
-                TilkjentYtelse(
-                    id = row.getLong("ID"),
-                    saksnummer = Saksnummer(row.getString("SAKSNUMMER")),
-                    behandlingsreferanse = row.getUUID("BEHANDLING_REF"),
-                    forrigeBehandlingsreferanse = row.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
-                    personIdent = row.getString("PERSON_IDENT"),
-                    vedtakstidspunkt = row.getLocalDateTime("VEDTAKSTIDSPUNKT"),
-                    beslutterId = row.getString("BESLUTTER_ID"),
-                    saksbehandlerId = row.getString("SAKSBEHANDLER_ID"),
-                    nyMeldeperiode = row.getPeriodeOrNull("NY_MELDEPERIODE"),
-                    perioder = listOf(),
-                )
-            }
+            setRowMapper { it.tilTilkjentYtelse() }
         }
         return tilkjentYtelse?.copy(
             perioder = hentTilkjentePerioder(tilkjentYtelse.id!!),
@@ -173,6 +161,20 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             trekk = hentTrekk(tilkjentYtelse.id),
         )
     }
+
+    private fun Row.tilTilkjentYtelse() =
+        TilkjentYtelse(
+            id = this.getLong("ID"),
+            saksnummer = Saksnummer(this.getString("SAKSNUMMER")),
+            behandlingsreferanse = this.getUUID("BEHANDLING_REF"),
+            forrigeBehandlingsreferanse = this.getUUIDOrNull("FORRIGE_BEHANDLING_REF"),
+            personIdent = this.getString("PERSON_IDENT"),
+            vedtakstidspunkt = this.getLocalDateTime("VEDTAKSTIDSPUNKT"),
+            beslutterId = this.getString("BESLUTTER_ID"),
+            saksbehandlerId = this.getString("SAKSBEHANDLER_ID"),
+            nyMeldeperiode = this.getPeriodeOrNull("NY_MELDEPERIODE"),
+            perioder = listOf(),
+        )
 
 
     fun hentTilkjentYtelseLight(behandlingReferanse: UUID): TilkjentYtelseLight? {
@@ -302,6 +304,41 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
 
             }
         }
+    }
+
+    fun hentAlleTilkjentYtelseForSaksnummer(saksnummer: Saksnummer): List<TilkjentYtelse> {
+        val sql = """
+            SELECT 
+                ID,
+                SAKSNUMMER,
+                BEHANDLING_REF,
+                FORRIGE_BEHANDLING_REF,
+                PERSON_IDENT,
+                VEDTAKSTIDSPUNKT,
+                BESLUTTER_ID,
+                SAKSBEHANDLER_ID,
+                NY_MELDEPERIODE
+            FROM 
+                TILKJENT_YTELSE
+            WHERE
+                SAKSNUMMER = ?
+            ORDER BY
+                VEDTAKSTIDSPUNKT
+        """.trimIndent()
+
+        return connection.queryList(sql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+            setRowMapper { it.tilTilkjentYtelse() }
+        }.map {
+            it.copy(
+                perioder = hentTilkjentePerioder(it.id!!),
+                avvent = hentAvvent(it.id),
+                trekk = hentTrekk(it.id),
+            )
+        }
+
     }
 
 }

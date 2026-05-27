@@ -93,4 +93,11 @@ object UtbetalingKlient {
         return requireNotNull(client.deleteMedBody(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
     }
 
+    fun migrering(migreringRequest: MigreringRequest) {
+        log.info("Migrering av: $migreringRequest")
+        val migreringUrl = url.resolve("utbetalinger/migrate")
+        val request = PostRequest(body = migreringRequest)
+        client.post(migreringUrl, request) { _, _ -> }
+    }
+
 }

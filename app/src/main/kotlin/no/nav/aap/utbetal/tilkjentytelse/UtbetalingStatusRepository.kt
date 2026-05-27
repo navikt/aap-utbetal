@@ -11,10 +11,9 @@ import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
 
-    fun oppdaterUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
-        val nå = LocalDateTime.now()
-        slettTidligereStatus(tilkjentYtelseId, nå)
-        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, nå)
+    fun oppdaterUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, statusEndringTidspunkt: LocalDateTime = LocalDateTime.now()) {
+        slettTidligereStatus(tilkjentYtelseId, statusEndringTidspunkt)
+        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, statusEndringTidspunkt)
     }
 
     fun hent(behandlingRef: UUID): UtbetalingStatus? {
