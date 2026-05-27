@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 
 class KvitteringService(private val connection: DBConnection) {
 
-    private val log: Logger = LoggerFactory.getLogger(KvitteringService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun sjekkKvittering(utbetaling: UtbetalingLight) {
         val utbetalingRepo = UtbetalingRepository(connection)

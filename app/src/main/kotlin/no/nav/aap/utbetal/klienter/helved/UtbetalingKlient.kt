@@ -26,7 +26,7 @@ enum class UtbetalingStatus {
 
 object UtbetalingKlient {
 
-    private val log = LoggerFactory.getLogger(UtbetalingKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.utsjekk.url"))
 
