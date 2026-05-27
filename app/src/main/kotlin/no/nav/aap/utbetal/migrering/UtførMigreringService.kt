@@ -46,9 +46,8 @@ class UtførMigreringService(private val dataSource: DataSource) {
             try {
                 dataSource.transaction { connection ->
                     utførMigrering(connection, sakUtbetaling.saksnummer, dryRun)
-
+                    migrerteSaker.add(sakUtbetaling.saksnummer)
                 }
-                migrerteSaker.add(sakUtbetaling.saksnummer)
             } catch (e: Exception) {
                 log.error("Feil ved migrering av sak ${sakUtbetaling.saksnummer}: ${e.message}", e)
             }
@@ -86,16 +85,19 @@ class UtførMigreringService(private val dataSource: DataSource) {
         val utbetalingerForSak = UtbetalingRepository(connection).hent(saksnummer)
         val alleUtbetalingerErBekreftet = utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
 
-
         val utbetalingStatusRepository = UtbetalingStatusRepository(connection)
         tilkjentYtelseListe.forEach { tilkjentYtelse ->
             if (alleUtbetalingerErBekreftet) {
                 // Finn tidspunkt for bekreftelse av utbetaling. Henter det fra siste utbetaling for saken, og dersom det ikke finnes, sett til nå.
                 val utbetalingBekreftetTidspunkt = utbetalingerForSak.map { it.utbetalingEndret ?: it.utbetalingOversendt } .lastOrNull() ?: LocalDateTime.now()
 
-                //TODO: legg på felt for migrering
                 if (!dryRun) {
-                    utbetalingStatusRepository.oppdaterUtbetalingStatus(tilkjentYtelse.id!!, UtbetalingStatusHendelse(Status.OK), utbetalingBekreftetTidspunkt)
+                    utbetalingStatusRepository.oppdaterUtbetalingStatus(
+                        tilkjentYtelseId = tilkjentYtelse.id!!,
+                        utbetalingStatusHendelse = UtbetalingStatusHendelse(Status.OK),
+                        statusEndringTidspunkt = utbetalingBekreftetTidspunkt,
+                        migrertFraGammeltApi = true
+                    )
                 }
             } else {
                 throw IllegalStateException("Ikke alle utbetalinger for sak $saksnummer er bekreftet. Kan ikke opprette utbetaling status for tilkjent ytelse ${tilkjentYtelse.id}")
@@ -103,7 +105,6 @@ class UtførMigreringService(private val dataSource: DataSource) {
 
         }
     }
-
 
     private fun opprettUtbetalingMapping(
         connection: DBConnection,
