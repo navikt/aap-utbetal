@@ -9,6 +9,7 @@ import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -21,6 +22,16 @@ data class UtbetalingLight(
     val utbetalingOpprettet: LocalDateTime,
     val utbetalingEndret: LocalDateTime?,
     val versjon: Long
+)
+
+data class AvventPeriode (
+    val utbetalingId: Long,
+    val behandlingRef: UUID,
+    val avvent: Periode,
+    val overføres: LocalDate?,
+    val årsak: AvventÅrsak?,
+    val feilregistrering: Boolean,
+    val vedtakstidspunkt: LocalDateTime,
 )
 
 class UtbetalingRepository(private val connection: DBConnection) {
@@ -379,6 +390,44 @@ class UtbetalingRepository(private val connection: DBConnection) {
             }
         }
     }
+
+    fun hentUtbetalingAvventHistorikk(saksnummer: Saksnummer): List<AvventPeriode> {
+        val sql = """
+            SELECT 
+                U.ID AS UTBETALING_ID,
+                U.BEHANDLING_REF,
+                UA.PERIODE,
+                UA.OVERFORES,
+                UA.ARSAK,
+                UA.FEILREGISTRERING,
+                VEDTAKSTIDSPUNKT
+            FROM UTBETALING_AVVENT UA
+            JOIN UTBETALING U ON U.ID = UA.UTBETALING_ID
+            WHERE SAKSNUMMER = ?
+            ORDER BY VEDTAKSTIDSPUNKT
+        """.trimIndent()
+
+        return connection.queryList(sql) {
+            setParams {
+                setString(1, saksnummer.toString())
+            }
+
+            setRowMapper {
+                AvventPeriode(
+                    utbetalingId = it.getLong("UTBETALING_ID"),
+                    behandlingRef = it.getUUID("BEHANDLING_REF"),
+                    avvent = it.getPeriode("PERIODE"),
+                    overføres = it.getLocalDateOrNull("OVERFORES"),
+                    årsak = AvventÅrsak.valueOf(it.getString("ARSAK")),
+                    feilregistrering = it.getBoolean("FEILREGISTRERING"),
+                    vedtakstidspunkt = it.getLocalDateTime("VEDTAKSTIDSPUNKT"),
+                )
+            }
+        }
+
+    }
+
+
 
 }
 

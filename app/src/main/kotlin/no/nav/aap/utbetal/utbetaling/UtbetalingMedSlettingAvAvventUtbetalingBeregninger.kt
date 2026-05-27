@@ -1,6 +1,5 @@
 package no.nav.aap.utbetal.utbetaling
 
-import no.nav.aap.utbetal.tilkjentytelse.AvventPeriode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetaling.UtbetalingStatus
 import java.util.UUID
@@ -21,7 +20,7 @@ class UtbetalingMedSlettingAvAvventUtbetalingBeregninger {
             return Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = forrigeAvventPeriode.behandlingRef,
-                tilkjentYtelseId = forrigeAvventPeriode.tilkjentYtelseId,
+                tilkjentYtelseId = nyTilkjentYtelse.id!!,
                 personIdent = nyTilkjentYtelse.personIdent,
                 vedtakstidspunkt = nyTilkjentYtelse.vedtakstidspunkt,
                 beslutterId = nyTilkjentYtelse.beslutterId,
