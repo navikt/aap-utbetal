@@ -36,7 +36,7 @@ data class AvventPeriode (
 
 class UtbetalingRepository(private val connection: DBConnection) {
 
-    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun lagre(sakUtbetalingId: Long, utbetaling: Utbetaling): Long {
         slettTidligereUtbetaling(utbetaling.utbetalingRef)

@@ -12,7 +12,7 @@ import java.util.*
 
 class UtbetalingJobbService(private val connection: DBConnection) {
 
-    private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun opprettUtbetalingJobb(sakUtbetalingId: Long, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")

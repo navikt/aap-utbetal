@@ -37,7 +37,7 @@ enum class TilkjentYtelseResponse {
 
 class TilkjentYtelseService(private val connection: DBConnection) {
 
-    private val log: Logger = LoggerFactory.getLogger(TilkjentYtelseService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun håndterNyTilkjentYtelse(tilkjentYtelse: TilkjentYtelse): TilkjentYtelseResponse {
         // Send LOCKED respons dersom ikke alle kvitteringer er ok.
