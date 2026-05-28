@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
+import kotlin.time.measureTimedValue
 
 
 data class Migreringsresultat(
@@ -36,24 +37,29 @@ class UtførMigreringService(private val dataSource: DataSource) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun utførMigrering(maxAntall: Int, dryRun: Boolean = true): Migreringsresultat {
-        val sakerTilMigrering = dataSource.transaction(readOnly = true) { connection ->
-            SakUtbetalingRepository(connection).hentSakerForMigrering(maxAntall)
-        }
-
-        val migrerteSaker = mutableListOf<Saksnummer>()
-        val feiledeMigreringer = mutableListOf<Saksnummer>()
-        sakerTilMigrering.forEach { sakUtbetaling ->
-            try {
-                dataSource.transaction { connection ->
-                    utførMigrering(connection, sakUtbetaling.saksnummer, dryRun)
-                    migrerteSaker.add(sakUtbetaling.saksnummer)
-                }
-            } catch (e: Exception) {
-                log.error("Feil ved migrering av sak ${sakUtbetaling.saksnummer}: ${e.message}", e)
+        val (resultat, duration) = measureTimedValue {
+            val sakerTilMigrering = dataSource.transaction(readOnly = true) { connection ->
+                SakUtbetalingRepository(connection).hentSakerForMigrering(maxAntall)
             }
-        }
+            log.info("Fant ${sakerTilMigrering.size} saker til migrering")
 
-        return Migreringsresultat(migrerteSaker,feiledeMigreringer)
+            val migrerteSaker = mutableListOf<Saksnummer>()
+            val feiledeMigreringer = mutableListOf<Saksnummer>()
+            sakerTilMigrering.forEach { sakUtbetaling ->
+                try {
+                    dataSource.transaction { connection ->
+                        utførMigrering(connection, sakUtbetaling.saksnummer, dryRun)
+                    }
+                    migrerteSaker.add(sakUtbetaling.saksnummer)
+                    log.info("Migrering av sak ${sakUtbetaling.saksnummer} fullført")
+                } catch (e: Exception) {
+                    log.error("Feil ved migrering av sak ${sakUtbetaling.saksnummer}: ${e.message}", e)
+                }
+            }
+            Migreringsresultat(migrerteSaker,feiledeMigreringer)
+        }
+        log.info("Migrering av ${resultat.migrerteSaker.size} saker fullført på ${duration.inWholeSeconds} sekunder. Feilede migreringer: ${resultat.feiledeMigreringer.size}")
+        return resultat
     }
 
     private fun utførMigrering(connection: DBConnection, saksnummer: Saksnummer, dryRun: Boolean) {
