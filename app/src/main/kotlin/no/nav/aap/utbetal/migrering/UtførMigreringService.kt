@@ -78,7 +78,7 @@ class UtførMigreringService(private val dataSource: DataSource) {
 
         // Opprett mapping for alle utbetalinger knyttet til denne saken. Hentes ut med utbetaling-tidslinje.")
         val utbetalingTidslinje = UtbetalingService(connection).lagUtbetalingTidslinje(saksnummer)
-        val uidTilPeriodeMap = opprettUtbetalingMapping(connection, sakUtbetaling!!, utbetalingTidslinje, dryRun)
+        val uidTilPeriodeMap = opprettUtbetalingMapping(connection, sakUtbetaling, utbetalingTidslinje, dryRun)
 
 
         val migreringRequest = MigreringRequest(uidTilPeriodeMap.keys.toSet().map { Migrering(it, it) })
