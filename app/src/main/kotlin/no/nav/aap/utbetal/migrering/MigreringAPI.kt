@@ -6,6 +6,7 @@ import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
@@ -18,6 +19,9 @@ private val log: Logger = LoggerFactory.getLogger("POST /migrering")
 fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
 
     route("/migrering").authorizedPost<Unit, MigreringsresultatDto, MigreringDto>(authConfig, null) { _, dto ->
+        if (Miljø.erProd()) {
+            throw IllegalStateException("Migrering er ikke klart for produksjon")
+        }
         prometheus.httpCallCounter("/migrering").increment()
         log.info("Migrering kalt med maxAntall: {}, dryRun: {}", dto.maxAntall, dto.dryRun)
         val migreringsresultat = UtførMigreringService(dataSource).utførMigrering(dto.maxAntall, dto.dryRun)
@@ -34,6 +38,9 @@ fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusM
 fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
 
     route("/migrering/sak").authorizedPost<Unit, MigreringsresultatDto, MigrerSakDto>(authConfig, null) { _, dto ->
+        if (Miljø.erProd()) {
+            throw IllegalStateException("Migrering er ikke klart for produksjon")
+        }
         prometheus.httpCallCounter("/migrering/sak").increment()
         log.info("Migrering kalt for saksnummer: ${dto.saksnummer}, dryRun: ${dto.dryRun}")
         dataSource.transaction { connection ->
