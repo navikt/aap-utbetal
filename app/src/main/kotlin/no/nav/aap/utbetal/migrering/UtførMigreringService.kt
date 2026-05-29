@@ -1,5 +1,6 @@
 package no.nav.aap.utbetal.migrering
 
+import io.ktor.server.plugins.NotFoundException
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -62,12 +63,13 @@ class UtførMigreringService(private val dataSource: DataSource) {
         return resultat
     }
 
-    private fun utførMigrering(connection: DBConnection, saksnummer: Saksnummer, dryRun: Boolean) {
+    fun utførMigrering(connection: DBConnection, saksnummer: Saksnummer, dryRun: Boolean) {
 
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer)
+            ?: throw NotFoundException("Fant ikke rad i sak_utbetaling for saksnummer $saksnummer.")
 
         // Ikke gjør noe dersom saken allerede er migrert
-        if (sakUtbetaling != null && sakUtbetaling.migrertTilKafka != null) {
+        if (sakUtbetaling.migrertTilKafka != null) {
             return
         }
 

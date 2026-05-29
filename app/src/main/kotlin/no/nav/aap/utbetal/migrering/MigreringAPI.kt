@@ -1,9 +1,11 @@
 package no.nav.aap.utbetal.migrering
 
-import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
@@ -26,4 +28,16 @@ fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusM
                 feiledeMigreringer = migreringsresultat.feiledeMigreringer . map { it.toString() }
             )
         )
+    }
+
+
+fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
+
+    route("/migrering/sak").authorizedPost<Unit, MigreringsresultatDto, MigrerSakDto>(authConfig, null) { _, dto ->
+        prometheus.httpCallCounter("/migrering/sak").increment()
+        log.info("Migrering kalt for saksnummer: ${dto.saksnummer}, dryRun: ${dto.dryRun}")
+        dataSource.transaction { connection ->
+            UtførMigreringService(dataSource).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
+        }
+        log.info("Migrering fullført for saksnummer: ${dto.saksnummer}")
     }
