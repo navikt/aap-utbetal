@@ -15,7 +15,7 @@ import kotlin.time.measureTime
 
 class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): JobbUtfører {
 
-    private val log: Logger = LoggerFactory.getLogger(SjekkKvitteringFraØkonomiUtfører::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun utfør(input: JobbInput) {
         val utbetalingerSomManglerKvitteringer = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()

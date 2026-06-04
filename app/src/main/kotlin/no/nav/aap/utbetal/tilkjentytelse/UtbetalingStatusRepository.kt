@@ -11,10 +11,14 @@ import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
 
-    fun oppdaterUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse) {
-        val nå = LocalDateTime.now()
-        slettTidligereStatus(tilkjentYtelseId, nå)
-        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, nå)
+    fun oppdaterUtbetalingStatus(
+        tilkjentYtelseId: Long,
+        utbetalingStatusHendelse: UtbetalingStatusHendelse,
+        statusEndringTidspunkt: LocalDateTime = LocalDateTime.now(),
+        migrertFraGammeltApi: Boolean = false
+    ) {
+        slettTidligereStatus(tilkjentYtelseId, statusEndringTidspunkt)
+        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
     }
 
     fun hent(behandlingRef: UUID): UtbetalingStatus? {
@@ -131,10 +135,10 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun lagreUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, opprettetTidspunkt: LocalDateTime) {
+    private fun lagreUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, opprettetTidspunkt: LocalDateTime, migrertFraGammeltApi: Boolean) {
         val sql = """
-            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE, OPPRETTET_TID)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE, OPPRETTET_TID, MIGRERT_FRA_GAMMELT_API)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         val utbetalingStatusId = connection.executeReturnKey(sql) {
             setParams {
@@ -144,6 +148,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                 setString(4, utbetalingStatusHendelse.error?.msg)
                 setString(5, utbetalingStatusHendelse.error?.doc)
                 setLocalDateTime(6, opprettetTidspunkt)
+                setLocalDateTime(7, if (migrertFraGammeltApi) LocalDateTime.now() else null)
             }
         }
         if (utbetalingStatusHendelse.detaljer != null) {

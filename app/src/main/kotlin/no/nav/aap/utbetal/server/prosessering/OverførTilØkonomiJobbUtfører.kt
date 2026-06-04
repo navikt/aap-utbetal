@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 
 class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): JobbUtfører {
 
-    private val log: Logger = LoggerFactory.getLogger(UtbetalingJobbService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun utfør(input: JobbInput) {
         val utbetalingRepo = UtbetalingRepository(connection)

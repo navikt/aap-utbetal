@@ -55,7 +55,7 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
         return meldeperiodeUtbetalingMap.toMap()
     }
 
-    private fun lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, meldeperiode: Periode, utbetalingId: UUID) {
+    fun lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, meldeperiode: Periode, utbetalingId: UUID) {
         connection.execute(
             """
             INSERT INTO MELDEPERIODE_UTBETALING_MAPPING (SAK_UTBETALING_ID, MELDEPERIODE, UTBETALING_ID) 

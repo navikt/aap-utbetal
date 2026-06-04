@@ -26,7 +26,7 @@ enum class UtbetalingStatus {
 
 object UtbetalingKlient {
 
-    private val log = LoggerFactory.getLogger(UtbetalingKlient::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val url = URI.create(requiredConfigForKey("integrasjon.utsjekk.url"))
 
@@ -91,6 +91,13 @@ object UtbetalingKlient {
         val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
         val request = DeleteMedBodyRequest(body = utbetaling)
         return requireNotNull(client.deleteMedBody(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
+    }
+
+    fun migrering(migreringRequest: MigreringRequest) {
+        log.info("Migrering av: $migreringRequest")
+        val migreringUrl = url.resolve("utbetalinger/migrate")
+        val request = PostRequest(body = migreringRequest)
+        client.post(migreringUrl, request) { _, _ -> }
     }
 
 }

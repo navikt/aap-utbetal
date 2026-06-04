@@ -23,8 +23,11 @@ class UtbetalingService(private val connection: DBConnection) {
     private fun opprettUtbetalinger(nyTilkjentYtelse: TilkjentYtelse): Utbetalinger {
         val utbetalingTidslinje = lagUtbetalingTidslinje(nyTilkjentYtelse.saksnummer)
 
-        val utbetalingMedSlettingAvAvventPeriode = opprettUtbetalingMedSlettingAvAvventPeriode(nyTilkjentYtelse)
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
+
+        val utbetalingMedSlettingAvAvventPeriode = if (utbetalinger.alle().isNotEmpty()) {
+            opprettUtbetalingMedSlettingAvAvventPeriode(nyTilkjentYtelse)
+        } else null
 
         return utbetalinger.copy(utbetalingMedSlettingAvAvventPeriode = utbetalingMedSlettingAvAvventPeriode)
     }
