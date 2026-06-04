@@ -491,7 +491,7 @@ class ApiTest {
 
         return dataSource.transaction { connection ->
             val utbetalinger = UtbetalingRepository(connection).hent(behandlingRef)
-            //assertThat(utbetalinger.first().utbetalingStatus).isIn(UtbetalingStatus.SENDT, UtbetalingStatus.BEKREFTET)
+            assertThat(utbetalinger.first().utbetalingStatus).isIn(UtbetalingStatus.SENDT, UtbetalingStatus.BEKREFTET)
 
             utbetalinger.first().utbetalingRef
         }
