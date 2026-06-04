@@ -228,11 +228,8 @@ class ApiTest {
         settUtbetalingTilBekreftet(uid1)
 
         // Opprett andre tilkjent ytelse med endring i avvent periode
-        val nyAvvent = TilkjentYtelseAvventDto(
-            fom = LocalDate.of(2024, 11, 15),
-            tom = LocalDate.of(2024, 12, 31),
-            overføres = LocalDate.of(2025, 1, 21),
-            årsak = AvventÅrsak.AVVENT_REFUSJONSKRAV,
+        val nyAvvent = gammelAvvent.copy(
+            fom = LocalDate.of(2024, 11, 15)
         )
         val ty2 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(600L)).copy(
             forrigeBehandlingsreferanse = ty1.behandlingsreferanse,

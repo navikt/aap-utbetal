@@ -8,6 +8,7 @@ import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.SendUtbetalingUtfører
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.*
 
 class UtbetalingJobbService(private val connection: DBConnection) {
@@ -23,13 +24,15 @@ class UtbetalingJobbService(private val connection: DBConnection) {
         )
     }
 
-    fun overførUtbetalingJobb(sakUtbetaling: SakUtbetaling, utbetalingId: Long) {
+    fun overførUtbetalingJobb(sakUtbetaling: SakUtbetaling, utbetalingId: Long, overførUtbetalingTidspunkt: LocalDateTime? = null) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for utbetalingId: $utbetalingId")
-        FlytJobbRepository(connection).leggTil(
-            JobbInput(OverførTilØkonomiJobbUtfører)
-                .forSak(sakUtbetaling.id!!)
-                .medParameter("utbetalingId", utbetalingId.toString())
-        )
+        val jobbInput = JobbInput(OverførTilØkonomiJobbUtfører)
+            .forSak(sakUtbetaling.id!!)
+            .medParameter("utbetalingId", utbetalingId.toString())
+        if (overførUtbetalingTidspunkt != null) {
+            jobbInput.medNesteKjøring(overførUtbetalingTidspunkt)
+        }
+        FlytJobbRepository(connection).leggTil(jobbInput)
     }
 
     /**
