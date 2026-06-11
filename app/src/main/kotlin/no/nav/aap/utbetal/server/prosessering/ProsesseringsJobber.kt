@@ -11,6 +11,7 @@ object ProsesseringsJobber {
             OverførTilØkonomiJobbUtfører,
             SjekkKvitteringFraØkonomiUtfører,
             SendUtbetalingUtfører,
+            SjekkStatusForUtbetalingerUtfører,
         )
     }
 }
