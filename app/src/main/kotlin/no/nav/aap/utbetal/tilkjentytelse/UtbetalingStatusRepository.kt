@@ -57,6 +57,21 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         return utbetalinger.all {it.status == Status.OK}
     }
 
+    fun antallUtbetalingerPerStatus(): Map<Status, Int> {
+        val sql = """
+            SELECT COUNT(1) AS ANTALL, STATUS 
+            FROM UTBETALING_STATUS
+            WHERE AKTIV = TRUE
+            GROUP BY STATUS
+            
+        """.trimMargin()
+
+        return connection.queryList(sql) {
+            setRowMapper { row ->
+                row.getEnum<Status>("STATUS") to row.getInt("ANTALL")
+            }
+        }.toMap()
+    }
 
     private fun hentUtbetalingStatus(behandlingRef: UUID): UtbetalingStatus? {
         val hentUtbetalingStatusSql = """

@@ -100,6 +100,43 @@ class UtbetalingStatusRepositoryTest {
         }
     }
 
+    @Test
+    fun `finn antall utbetalinger per status`() {
+        val ty1Id = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty2Id = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty3Id = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty4Id = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty5Id = opprettTilkjentYtelse(UUID.randomUUID())
+
+        val oppdaterStatus = fun (tilkjentYtelseId: Long, status: Status) {
+            dataSource.transaction { connection ->
+                UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
+                    tilkjentYtelseId = tilkjentYtelseId,
+                    utbetalingStatusHendelse = lagUtbetalingStatusHendelse(status)
+                )
+            }
+        }
+
+        oppdaterStatus(ty1Id, Status.MOTTATT)
+
+        oppdaterStatus(ty2Id, Status.MOTTATT)
+        oppdaterStatus(ty2Id, Status.OK)
+
+        oppdaterStatus(ty3Id, Status.FEILET)
+        oppdaterStatus(ty4Id, Status.FEILET)
+        oppdaterStatus(ty5Id, Status.FEILET)
+
+        val antallPerStatus = dataSource.transaction { connection ->
+            UtbetalingStatusRepository(connection).antallUtbetalingerPerStatus()
+        }
+
+        assertThat(antallPerStatus.keys).hasSize(3)
+        assertThat(antallPerStatus[Status.MOTTATT]).isEqualTo(1)
+        assertThat(antallPerStatus[Status.OK]).isEqualTo(1)
+        assertThat(antallPerStatus[Status.FEILET]).isEqualTo(3)
+    }
+
+
     private fun lagUtbetalingStatusHendelse(status: Status): UtbetalingStatusHendelse {
         return UtbetalingStatusHendelse(
             status = status,
