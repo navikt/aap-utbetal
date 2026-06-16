@@ -16,7 +16,7 @@ class UtbetalingMedSlettingAvAvventUtbetalingBeregninger {
         val gammelFom = forrigeAvventPeriode.avvent.fom
         val gammelTom = forrigeAvventPeriode.avvent.tom
         val nyFom = nyTilkjentYtelse.avvent.fom
-        if (nyFom < gammelFom) {
+        if (nyFom != gammelFom) {
             return Utbetaling(
                 saksnummer = nyTilkjentYtelse.saksnummer,
                 behandlingsreferanse = forrigeAvventPeriode.behandlingRef,
