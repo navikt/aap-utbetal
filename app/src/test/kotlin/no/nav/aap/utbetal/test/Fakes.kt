@@ -17,7 +17,7 @@ data class HelvedKall(
 
 class Fakes : AutoCloseable{
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    private val azure = FakeServer(module = { azureFake() }, port = 8081)
+    private val azure = FakeServer(module = { texasFake() }, port = 8081)
     val utbetalinger = ConcurrentHashMap<UUID, Utbetaling>()
     val slettAvventMap = ConcurrentHashMap<UUID, SlettAvvent>()
     val kall: MutableList<HelvedKall> = CopyOnWriteArrayList()

@@ -13,13 +13,13 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import no.nav.aap.utbetal.server.ErrorRespons
 
-fun Application.azureFake() {
+fun Application.texasFake() {
     install(ContentNegotiation) {
         jackson()
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            this@azureFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
+            this@texasFake.log.info("AZURE :: Ukjent feil ved kall til '{}'", call.request.local.uri, cause)
             call.respond(status = HttpStatusCode.InternalServerError, message = ErrorRespons(cause.message))
         }
     }
