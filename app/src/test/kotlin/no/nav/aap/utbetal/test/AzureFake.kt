@@ -28,10 +28,6 @@ fun Application.azureFake() {
             val token = AzureTokenGen("behandlingsflyt", "behandlingsflyt").generate()
             call.respond(TestToken(access_token = token))
         }
-        post("/token-m2m") {
-            val token = AzureTokenGen("behandlingsflyt", "behandlingsflyt").generate()
-            call.respond(TestToken(access_token = token))
-        }
         post("/introspect") {
             call.respond(mapOf("active" to true))
         }
