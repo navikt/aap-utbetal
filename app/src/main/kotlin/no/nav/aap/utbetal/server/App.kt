@@ -22,9 +22,8 @@ import kotlinx.coroutines.launch
 import no.nav.aap.komponenter.config.configForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
@@ -77,7 +76,7 @@ fun main() {
 
 internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig) {
     commonKtorModule(
-        prometheus, AzureConfig(), InfoModel(
+        prometheus, InfoModel(
             title = "AAP - Utbetal",
             description = """
                 For å teste API i dev, besøk
@@ -86,7 +85,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 For å test lokalt:
                 <pre>curl -s -XPOST http://localhost:8081/token  | jq -r '.access_token' | pbcopy</pre>
                 """.trimIndent()
-        )
+        ), IdentityProvider.ENTRA_ID
     )
 
     install(StatusPages) {
@@ -108,7 +107,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
     }
 
     routing {
-        authenticate(AZURE) {
+        authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
                 tilkjentYtelse(dataSource, prometheus, authConfig)
                 hent(dataSource, prometheus, authConfig)

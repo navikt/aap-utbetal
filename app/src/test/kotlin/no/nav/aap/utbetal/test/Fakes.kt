@@ -17,7 +17,7 @@ data class HelvedKall(
 
 class Fakes : AutoCloseable{
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
-    private val azure = FakeServer(module = { azureFake() }, port = 8081)
+    private val azure = FakeServer(module = { texasFake() }, port = 8081)
     val utbetalinger = ConcurrentHashMap<UUID, Utbetaling>()
     val slettAvventMap = ConcurrentHashMap<UUID, SlettAvvent>()
     val kall: MutableList<HelvedKall> = CopyOnWriteArrayList()
@@ -32,6 +32,8 @@ class Fakes : AutoCloseable{
         System.setProperty("azure.openid.config.issuer", "behandlingsflyt")
         System.setProperty("integrasjon.utsjekk.url", "http://localhost:${helvedUtbetaling.port()}/")
         System.setProperty("integrasjon.utsjekk.scope", "helvedUtbetaling")
+        System.setProperty("nais.token.introspection.endpoint", "http://localhost:${azure.port()}/introspect")
+        System.setProperty("nais.token.endpoint", "http://localhost:${azure.port()}/token")
     }
 
     override fun close() {

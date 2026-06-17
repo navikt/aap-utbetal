@@ -11,7 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.error.ConflictHttpResponseEx
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.tilgang.NoAuthConfig
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
@@ -444,7 +444,7 @@ class ApiTest {
 
         private val client = RestClient.withDefaultResponseHandler(
             config = ClientConfig(scope = "utbetal"),
-            tokenProvider = ClientCredentialsTokenProvider
+            tokenProvider = AzureM2MTokenProvider
         )
 
         // Starter server

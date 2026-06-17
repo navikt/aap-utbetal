@@ -4,7 +4,7 @@ import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.utbetal.helved.UtbetalingMelding import org.slf4j.LoggerFactory
 import java.net.URI
@@ -20,7 +20,7 @@ class UtbetalingV2Klient {
 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = AzureM2MTokenProvider
     )
 
     fun simuleringUtbetaling(utbetalingMelding: UtbetalingMelding): Simulering {
