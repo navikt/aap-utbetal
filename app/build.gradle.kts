@@ -5,7 +5,7 @@ val komponenterVersjon = "2.0.86"
 val behandlingsflytVersjon = "0.0.629"
 val tilgangVersjon = "1.0.230"
 val jacksonVersion = "2.22.0"
-val jupiterVersjon = "6.1.0"
+val jupiterVersjon = "6.1.1"
 
 plugins {
     id("aap.conventions")
