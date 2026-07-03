@@ -49,6 +49,8 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.apache.kafka:kafka-clients:4.3.1")
 
+    implementation("no.bekk.bekkopen:nocommons:0.17.0")
+
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.1.0")
