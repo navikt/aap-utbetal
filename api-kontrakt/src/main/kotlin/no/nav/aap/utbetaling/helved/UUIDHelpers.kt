@@ -3,6 +3,9 @@ package no.nav.aap.utbetaling.helved
 import java.util.Base64
 import java.util.UUID
 
+/**
+ * Denne blir brukt i andre apper.
+ */
 fun UUID.toBase64(): String {
     val bytes = this.toString()
         .replace("-", "")

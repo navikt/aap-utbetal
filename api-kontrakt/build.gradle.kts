@@ -6,9 +6,6 @@ plugins {
 
 group = "no.nav.aap.utbetal"
 
-apply(plugin = "maven-publish")
-apply(plugin = "java-library")
-
 val jacksonVersion = "2.22.0"
 
 dependencies {
