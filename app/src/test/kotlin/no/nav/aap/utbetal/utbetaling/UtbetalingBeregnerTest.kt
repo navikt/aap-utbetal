@@ -182,7 +182,6 @@ class UtbetalingBeregnerTest {
             detaljer = YtelseDetaljer(
                 gradering = Prosent.`0_PROSENT`,
                 dagsats = beløp,
-                grunnlag = beløp,
                 grunnbeløp = Beløp(100000L),
                 antallBarn = 0,
                 barnetillegg = Beløp(0L),

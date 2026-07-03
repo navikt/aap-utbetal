@@ -130,7 +130,6 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
                 redusertDagsats = Beløp(1000),
                 gradering = Prosent(100),
                 dagsats = Beløp(1000),
-                grunnlag = Beløp(100000),
                 grunnlagsfaktor = GUnit(1),
                 grunnbeløp = Beløp(1000),
                 antallBarn = 0,

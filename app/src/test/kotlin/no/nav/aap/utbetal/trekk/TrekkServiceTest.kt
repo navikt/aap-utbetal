@@ -408,7 +408,6 @@ class TrekkServiceTest {
                         redusertDagsats = Beløp(1000),
                         gradering = Prosent(100),
                         dagsats = Beløp(1000),
-                        grunnlag = Beløp(1000),
                         grunnlagsfaktor = GUnit(6),
                         grunnbeløp = Beløp(1000),
                         antallBarn = 0,
