@@ -41,6 +41,8 @@ dependencies {
     implementation(libs.logstashLogbackEncoder)
     implementation(libs.kafkaClients)
 
+    implementation("no.bekk.bekkopen:nocommons:0.17.0")
+
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation(libs.hikari)
