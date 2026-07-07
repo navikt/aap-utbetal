@@ -197,7 +197,14 @@ class UtbetalingRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentUtbetalingerSomManglerKvittering(): List<UtbetalingLight> {
+    /**
+     * Hent utbetalinger som mangler kvittering. Kan bruker både med og uten saksnummer.
+     *
+     * @param saksnummer begrens søket til et saksnummer. Dersom null så vil den søke etter alle manglene kvitteringer.
+     *
+     * @return liste over utbetalinger som mangler kvittering.
+     */
+    fun hentUtbetalingerSomManglerKvittering(saksnummer: Saksnummer? = null): List<UtbetalingLight> {
         val hentAlleSendteUtbetalingerSql = """
             SELECT 
                 ID,
@@ -213,9 +220,14 @@ class UtbetalingRepository(private val connection: DBConnection) {
             WHERE
                 UTBETALING_STATUS IN ('SENDT', 'FEILET') AND
                 SLETTET = FALSE
-        """.trimIndent()
+        """ + if (saksnummer != null) { " AND SAKSNUMMER = ?" } else ""
 
         return connection.queryList(hentAlleSendteUtbetalingerSql) {
+            setParams {
+                if (saksnummer != null) {
+                    setString(1, saksnummer.toString())
+                }
+            }
             setRowMapper { row ->
                 UtbetalingLight(
                     id = row.getLong("ID"),
