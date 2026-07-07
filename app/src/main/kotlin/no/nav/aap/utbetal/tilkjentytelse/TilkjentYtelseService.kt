@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.tilkjentytelse
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.verdityper.Beløp
+import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.migrering.SjekkMigreringService
 import no.nav.aap.utbetal.trekk.TrekkPostering
 import no.nav.aap.utbetal.trekk.TrekkRepository
@@ -35,7 +36,7 @@ enum class TilkjentYtelseResponse {
     OK
 }
 
-class TilkjentYtelseService(private val connection: DBConnection) {
+class TilkjentYtelseService(private val connection: DBConnection, private val utbetalingKlient: UtbetalingKlient) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -89,12 +90,15 @@ class TilkjentYtelseService(private val connection: DBConnection) {
         } else {
             val utbetalingRepo = UtbetalingRepository(connection)
 
-            val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
+            //Forsøk å hent kvitteringer på utbetalinger som er sendt og ikke bekreftet
+            utbetalingRepo.hent(tilkjentYtelse.saksnummer)
                 .also { utbetalinger ->
                     //Prøv å hente alle manglende kvitteringer
                     utbetalinger.hentKvitteringerForSendteUtbetalinger()
                 }
 
+            // Hent utbetalinger på nytt og sjekk at de er BEKREFTET
+            val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
             return  utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
         }
     }
@@ -110,7 +114,7 @@ class TilkjentYtelseService(private val connection: DBConnection) {
 
 
     private fun List<Utbetaling>.hentKvitteringerForSendteUtbetalinger() {
-        val kvitteringService = KvitteringService(connection)
+        val kvitteringService = KvitteringService(connection, utbetalingKlient)
         filter { it.utbetalingStatus == UtbetalingStatus.SENDT }
             .forEach { utbetaling ->
                 kvitteringService.sjekkKvittering(utbetaling.tilUtbetalingLight())

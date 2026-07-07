@@ -24,7 +24,20 @@ enum class UtbetalingStatus {
     OK_UTEN_UTBETALING,
 }
 
-object UtbetalingKlient {
+
+interface UtbetalingKlient {
+    fun iverksettNy(utbetalingRef: UUID, helvedUtbetaling: Utbetaling)
+    fun iverksettEndring(utbetalingRef: UUID, helvedUtbetaling: Utbetaling)
+    fun iverksettSlettAvvent(utbetalingRef: UUID, slettAvvent: SlettAvvent)
+    fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling)
+    fun hentUtbetaling(utbetalingRef: UUID): Utbetaling
+    fun hentStatus(utbetalingRef: UUID): UtbetalingStatus
+    fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering
+    fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering
+    fun migrering(migreringRequest: MigreringRequest)
+}
+
+object UtbetalingRestKlient : UtbetalingKlient {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,61 +52,61 @@ object UtbetalingKlient {
         tokenProvider = AzureM2MTokenProvider
     )
 
-    fun iverksettNy(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
+    override fun iverksettNy(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Iverksett ny utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve("utbetalinger/$utbetalingRef")
         val request = PostRequest(body = helvedUtbetaling)
         client.post(iverksettUrl, request) { _, _ -> }
     }
 
-    fun iverksettEndring(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
+    override fun iverksettEndring(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Iverksett endring utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve(("utbetalinger/$utbetalingRef"))
         val request = PutRequest(body = helvedUtbetaling)
         client.put(iverksettUrl, request) { _, _ -> }
     }
 
-    fun iverksettSlettAvvent(utbetalingRef: UUID, slettAvvent: SlettAvvent) {
+    override fun iverksettSlettAvvent(utbetalingRef: UUID, slettAvvent: SlettAvvent) {
         log.info("Iverksett sletting av avvent utbetaling periode for saksnummer ${slettAvvent.sakId} og utbetalingRef $utbetalingRef")
         val iverksettUrl = url.resolve("utbetalinger/$utbetalingRef/avvent")
         val request = PostRequest(body = slettAvvent)
         client.post(iverksettUrl, request) { _, _ -> }
     }
 
-    fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
+    override fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Opphør av utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val opphørUrl = url.resolve(("utbetalinger/$utbetalingRef"))
         val request = DeleteMedBodyRequest<Utbetaling>(body = helvedUtbetaling)
         client.deleteMedBody<Utbetaling, Unit>(opphørUrl, request) { _, _ -> }
     }
 
-    fun hentUtbetaling(utbetalingRef: UUID): Utbetaling {
+    override fun hentUtbetaling(utbetalingRef: UUID): Utbetaling {
         log.info("Hent utbetaling for utbetalingRef $utbetalingRef")
         val hentUtbetalingUrl = url.resolve(("utbetalinger/$utbetalingRef"))
         return client.get<Utbetaling>(hentUtbetalingUrl, GetRequest())!!
     }
 
-    fun hentStatus(utbetalingRef: UUID): UtbetalingStatus {
+    override fun hentStatus(utbetalingRef: UUID): UtbetalingStatus {
         val hentStatusUrl = url.resolve(("utbetalinger/$utbetalingRef/status"))
         val request = GetRequest()
         return client.get<UtbetalingStatus>(hentStatusUrl, request)!!
     }
 
-    fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+    override fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
         log.info("Simulering av utbetaling for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
         val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
         val request = PostRequest(body = utbetaling)
         return requireNotNull(client.post(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
     }
 
-    fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+    override fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
         log.info("Simulering av opphør for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
         val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
         val request = DeleteMedBodyRequest(body = utbetaling)
         return requireNotNull(client.deleteMedBody(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
     }
 
-    fun migrering(migreringRequest: MigreringRequest) {
+    override fun migrering(migreringRequest: MigreringRequest) {
         log.info("Migrering av: $migreringRequest")
         val migreringUrl = url.resolve("utbetalinger/migrate")
         val request = PostRequest(body = migreringRequest)

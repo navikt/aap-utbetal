@@ -12,14 +12,14 @@ import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class KvitteringService(private val connection: DBConnection) {
+class KvitteringService(private val connection: DBConnection, private val utbetalingKlient: UtbetalingKlient) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun sjekkKvittering(utbetaling: UtbetalingLight) {
         val utbetalingRepo = UtbetalingRepository(connection)
         val status = try {
-            UtbetalingKlient.hentStatus(utbetaling.utbetalingRef)
+            utbetalingKlient.hentStatus(utbetaling.utbetalingRef)
         } catch (_: IkkeFunnetException) {
             null
         }

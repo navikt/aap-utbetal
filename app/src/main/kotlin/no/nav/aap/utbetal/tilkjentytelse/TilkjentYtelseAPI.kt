@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -25,7 +26,7 @@ fun NormalOpenAPIRoute.tilkjentYtelse(dataSource: DataSource, prometheus: Promet
         }
         val start = System.currentTimeMillis()
         val response = dataSource.transaction { connection ->
-            TilkjentYtelseService(connection).håndterNyTilkjentYtelse(dto.tilTilkjentYtelse())
+            TilkjentYtelseService(connection, UtbetalingRestKlient).håndterNyTilkjentYtelse(dto.tilTilkjentYtelse())
         }
         log.info("Tilkjent ytelse mottak tok ${System.currentTimeMillis() - start} ms")
 

@@ -33,7 +33,7 @@ data class Migreringsresultat(
     val feiledeMigreringer: List<Saksnummer>
 )
 
-class UtførMigreringService(private val dataSource: DataSource) {
+class UtførMigreringService(private val dataSource: DataSource, private val utbetalingKlient: UtbetalingKlient) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -83,7 +83,7 @@ class UtførMigreringService(private val dataSource: DataSource) {
 
         val migreringRequest = MigreringRequest(uidTilPeriodeMap.keys.toSet().map { Migrering(it, it) })
         if (!dryRun) {
-            UtbetalingKlient.migrering(migreringRequest)
+            utbetalingKlient.migrering(migreringRequest)
         }
     }
 

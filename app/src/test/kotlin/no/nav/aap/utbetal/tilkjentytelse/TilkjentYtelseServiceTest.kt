@@ -1,5 +1,7 @@
 package no.nav.aap.utbetal.tilkjentytelse
 
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -8,6 +10,7 @@ import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit
 import no.nav.aap.komponenter.verdityper.Prosent
 import no.nav.aap.utbetal.felles.YtelseDetaljer
+import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
@@ -26,6 +29,7 @@ import kotlin.test.Test
 class TilkjentYtelseServiceTest {
 
     private lateinit var dataSource: TestDataSource
+    private val utbetalingKlient: UtbetalingKlient = mockk<UtbetalingKlient>()
 
     @BeforeEach
     fun setup() {
@@ -38,7 +42,7 @@ class TilkjentYtelseServiceTest {
     @Test
     fun `ny tilkjent ytelse uten tidligere utbetalinger gir OK`() {
         dataSource.transaction { connection ->
-            val service = TilkjentYtelseService(connection)
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
             val tilkjentYtelse = lagTilkjentYtelse()
 
             val resultat = service.håndterNyTilkjentYtelse(tilkjentYtelse)
@@ -64,7 +68,7 @@ class TilkjentYtelseServiceTest {
         }
 
         dataSource.transaction { connection ->
-            val service = TilkjentYtelseService(connection)
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
             val nyTilkjentYtelse = lagTilkjentYtelse(
                 saksnummer = saksnummer,
                 behandlingsreferanse = UUID.randomUUID(),
@@ -83,7 +87,7 @@ class TilkjentYtelseServiceTest {
         val behandlingRef = UUID.randomUUID()
 
         dataSource.transaction { connection ->
-            val service = TilkjentYtelseService(connection)
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
             val tilkjentYtelse = lagTilkjentYtelse(saksnummer = saksnummer, behandlingsreferanse = behandlingRef)
 
             service.håndterNyTilkjentYtelse(tilkjentYtelse)
@@ -100,7 +104,7 @@ class TilkjentYtelseServiceTest {
         val behandlingRef = UUID.randomUUID()
 
         dataSource.transaction { connection ->
-            val service = TilkjentYtelseService(connection)
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
             val tilkjentYtelse = lagTilkjentYtelse(saksnummer = saksnummer, behandlingsreferanse = behandlingRef)
 
             service.håndterNyTilkjentYtelse(tilkjentYtelse)
@@ -128,7 +132,7 @@ class TilkjentYtelseServiceTest {
         val behandlingRef = UUID.randomUUID()
 
         dataSource.transaction { connection ->
-            val service = TilkjentYtelseService(connection)
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
             val tilkjentYtelse = lagTilkjentYtelse(saksnummer = saksnummer, behandlingsreferanse = behandlingRef)
 
             service.håndterNyTilkjentYtelse(tilkjentYtelse)
@@ -136,6 +140,68 @@ class TilkjentYtelseServiceTest {
             val lagretTilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
             assertThat(lagretTilkjentYtelse).isNotNull
             assertThat(lagretTilkjentYtelse!!.saksnummer).isEqualTo(saksnummer)
+        }
+    }
+
+    @Test
+    fun `utbetaling som ikke er bekreftet skal oppdateres med ny status før man sjekker om ny tilkjent ytelse på samme sak kan prosesseres`() {
+        every { utbetalingKlient.hentStatus(any())} returns no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.OK
+        val saksnummer = Saksnummer("SAK006")
+        val behandlingRef1 = UUID.randomUUID()
+
+        dataSource.transaction { connection ->
+            val sakUtbetalingId = SakUtbetalingRepository(connection).lagre(saksnummer, false)
+            val tilkjentYtelseId = TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
+                lagTilkjentYtelse(saksnummer = saksnummer, behandlingsreferanse = behandlingRef1)
+            )
+            UtbetalingRepository(connection).lagre(
+                sakUtbetalingId,
+                lagUtbetaling(saksnummer, behandlingRef1, tilkjentYtelseId, UtbetalingStatus.SENDT)
+            )
+        }
+
+        dataSource.transaction { connection ->
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
+            val nyTilkjentYtelse = lagTilkjentYtelse(
+                saksnummer = saksnummer,
+                behandlingsreferanse = UUID.randomUUID(),
+                forrigeBehandlingsreferanse = behandlingRef1
+            )
+
+            val resultat = service.håndterNyTilkjentYtelse(nyTilkjentYtelse)
+
+            assertThat(resultat).isEqualTo(TilkjentYtelseResponse.OK)
+        }
+    }
+
+    @Test
+    fun `utbetaling som ikke er bekreftet og ikke har fått oppdatert status skal føre til LOCKED response kode`() {
+        every { utbetalingKlient.hentStatus(any())} returns no.nav.aap.utbetal.klienter.helved.UtbetalingStatus.SENDT_TIL_OPPDRAG
+        val saksnummer = Saksnummer("SAK007")
+        val behandlingRef1 = UUID.randomUUID()
+
+        dataSource.transaction { connection ->
+            val sakUtbetalingId = SakUtbetalingRepository(connection).lagre(saksnummer, false)
+            val tilkjentYtelseId = TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
+                lagTilkjentYtelse(saksnummer = saksnummer, behandlingsreferanse = behandlingRef1)
+            )
+            UtbetalingRepository(connection).lagre(
+                sakUtbetalingId,
+                lagUtbetaling(saksnummer, behandlingRef1, tilkjentYtelseId, UtbetalingStatus.SENDT)
+            )
+        }
+
+        dataSource.transaction { connection ->
+            val service = TilkjentYtelseService(connection, utbetalingKlient)
+            val nyTilkjentYtelse = lagTilkjentYtelse(
+                saksnummer = saksnummer,
+                behandlingsreferanse = UUID.randomUUID(),
+                forrigeBehandlingsreferanse = behandlingRef1
+            )
+
+            val resultat = service.håndterNyTilkjentYtelse(nyTilkjentYtelse)
+
+            assertThat(resultat).isEqualTo(TilkjentYtelseResponse.LOCKED)
         }
     }
 
