@@ -62,6 +62,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testImplementation("org.testcontainers:testcontainers-kafka:2.0.5")
+    testImplementation("io.mockk:mockk:1.10.2")
     testImplementation(kotlin("test"))
 }
 

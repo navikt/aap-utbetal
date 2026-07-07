@@ -10,6 +10,7 @@ import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
+import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
@@ -30,11 +31,11 @@ fun NormalOpenAPIRoute.simulering(dataSource: DataSource, prometheus: Prometheus
             val utbetalinger = UtbetalingService(connection).simulerOpprettelseAvUtbetalinger(tilkjentYtelse)
             utbetalinger.alle().forEach { utbetaling ->
                 val (simulering, _) = if (utbetaling.perioder.isEmpty()) {
-                    val helvedUtbetaling = UtbetalingKlient.hentUtbetaling(utbetaling.utbetalingRef)
-                    UtbetalingKlient.simuleringOpphør(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
+                    val helvedUtbetaling = UtbetalingRestKlient.hentUtbetaling(utbetaling.utbetalingRef)
+                    UtbetalingRestKlient.simuleringOpphør(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 } else {
                     val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
-                    UtbetalingKlient.simuleringUtbetaling(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
+                    UtbetalingRestKlient.simuleringUtbetaling(utbetaling.utbetalingRef, helvedUtbetaling) to helvedUtbetaling
                 }
 //                val klippetSimulering = simulering.klipp(helvedUtbetaling.perioder.map { Periode(it.fom, it.tom) })
                 utbetalingerOgSimuleringer.add(UtbetalingOgSimuleringDto(

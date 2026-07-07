@@ -10,6 +10,7 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -24,7 +25,7 @@ fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusM
         }
         prometheus.httpCallCounter("/migrering").increment()
         log.info("Migrering kalt med maxAntall: {}, dryRun: {}", dto.maxAntall, dto.dryRun)
-        val migreringsresultat = UtførMigreringService(dataSource).utførMigrering(dto.maxAntall, dto.dryRun)
+        val migreringsresultat = UtførMigreringService(dataSource, UtbetalingRestKlient).utførMigrering(dto.maxAntall, dto.dryRun)
         log.info("Migrering fullført. Migrerte saker: {}, Feilede migreringer: {}", migreringsresultat.migrerteSaker, migreringsresultat.feiledeMigreringer)
         respond(
             response = MigreringsresultatDto(
@@ -44,7 +45,7 @@ fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusM
         prometheus.httpCallCounter("/migrering/sak").increment()
         log.info("Migrering kalt for saksnummer: ${dto.saksnummer}, dryRun: ${dto.dryRun}")
         dataSource.transaction { connection ->
-            UtførMigreringService(dataSource).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
+            UtførMigreringService(dataSource, UtbetalingRestKlient).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
         }
         log.info("Migrering fullført for saksnummer: ${dto.saksnummer}")
     }

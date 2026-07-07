@@ -5,6 +5,8 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.cron.CronExpression
+import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
+import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import no.nav.aap.utbetal.utbetaling.KvitteringService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
@@ -13,7 +15,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import kotlin.time.measureTime
 
-class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): JobbUtfører {
+class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection, private val utbetalingKlient: UtbetalingKlient): JobbUtfører {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -25,7 +27,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
         val antallUtbetalingMedForsinkedeKvitteringer = utbetalingerSomManglerKvitteringer.count {it.utbetalingOpprettet < for10MinutterSiden  }
         log.info("Mangler kvitteringer på $sendtMenManglerKvittering utbetalinger. Antall som er mer enn 10 minutter gamle: $antallUtbetalingMedForsinkedeKvitteringer")
         log.info("Feilet status på $feiletStatus utbetalinger")
-        val kvitteringService = KvitteringService(connection)
+        val kvitteringService = KvitteringService(connection, utbetalingKlient)
         val tid = measureTime {
             utbetalingerSomManglerKvitteringer.forEach { kvitteringService.sjekkKvittering(it) }
         }
@@ -34,7 +36,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection): 
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return SjekkKvitteringFraØkonomiUtfører(connection)
+            return SjekkKvitteringFraØkonomiUtfører(connection, UtbetalingRestKlient)
         }
 
         override fun type(): String {

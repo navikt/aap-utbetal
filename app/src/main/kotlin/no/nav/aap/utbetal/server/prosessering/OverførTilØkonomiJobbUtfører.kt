@@ -6,6 +6,7 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
+import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
@@ -14,7 +15,7 @@ import no.nav.aap.utbetaling.UtbetalingsperiodeType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): JobbUtfører {
+class OverførTilØkonomiJobbUtfører(private val connection: DBConnection, private val utbetalingKlient: UtbetalingKlient): JobbUtfører {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -26,20 +27,20 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
         if (utbetaling.erSlettAvventPeriode()) {
             log.info("Overfører sletting av avvent periode til økonomi for utbetalingId: $utbetalingId")
             val helvedUtbetaling = HelvedUtbetalingOppretter().opprettSlettAvvent(utbetaling)
-            UtbetalingKlient.iverksettSlettAvvent(utbetaling.utbetalingRef, helvedUtbetaling)
+            utbetalingKlient.iverksettSlettAvvent(utbetaling.utbetalingRef, helvedUtbetaling)
         } else if (utbetaling.harNyePerioder()) {
             log.info("Overfører nye periode til økonomi for utbetalingId: $utbetalingId")
             val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
-            UtbetalingKlient.iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
+            utbetalingKlient.iverksettNy(utbetaling.utbetalingRef, helvedUtbetaling)
         } else {
             if (utbetaling.perioder.isEmpty()) {
                 log.info("Opphør av utbetalingId: $utbetalingId")
-                val helvedUtbetaling = UtbetalingKlient.hentUtbetaling(utbetaling.utbetalingRef)
-                UtbetalingKlient.opphør(utbetaling.utbetalingRef, helvedUtbetaling)
+                val helvedUtbetaling = utbetalingKlient.hentUtbetaling(utbetaling.utbetalingRef)
+                utbetalingKlient.opphør(utbetaling.utbetalingRef, helvedUtbetaling)
             } else {
                 log.info("Overfører endringer til økonomi for utbetalingId: $utbetalingId")
                 val helvedUtbetaling = HelvedUtbetalingOppretter().opprettUtbetaling(utbetaling)
-                UtbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
+                utbetalingKlient.iverksettEndring(utbetaling.utbetalingRef, helvedUtbetaling)
             }
         }
 
@@ -66,7 +67,7 @@ class OverførTilØkonomiJobbUtfører(private val connection: DBConnection): Job
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return OverførTilØkonomiJobbUtfører(connection)
+            return OverførTilØkonomiJobbUtfører(connection, UtbetalingRestKlient)
         }
 
         override fun type(): String {
