@@ -244,7 +244,6 @@ class TilkjentYtelseServiceTest {
                 redusertDagsats = redusertDagsats,
                 gradering = Prosent(100),
                 dagsats = dagsats,
-                grunnlag = Beløp(300000),
                 grunnlagsfaktor = GUnit(6),
                 grunnbeløp = Beløp(100000),
                 antallBarn = 0,

@@ -181,7 +181,6 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
             if (detaljer1.redusertDagsats.avrundet() != detaljer2.redusertDagsats.avrundet()) return false
             if (detaljer1.gradering.prosentverdi() != detaljer2.gradering.prosentverdi()) return false
             if (detaljer1.dagsats.avrundet() != detaljer2.dagsats.avrundet()) return false
-            if (detaljer1.grunnlag.avrundet() != detaljer2.grunnlag.avrundet()) return false
             if (detaljer1.grunnlagsfaktor.compareTo(detaljer2.grunnlagsfaktor) != 0) return false
             if (detaljer1.grunnbeløp.avrundet() != detaljer2.grunnbeløp.avrundet()) return false
             if (detaljer1.antallBarn != detaljer2.antallBarn) return false

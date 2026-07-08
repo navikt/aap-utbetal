@@ -34,7 +34,6 @@ private fun List<TilkjentYtelsePeriodeDto>.tilTilkjentYtelsePeriode(): List<Tilk
                 redusertDagsats = Beløp(detaljerDto.redusertDagsats),
                 gradering = Prosent(detaljerDto.gradering),
                 dagsats = Beløp(detaljerDto.dagsats),
-                grunnlag = Beløp(detaljerDto.grunnlag),
                 grunnlagsfaktor = GUnit(detaljerDto.grunnlagsfaktor),
                 grunnbeløp = Beløp(detaljerDto.grunnbeløp),
                 antallBarn = detaljerDto.antallBarn,

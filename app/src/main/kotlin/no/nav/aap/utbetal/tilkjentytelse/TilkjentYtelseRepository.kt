@@ -46,7 +46,6 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                 (
                     PERIODE,
                     DAGSATS,           
-                    GRUNNLAG,          
                     GRADERING,         
                     GRUNNBELOP,        
                     ANTALL_BARN,
@@ -60,7 +59,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     MELDEPERIODE,
                     BARNEPENSJON_DAGSATS
                 )
-                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange, ?)
+                VALUES (?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange, ?)
         """.trimIndent()
 
 
@@ -68,19 +67,18 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
             setParams {
                 setPeriode(1, it.periode)
                 setBigDecimal(2, it.detaljer.dagsats.verdi())
-                setBigDecimal(3, it.detaljer.grunnlag.verdi())
-                setInt(4, it.detaljer.gradering.prosentverdi())
-                setBigDecimal(5, it.detaljer.grunnbeløp.verdi())
-                setInt(6, it.detaljer.antallBarn)
-                setBigDecimal(7, it.detaljer.barnetillegg.verdi())
-                setBigDecimal(8, it.detaljer.grunnlagsfaktor.verdi())
-                setBigDecimal(9, it.detaljer.barnetilleggsats.verdi())
-                setBigDecimal(10, it.detaljer.redusertDagsats.verdi())
-                setLong(11, tilkjentYtelseId)
-                setLocalDate(12, it.detaljer.utbetalingsdato)
-                setLong(13, it.detaljer.trekkPosteringId)
-                setPeriode(14, it.detaljer.meldeperiode)
-                setBigDecimal(15, it.detaljer.barnepensjonDagsats.verdi())
+                setInt(3, it.detaljer.gradering.prosentverdi())
+                setBigDecimal(4, it.detaljer.grunnbeløp.verdi())
+                setInt(5, it.detaljer.antallBarn)
+                setBigDecimal(6, it.detaljer.barnetillegg.verdi())
+                setBigDecimal(7, it.detaljer.grunnlagsfaktor.verdi())
+                setBigDecimal(8, it.detaljer.barnetilleggsats.verdi())
+                setBigDecimal(9, it.detaljer.redusertDagsats.verdi())
+                setLong(10, tilkjentYtelseId)
+                setLocalDate(11, it.detaljer.utbetalingsdato)
+                setLong(12, it.detaljer.trekkPosteringId)
+                setPeriode(13, it.detaljer.meldeperiode)
+                setBigDecimal(14, it.detaljer.barnepensjonDagsats.verdi())
             }
         }
     }
@@ -238,8 +236,7 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
         val selectTilkjentePerioder = """
             SELECT 
                 PERIODE,
-                DAGSATS,           
-                GRUNNLAG,          
+                DAGSATS,
                 GRADERING,         
                 GRUNNBELOP,        
                 ANTALL_BARN,
@@ -266,7 +263,6 @@ class TilkjentYtelseRepository(private val connection: DBConnection) {
                     periode = periode,
                     detaljer = YtelseDetaljer(
                         dagsats = Beløp(row.getBigDecimal("DAGSATS")),
-                        grunnlag = Beløp(row.getBigDecimal("GRUNNLAG")),
                         gradering = Prosent(row.getInt("GRADERING")),
                         grunnbeløp = Beløp(row.getBigDecimal("GRUNNBELOP")),
                         barnepensjonDagsats = Beløp(row.getBigDecimal("BARNEPENSJON_DAGSATS")),
