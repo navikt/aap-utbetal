@@ -52,7 +52,7 @@ dependencies {
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.10.0")
     runtimeOnly("org.postgresql:postgresql:42.7.12")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
@@ -62,7 +62,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testImplementation("org.testcontainers:testcontainers-kafka:2.0.5")
-    testImplementation("io.mockk:mockk:1.10.2")
+    testImplementation("io.mockk:mockk:1.14.11")
     testImplementation(kotlin("test"))
 }
 
