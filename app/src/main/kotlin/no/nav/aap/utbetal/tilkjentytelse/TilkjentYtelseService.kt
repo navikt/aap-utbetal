@@ -90,16 +90,20 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
         } else {
             val utbetalingRepo = UtbetalingRepository(connection)
 
-            //Forsøk å hent kvitteringer på utbetalinger som er sendt og ikke bekreftet
-            utbetalingRepo.hent(tilkjentYtelse.saksnummer)
+            // Forsøk å hent kvitteringer på utbetalinger som er sendt og ikke bekreftet
+            utbetalingRepo.hentUtbetalingerSomManglerKvittering(tilkjentYtelse.saksnummer)
                 .also { utbetalinger ->
-                    //Prøv å hente alle manglende kvitteringer
+                    // Prøv å hente alle manglende kvitteringer
                     utbetalinger.hentKvitteringerForSendteUtbetalinger()
                 }
 
-            // Hent utbetalinger på nytt og sjekk at de er BEKREFTET
-            val utbetalingerForSak = utbetalingRepo.hent(tilkjentYtelse.saksnummer)
-            return  utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
+            // Hent utbetalinger på nytt og sjekk det er noen som ikke er BEKREFTET
+            val utbetalingerUtenKvittering = utbetalingRepo.hentUtbetalingerSomManglerKvittering(tilkjentYtelse.saksnummer)
+            if (utbetalingerUtenKvittering.isNotEmpty()) {
+                val uidListe = utbetalingerUtenKvittering.map {it.utbetalingRef}
+                log.info("Tilkjent ytelse kan ikke tas imot for sak ${tilkjentYtelse.saksnummer} fordi følgende utbetalinger mangler kvittering: $uidListe")
+            }
+            return  utbetalingerUtenKvittering.isEmpty()
         }
     }
 
@@ -113,11 +117,11 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
     }
 
 
-    private fun List<Utbetaling>.hentKvitteringerForSendteUtbetalinger() {
+    private fun List<UtbetalingLight>.hentKvitteringerForSendteUtbetalinger() {
         val kvitteringService = KvitteringService(connection, utbetalingKlient)
         filter { it.utbetalingStatus == UtbetalingStatus.SENDT }
             .forEach { utbetaling ->
-                kvitteringService.sjekkKvittering(utbetaling.tilUtbetalingLight())
+                kvitteringService.sjekkKvittering(utbetaling)
             }
     }
 
