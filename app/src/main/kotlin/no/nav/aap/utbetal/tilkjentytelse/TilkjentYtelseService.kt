@@ -98,8 +98,12 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
                 }
 
             // Hent utbetalinger på nytt og sjekk det er noen som ikke er BEKREFTET
-            val utbetalingerForSak = utbetalingRepo.hentUtbetalingerSomManglerKvittering(tilkjentYtelse.saksnummer)
-            return  utbetalingerForSak.isEmpty()
+            val utbetalingerUtenKvittering = utbetalingRepo.hentUtbetalingerSomManglerKvittering(tilkjentYtelse.saksnummer)
+            if (utbetalingerUtenKvittering.isNotEmpty()) {
+                val uidListe = utbetalingerUtenKvittering.map {it.utbetalingRef}
+                log.info("Tilkjent ytelse kan ikke tas imot for sak ${tilkjentYtelse.saksnummer} fordi følgende utbetalinger mangler kvittering: $uidListe")
+            }
+            return  utbetalingerUtenKvittering.isEmpty()
         }
     }
 
