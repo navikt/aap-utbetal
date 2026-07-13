@@ -59,6 +59,9 @@ spec:
             rules:
                 - application: utsjekk
                   namespace: helved
+    groups:
+        - name: AAP_DRIFT
+          group: ff9a228b-4aab-47bd-8aee-598d80f0fb4b
     env:
         - name: INTEGRASJON_UTSJEKK_URL
           value: http://utsjekk.helved

@@ -5,7 +5,8 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.tilgang.AuthorizationRouteConfig
+import no.nav.aap.tilgang.Drift
+import no.nav.aap.tilgang.RollerConfig
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.utbetaling.UtbetalingLight
@@ -13,9 +14,9 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import javax.sql.DataSource
 
-
-fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
-    route("/admin/status").authorizedGet<Unit, UtbetalingStatusDto>(authConfig, null) {
+private val harDriftsRolleConfig = RollerConfig(listOf(Drift))
+fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+    route("/admin/status").authorizedGet<Unit, UtbetalingStatusDto>(harDriftsRolleConfig) {
         prometheus.httpCallCounter("/admin/status").increment()
         val utbetalingerPerStatus = dataSource.transaction(readOnly = true) { connection ->
             val utbetalinger = UtbetalingRepository(connection).hentUtbetalingerSomManglerKvittering()
@@ -26,8 +27,9 @@ fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: Prometheus
 
 private fun Map<UtbetalingStatus, List<UtbetalingLight>>.tilListAvUtbetalingStatusDto() =
     UtbetalingStatusDto(
-        utbetalingerSomManglerKvittering = this[UtbetalingStatus.SENDT]?.map {it.tilUtbetalingInfoDto()} ?: emptyList(),
-        utbetalingerMedFeiletStatus = this[UtbetalingStatus.FEILET]?.map {it.tilUtbetalingInfoDto()} ?: emptyList(),
+        utbetalingerSomManglerKvittering = this[UtbetalingStatus.SENDT]?.map { it.tilUtbetalingInfoDto() }
+            ?: emptyList(),
+        utbetalingerMedFeiletStatus = this[UtbetalingStatus.FEILET]?.map { it.tilUtbetalingInfoDto() } ?: emptyList(),
     )
 
 private fun UtbetalingLight.tilUtbetalingInfoDto() = UtbetalingInfoDto(

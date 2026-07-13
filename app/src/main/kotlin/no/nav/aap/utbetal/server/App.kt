@@ -115,7 +115,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 motorApi(dataSource)
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
-                hentStatus(dataSource, prometheus, authConfig)
+                hentStatus(dataSource, prometheus)
                 simuleringV2(dataSource, prometheus, authConfig)
                 migrering(dataSource, prometheus, authConfig)
                 migrerSak(dataSource, prometheus, authConfig)

@@ -34,6 +34,7 @@ class Fakes : AutoCloseable{
         System.setProperty("integrasjon.utsjekk.scope", "helvedUtbetaling")
         System.setProperty("nais.token.introspection.endpoint", "http://localhost:${azure.port()}/introspect")
         System.setProperty("nais.token.endpoint", "http://localhost:${azure.port()}/token")
+        System.setProperty("AAP_DRIFT", "drift-rolle")
     }
 
     override fun close() {
