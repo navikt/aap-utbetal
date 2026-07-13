@@ -40,6 +40,8 @@ spec:
                 extra:
                     - "NAVident"
                     - "azp_name"
+                groups:
+                    - id: ff9a228b-4aab-47bd-8aee-598d80f0fb4b #AAP_DRIFT
     liveness:
         path: /actuator/live
         initialDelay: 5
@@ -59,9 +61,6 @@ spec:
             rules:
                 - application: utsjekk
                   namespace: helved
-    groups:
-        - name: AAP_DRIFT
-          group: ff9a228b-4aab-47bd-8aee-598d80f0fb4b
     env:
         - name: INTEGRASJON_UTSJEKK_URL
           value: http://utsjekk.helved
@@ -69,6 +68,8 @@ spec:
           value: api://prod-gcp.helved.utsjekk/.default
         - name: BEHANDLINGSFLYT_AZP
           value: ead3bfb6-d403-43b3-bb45-dc184ce314b7
+        - name: AAP_DRIFT
+          value: ff9a228b-4aab-47bd-8aee-598d80f0fb4b
     gcp:
         sqlInstances:
             - type: POSTGRES_16
