@@ -30,6 +30,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
+import no.nav.aap.utbetal.admin.hentMigreringStatus
 import no.nav.aap.utbetal.admin.hentStatus
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
@@ -116,6 +117,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
                 hentStatus(dataSource, prometheus)
+                hentMigreringStatus(dataSource, prometheus)
                 simuleringV2(dataSource, prometheus, authConfig)
                 migrering(dataSource, prometheus, authConfig)
                 migrerSak(dataSource, prometheus, authConfig)
