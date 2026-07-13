@@ -6,7 +6,7 @@ plugins {
 
 group = "no.nav.aap.utbetal"
 
-val jacksonVersion = "2.22.0"
+val jacksonVersion = "2.22.1"
 
 dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
