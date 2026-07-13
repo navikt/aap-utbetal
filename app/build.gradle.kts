@@ -4,7 +4,7 @@ val ktorVersion = "3.5.1"
 val komponenterVersjon = "2.0.92"
 val behandlingsflytVersjon = "0.0.632"
 val tilgangVersjon = "1.0.231"
-val jacksonVersion = "2.22.0"
+val jacksonVersion = "2.22.1"
 val jupiterVersjon = "6.1.1"
 
 plugins {
@@ -45,15 +45,15 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
-    implementation("ch.qos.logback:logback-classic:1.5.37")
+    implementation("ch.qos.logback:logback-classic:1.5.38")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.apache.kafka:kafka-clients:4.3.1")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
     implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.flywaydb:flyway-database-postgresql:12.10.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.12")
+    implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
+    runtimeOnly("org.postgresql:postgresql:42.7.13")
 
     testImplementation("no.nav.aap.kelvin:motor-test-utils:${komponenterVersjon}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
