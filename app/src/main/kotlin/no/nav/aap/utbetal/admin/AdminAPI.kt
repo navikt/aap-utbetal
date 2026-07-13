@@ -25,6 +25,21 @@ fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: Prometheus
         respond(response = utbetalingerPerStatus.tilListAvUtbetalingStatusDto())
     }
 
+
+fun NormalOpenAPIRoute.hentMigreringStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+    route("/admin/migrering/status").authorizedGet<Unit, UtbetalingMigreringStatusDto>(harDriftsRolleConfig) {
+        prometheus.httpCallCounter("/admin/migrering/status").increment()
+        val migreringStatus = dataSource.transaction(readOnly = true) { connection ->
+            UtbetalingRepository(connection).hentMigreringStatus()
+        }
+        respond(
+            UtbetalingMigreringStatusDto(
+                antallGammeltApi = migreringStatus.antallIkkeMigrerteSaker,
+                antallNyttApi = migreringStatus.antallMigrerteSaker,
+            )
+        )
+    }
+
 private fun Map<UtbetalingStatus, List<UtbetalingLight>>.tilListAvUtbetalingStatusDto() =
     UtbetalingStatusDto(
         utbetalingerSomManglerKvittering = this[UtbetalingStatus.SENDT]?.map { it.tilUtbetalingInfoDto() }
