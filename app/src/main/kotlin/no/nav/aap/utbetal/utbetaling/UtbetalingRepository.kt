@@ -441,7 +441,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
 
     fun hentMigreringStatus(): UtbetalingMigreringStatus {
         val antallIkkeMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is null"
-        val antallMigrerteSakerSql = "select count(1) from sak_utbetaling where migrert_til_kafka is not null"
+        val antallMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is not null"
         val mapAntall = {row: Row -> row.getInt("antall")}
         return UtbetalingMigreringStatus(
             antallIkkeMigrerteSaker = connection.queryFirst(antallIkkeMigrerteSakerSql) {setRowMapper { mapAntall(it) }},
