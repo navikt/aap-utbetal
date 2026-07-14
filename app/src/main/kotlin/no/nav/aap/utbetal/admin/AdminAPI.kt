@@ -4,17 +4,25 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.Drift
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.RollerConfig
+import no.nav.aap.tilgang.SakPathParam
 import no.nav.aap.tilgang.authorizedGet
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.utbetaling.UtbetalingData
 import no.nav.aap.utbetal.utbetaling.UtbetalingLight
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import no.nav.aap.utbetaling.UtbetalingStatus
 import javax.sql.DataSource
 
 private val harDriftsRolleConfig = RollerConfig(listOf(Drift))
+
 fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
     route("/admin/status").authorizedGet<Unit, UtbetalingStatusDto>(harDriftsRolleConfig) {
         prometheus.httpCallCounter("/admin/status").increment()
@@ -39,6 +47,35 @@ fun NormalOpenAPIRoute.hentMigreringStatus(dataSource: DataSource, prometheus: P
             )
         )
     }
+
+fun NormalOpenAPIRoute.hentUtbetalingtidslinjeForSaksnummer(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+    route("/admin/utbetalingstidslinje/{saksnummer}").authorizedGet<SaksnummerParameter, UtbetalingstidslinjeDto>(
+        AuthorizationParamPathConfig(
+            sakPathParam = SakPathParam("saksnummer"),
+            operasjon = Operasjon.DRIFTE,
+        ),
+    ) { params ->
+        prometheus.httpCallCounter("/admin/utbetalingstidslinje").increment()
+        val utbetalinger = dataSource.transaction(readOnly = true) { connection ->
+            UtbetalingService(connection).lagUtbetalingTidslinje(Saksnummer(params.saksnummer))
+        }
+        respond(utbetalinger.tilUtbetalingstidslinjeDto())
+    }
+
+
+private fun Tidslinje<UtbetalingData>.tilUtbetalingstidslinjeDto() = UtbetalingstidslinjeDto(
+    utbetalinger = this.segmenter().map { (periode, data) ->
+        UtbetalingDto(
+            fom = periode.fom,
+            tom = periode.tom,
+            utbetalingRef = data.utbetalingRef,
+            beløp = data.beløp,
+            fastsattDagsats = data.fastsattDagsats,
+            utbetalingsdato = data.utbetalingsdato,
+            )
+    }
+)
+
 
 private fun Map<UtbetalingStatus, List<UtbetalingLight>>.tilListAvUtbetalingStatusDto() =
     UtbetalingStatusDto(
