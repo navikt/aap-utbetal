@@ -30,6 +30,7 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.AuthorizationRouteConfig
+import no.nav.aap.tilgang.TeamAap
 import no.nav.aap.utbetal.admin.hentMigreringStatus
 import no.nav.aap.utbetal.admin.hentStatus
 import no.nav.aap.utbetal.admin.hentUtbetalingtidslinjeForSaksnummer
@@ -114,7 +115,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 tilkjentYtelse(dataSource, prometheus, authConfig)
                 hent(dataSource, prometheus, authConfig)
                 simulering(dataSource, prometheus, authConfig)
-                motorApi(dataSource)
+                motorApi(dataSource, listOf(TeamAap.id))
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
                 hentStatus(dataSource, prometheus)

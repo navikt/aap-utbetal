@@ -44,6 +44,7 @@ spec:
                     - "azp_name"
                 groups:
                     - id: bc89623f-4624-4978-ac54-acd048c0f2a5 #AAP_DRIFT
+                    - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 #NAIS_TEAM_AAP
     liveness:
         path: /actuator/live
         initialDelay: 5
@@ -75,6 +76,8 @@ spec:
           value: 5b4656d2-e8f0-4df1-9e10-269133df697f
         - name: AAP_DRIFT
           value: bc89623f-4624-4978-ac54-acd048c0f2a5
+        - name: NAIS_TEAM_AAP
+          value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
     gcp:
         sqlInstances:
             - type: POSTGRES_16
