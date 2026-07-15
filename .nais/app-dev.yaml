@@ -64,6 +64,7 @@ spec:
                   cluster: dev-gcp
         outbound:
             rules:
+                - application: tilgang
                 - application: utsjekk
                   namespace: helved
     env:
@@ -71,6 +72,10 @@ spec:
           value: http://utsjekk.helved
         - name: INTEGRASJON_UTSJEKK_SCOPE
           value: api://dev-gcp.helved.utsjekk/.default
+        - name: INTEGRASJON_TILGANG_URL
+          value: http://tilgang
+        - name: INTEGRASJON_TILGANG_SCOPE
+          value: api://dev-gcp.aap.tilgang/.default
         - name: BEHANDLINGSFLYT_AZP
           value: 5b4656d2-e8f0-4df1-9e10-269133df697f
         - name: AAP_DRIFT
