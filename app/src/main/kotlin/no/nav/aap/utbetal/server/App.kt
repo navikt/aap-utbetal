@@ -109,13 +109,15 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
         startUtbetalingStatusEventKonsument(dataSource)
     }
 
+    val påkrevdeRollerMotor = if (Miljø.erProd()) listOf(TeamAap.id) else emptyList()
+    
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
                 tilkjentYtelse(dataSource, prometheus, authConfig)
                 hent(dataSource, prometheus, authConfig)
                 simulering(dataSource, prometheus, authConfig)
-                motorApi(dataSource, listOf(TeamAap.id))
+                motorApi(dataSource, påkrevdeRollerMotor)
                 hentTrekkListe(dataSource, prometheus, authConfig)
                 hentTrekkListeAlle(dataSource, prometheus, authConfig)
                 hentStatus(dataSource, prometheus)
