@@ -35,6 +35,7 @@ class Fakes : AutoCloseable{
         System.setProperty("nais.token.introspection.endpoint", "http://localhost:${azure.port()}/introspect")
         System.setProperty("nais.token.endpoint", "http://localhost:${azure.port()}/token")
         System.setProperty("AAP_DRIFT", "drift-rolle")
+        System.setProperty("NAIS_TEAM_AAP", "team-aap-rolle")
     }
 
     override fun close() {
