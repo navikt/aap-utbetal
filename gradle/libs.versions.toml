@@ -1,0 +1,67 @@
+[versions]
+ktor = "3.5.1"
+komponenter = "2.0.110"
+behandlingsflyt = "0.0.635"
+tilgang = "1.0.234"
+jackson = "2.22.1"
+junit-jupiter = "6.1.2"
+testcontainers = "2.0.5"
+
+[libraries]
+# AAP Kelvin
+httpklient = { module = "no.nav.aap.kelvin:httpklient", version.ref = "komponenter" }
+dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }
+dbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "komponenter" }
+dbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
+infrastructure = { module = "no.nav.aap.kelvin:infrastructure", version.ref = "komponenter" }
+server = { module = "no.nav.aap.kelvin:server", version.ref = "komponenter" }
+motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
+motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
+verdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
+tidslinje = { module = "no.nav.aap.kelvin:tidslinje", version.ref = "komponenter" }
+ktorOpenapiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
+motorTestUtils = { module = "no.nav.aap.kelvin:motor-test-utils", version.ref = "komponenter" }
+tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
+behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
+
+# Ktor
+ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktorServerAuthJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktorServerCallId = { module = "io.ktor:ktor-server-call-id", version.ref = "ktor" }
+ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
+ktorServerNetty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
+
+# Jackson
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+
+# Micrometer
+micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
+
+# Logging
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.38" }
+logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
+
+# Kafka
+kafkaClients = { module = "org.apache.kafka:kafka-clients", version = "4.3.1" }
+
+# Database
+hikari = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
+flywayPostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "12.11.0" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.13" }
+
+# Test
+junitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+assertjCore = { module = "org.assertj:assertj-core", version = "3.27.7" }
+testcontainersPostgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainersKafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
+mockk = { module = "io.mockk:mockk", version = "1.14.11" }
+nimbusJoseJwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
+
+[plugins]
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
