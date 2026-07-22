@@ -6,11 +6,9 @@ plugins {
 
 group = "no.nav.aap.utbetal"
 
-val jacksonVersion = "2.22.1"
-
 dependencies {
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    api("no.nav.aap.kelvin:ktor-openapi-generator:2.0.108")
+    implementation(libs.jacksonDatatypeJsr310)
+    api(libs.ktorOpenapiGenerator)
 }
 
 java {
