@@ -43,7 +43,7 @@ jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datat
 micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
 
 # Logging
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.38" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.0" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 
 # Kafka
