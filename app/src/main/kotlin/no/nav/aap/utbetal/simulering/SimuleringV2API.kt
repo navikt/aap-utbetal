@@ -21,9 +21,9 @@ fun NormalOpenAPIRoute.simuleringV2(dataSource: DataSource, prometheus: Promethe
     route("/simulering/v2").authorizedPost<Unit, SimuleringDto, TilkjentYtelseDto>(authConfig, null) { _, dto ->
         prometheus.httpCallCounter("/simulering/v2").increment()
         log.info("Simulering v2 kalt for behandling: {}", dto.behandlingsreferanse)
+        val tilkjentYtelse = dto.tilTilkjentYtelse()
         val simulering = dataSource.transaction(readOnly = true) { connection ->
-            val tilkjentYtelse = dto.tilTilkjentYtelse()
-            SimuleringService(connection).simuler(tilkjentYtelse.behandlingsreferanse)
+            SimuleringService(connection).simuler(tilkjentYtelse)
         }
         log.info("Simulering utbetalinger: $simulering") //TODO: fjern(eller reduser loggingen) når vi har testet integrasjonen nok
         respond(simulering.tilSimuleringDto())
