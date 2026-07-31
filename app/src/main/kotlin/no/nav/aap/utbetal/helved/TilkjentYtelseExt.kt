@@ -27,7 +27,8 @@ private fun TilkjentYtelseAvvent.tilAvvent() =
         fom = this.fom.toString(),
         tom = this.tom.toString(),
         overføres = this.overføres.toString(),
-        årsak = this.årsak?.toString()
+        årsak = this.årsak?.toString(),
+        feilregistrering = this.feilregistrering,
     )
 
 private fun List<TilkjentYtelsePeriode>.tilUtbetalinger(meldeperiodeUtbetalingMap: MeldeperiodeUtbetalingIdMap): List<Utbetaling> {

@@ -1,25 +1,19 @@
 package no.nav.aap.utbetal.simulering
 
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.utbetal.helved.tilUtbetalingMelding
 import no.nav.aap.utbetal.klienter.helved.Simulering
 import no.nav.aap.utbetal.klienter.helved.UtbetalingV2Klient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
-import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
-import java.util.UUID
+import java.util.*
 
 class SimuleringService(private val connection: DBConnection) {
 
 
-    fun simuler(behandlingRef: UUID): Simulering {
-        val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
-            ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
-
+    fun simuler(tilkjentYtelse: TilkjentYtelse): Simulering {
         val meldeperiodeUtbetalingMapping = finnMeldeperiodeUtbetalingMapping(tilkjentYtelse)
         val utbetalingMelding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMapping)
         return UtbetalingV2Klient().simuleringUtbetaling(utbetalingMelding)
