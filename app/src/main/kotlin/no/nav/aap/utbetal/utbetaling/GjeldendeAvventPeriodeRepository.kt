@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
+import java.time.LocalDateTime
 
 class GjeldendeAvventPeriodeRepository(private val connection: DBConnection) {
 
@@ -15,6 +16,22 @@ class GjeldendeAvventPeriodeRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, gjeldendeAvventPeriode.sakUtbetalingId)
                 setPeriode(2, gjeldendeAvventPeriode.periode)
+            }
+        }
+    }
+
+    //NB: Denne er laget for migrering, og kan fjernes når migrering er gjort.
+    fun lagre(gjeldendeAvventPeriode: GjeldendeAvventPeriode, vedtakstidspunkt: LocalDateTime) {
+        deaktiverGjeldeAvventPeriode(gjeldendeAvventPeriode.sakUtbetalingId)
+        val sql = """
+            INSERT INTO GJELDENDE_AVVENT_PERIODE(SAK_UTBETALING_ID, PERIODE, AKTIV, OPPRETTET_TID) VALUES (?, ?::daterange, TRUE, ?)
+        """.trimIndent()
+
+        connection.execute(sql) {
+            setParams {
+                setLong(1, gjeldendeAvventPeriode.sakUtbetalingId)
+                setPeriode(2, gjeldendeAvventPeriode.periode)
+                setLocalDateTime(3, vedtakstidspunkt)
             }
         }
     }

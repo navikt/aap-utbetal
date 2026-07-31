@@ -1,6 +1,5 @@
 package no.nav.aap.utbetal.migrering
 
-import io.ktor.server.plugins.NotFoundException
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -13,6 +12,8 @@ import no.nav.aap.utbetal.klienter.helved.MigreringRequest
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
+import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
@@ -66,7 +67,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
     fun utførMigrering(connection: DBConnection, saksnummer: Saksnummer, dryRun: Boolean) {
 
         val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer)
-            ?: throw NotFoundException("Fant ikke rad i sak_utbetaling for saksnummer $saksnummer.")
+            ?: throw IllegalArgumentException("Fant ikke rad i sak_utbetaling for saksnummer $saksnummer.")
 
         // Ikke gjør noe dersom saken allerede er migrert
         if (sakUtbetaling.migrertTilKafka != null) {
@@ -76,10 +77,12 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         // Opprett UtbetalingStatus for alle tilkjent ytelse. Status hentes fra utbetalinger.
         opprettUtbetalingStatus(connection, saksnummer, dryRun)
 
+        // Opprett gjeldende avvent utbetaling historikk for saken.
+        opprettGjeldendeAvventUtbetalingHistorikk(connection, sakUtbetaling, dryRun)
+
         // Opprett mapping for alle utbetalinger knyttet til denne saken. Hentes ut med utbetaling-tidslinje.")
         val utbetalingTidslinje = UtbetalingService(connection).lagUtbetalingTidslinje(saksnummer)
         val uidTilPeriodeMap = opprettUtbetalingMapping(connection, sakUtbetaling, utbetalingTidslinje, dryRun)
-
 
         val migreringRequest = MigreringRequest(uidTilPeriodeMap.keys.toSet().map { Migrering(it, it) })
         if (!dryRun) {
@@ -111,6 +114,28 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
                 throw IllegalStateException("Ikke alle utbetalinger for sak $saksnummer er bekreftet. Kan ikke opprette utbetaling status for tilkjent ytelse ${tilkjentYtelse.id}")
             }
 
+        }
+    }
+
+    private fun opprettGjeldendeAvventUtbetalingHistorikk(connection: DBConnection, sakUtbetaling: SakUtbetaling, dryRun: Boolean) {
+        val sakUtbetalingId = sakUtbetaling.id!!
+        val avventHistorikk = UtbetalingRepository(connection).hentUtbetalingAvventHistorikk(sakUtbetaling.saksnummer)
+        var gjeldendeAvventPeriode = avventHistorikk.firstOrNull()
+        if (gjeldendeAvventPeriode != null) {
+            val gjeldendeAvventPeriodeRepo = GjeldendeAvventPeriodeRepository(connection)
+            log.info("For sakUtbetalingId $sakUtbetalingId lagres gjelde avvent periode: $gjeldendeAvventPeriode")
+            if (!dryRun) {
+                gjeldendeAvventPeriodeRepo.lagre(GjeldendeAvventPeriode(sakUtbetalingId, gjeldendeAvventPeriode.avvent), gjeldendeAvventPeriode.vedtakstidspunkt)
+            }
+            avventHistorikk.drop(1).forEach {avventPeriode ->
+                if (avventPeriode.avvent != gjeldendeAvventPeriode) {
+                    gjeldendeAvventPeriode = avventPeriode
+                    log.info("For sakUtbetalingId $sakUtbetalingId lagres gjelde avvent periode: $gjeldendeAvventPeriode")
+                    if (!dryRun) {
+                        gjeldendeAvventPeriodeRepo.lagre(GjeldendeAvventPeriode(sakUtbetalingId, gjeldendeAvventPeriode.avvent), gjeldendeAvventPeriode.vedtakstidspunkt)
+                    }
+                }
+            }
         }
     }
 
