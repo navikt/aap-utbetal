@@ -31,7 +31,7 @@ data class TilkjentYtelsePeriode(
 data class TilkjentYtelseAvvent(
     val fom: LocalDate,
     val tom: LocalDate,
-    val overføres: LocalDate?,
+    val overføres: LocalDate? = null,
     val årsak: AvventÅrsak? = null,
     val feilregistrering: Boolean = false,
 )
