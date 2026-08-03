@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.server.prosessering
 
 import no.bekk.bekkopen.date.NorwegianDateUtil.isWorkingDay
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
@@ -42,12 +43,12 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection, p
         val for10MinutterSiden = LocalDateTime.now().minusMinutes(10)
         val antallForsinketMerEnn10Minutter = ukvitterteUtbetalinger.count {it.utbetalingOpprettet < for10MinutterSiden  }
 
-        if (antallForsinketMerEnn10Minutter > 0 && erForsinkelsenIVakttid()) {
+        if (antallForsinketMerEnn10Minutter > 0 && erForsinkelsenIVakttid() && Miljø.erProd()) {
             log.warn("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         } else {
             log.info("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         }
-        if (antallFeilet > 0) {
+        if (antallFeilet > 0 && Miljø.erProd()) {
             val saksnummereForFeilet = ukvitterteUtbetalinger.filter { it.utbetalingStatus == UtbetalingStatus.FEILET }.map { it.saksnummer }
             log.error("Feilet status på $antallFeilet utbetalinger. Rapporter saksnummer(e) til #team-hel-ved. Saker: $saksnummereForFeilet")
         } else {
