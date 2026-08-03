@@ -43,7 +43,7 @@ jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datat
 micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
 
 # Logging
-logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.0" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.1" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 
 # Kafka
@@ -51,7 +51,7 @@ kafkaClients = { module = "org.apache.kafka:kafka-clients", version = "4.3.1" }
 
 # Database
 hikari = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
-flywayPostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "13.0.0" }
+flywayPostgresql = { module = "org.flywaydb:flyway-database-postgresql", version = "13.1.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.13" }
 
 # Test
