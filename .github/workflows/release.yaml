@@ -35,6 +35,9 @@ jobs:
             packages: write
             id-token: write
         runs-on: ubuntu-latest
+        concurrency:
+            group: publiser-kontrakt
+            queue: max
         steps:
             - uses: actions/checkout@v7
               with:
@@ -85,7 +88,9 @@ jobs:
             id-token: write
         needs: gradle
         uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-        concurrency: deploy-dev
+        concurrency:
+            group: deploy-dev
+            queue: max
         secrets: inherit
         with:
             cluster: dev-gcp
@@ -99,7 +104,9 @@ jobs:
             id-token: write
         needs: [ publiser-kontrakt, dev ]
         uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-        concurrency: deploy-prod
+        concurrency:
+            group: deploy-prod
+            queue: max
         secrets: inherit
         with:
             cluster: prod-gcp
