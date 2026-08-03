@@ -43,12 +43,12 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection, p
         val for10MinutterSiden = LocalDateTime.now().minusMinutes(10)
         val antallForsinketMerEnn10Minutter = ukvitterteUtbetalinger.count {it.utbetalingOpprettet < for10MinutterSiden  }
 
-        if (antallForsinketMerEnn10Minutter > 0 && erForsinkelsenIVakttid() && Miljø.erDev()) {
+        if (antallForsinketMerEnn10Minutter > 0 && erForsinkelsenIVakttid() && Miljø.erProd()) {
             log.warn("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         } else {
             log.info("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         }
-        if (antallFeilet > 0 && Miljø.erDev()) {
+        if (antallFeilet > 0 && Miljø.erProd()) {
             val saksnummereForFeilet = ukvitterteUtbetalinger.filter { it.utbetalingStatus == UtbetalingStatus.FEILET }.map { it.saksnummer }
             log.error("Feilet status på $antallFeilet utbetalinger. Rapporter saksnummer(e) til #team-hel-ved. Saker: $saksnummereForFeilet")
         } else {
