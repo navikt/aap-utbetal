@@ -43,7 +43,7 @@ class SjekkKvitteringFraØkonomiUtfører(private val connection: DBConnection, p
         val antallForsinketMerEnn10Minutter = ukvitterteUtbetalinger.count {it.utbetalingOpprettet < for10MinutterSiden  }
 
         if (antallForsinketMerEnn10Minutter > 0 && erForsinkelsenIVakttid()) {
-            log.error("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
+            log.warn("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         } else {
             log.info("Mangler kvitteringer på $antallForsinket utbetalinger. Antall som er mer enn 10 minutter gamle: $antallForsinketMerEnn10Minutter")
         }
