@@ -7,7 +7,8 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.tilgang.AuthorizationRouteConfig
+import no.nav.aap.tilgang.Drift
+import no.nav.aap.tilgang.RollerConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
@@ -17,9 +18,11 @@ import javax.sql.DataSource
 
 private val log: Logger = LoggerFactory.getLogger("POST /migrering")
 
-fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
+private val harDriftsRolleConfig = RollerConfig(listOf(Drift))
 
-    route("/migrering").authorizedPost<Unit, MigreringsresultatDto, MigreringDto>(authConfig, null) { _, dto ->
+fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+
+    route("/migrering").authorizedPost<Unit, MigreringsresultatDto, MigreringDto>(harDriftsRolleConfig) { _, dto ->
         if (Miljø.erProd()) {
             throw IllegalStateException("Migrering er ikke klart for produksjon")
         }
@@ -36,9 +39,9 @@ fun NormalOpenAPIRoute.migrering(dataSource: DataSource, prometheus: PrometheusM
     }
 
 
-fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
+fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
 
-    route("/migrering/sak").authorizedPost<Unit, MigreringsresultatDto, MigrerSakDto>(authConfig, null) { _, dto ->
+    route("/migrering/sak").authorizedPost<Unit, MigreringsresultatDto, MigrerSakDto>(harDriftsRolleConfig) { _, dto ->
         if (Miljø.erProd()) {
             throw IllegalStateException("Migrering er ikke klart for produksjon")
         }
