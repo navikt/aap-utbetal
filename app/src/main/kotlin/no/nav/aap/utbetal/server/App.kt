@@ -124,8 +124,8 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 hentMigreringStatus(dataSource, prometheus)
                 hentUtbetalingtidslinjeForSaksnummer(dataSource, prometheus)
                 simuleringV2(dataSource, prometheus, authConfig)
-                migrering(dataSource, prometheus, authConfig)
-                migrerSak(dataSource, prometheus, authConfig)
+                migrering(dataSource, prometheus)
+                migrerSak(dataSource, prometheus)
             }
         }
         actuator(prometheus, motor)
