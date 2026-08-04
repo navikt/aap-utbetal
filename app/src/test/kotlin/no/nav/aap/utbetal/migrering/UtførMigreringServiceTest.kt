@@ -236,8 +236,6 @@ class UtførMigreringServiceTest {
 
     @Test
     fun `Sak med feil havner ikke i migrerteSaker`() {
-        // BUG: feiledeMigreringer populeres aldri i catch-blokken i utforMigrering(maxAntall, dryRun).
-        // Saken logges som feil men listes ikke i feiledeMigreringer i Migreringsresultat.
         val saksnummer = Saksnummer("BATCH-FEIL")
         dataSource.transaction { connection ->
             val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
@@ -253,7 +251,7 @@ class UtførMigreringServiceTest {
         val resultat = UtførMigreringService(dataSource, utbetalingKlient).utførMigrering(maxAntall = 10, dryRun = false)
 
         assertThat(resultat.migrerteSaker).doesNotContain(saksnummer)
-        assertThat(resultat.feiledeMigreringer).isEmpty() // BUG: burde inneholde saksnummer
+        assertThat(resultat.feiledeMigreringer).contains(saksnummer)
     }
 
     // ── Hjelpefunksjoner ─────────────────────────────────────────────────────
