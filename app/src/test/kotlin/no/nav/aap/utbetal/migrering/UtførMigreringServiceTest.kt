@@ -93,6 +93,7 @@ class UtførMigreringServiceTest {
 
             assertThat(MeldeperiodeUtbetalingMappingRepository(connection).hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)).isEmpty()
             assertThat(GjeldendeAvventPeriodeRepository(connection).hentGjeldendeAvventPeriode(sakUtbetalingId)).isNull()
+            assertThat(SakUtbetalingRepository(connection).hent(saksnummer)!!.migrertTilKafka).isNull()
         }
         verify(exactly = 0) { utbetalingKlient.migrering(any()) }
     }
@@ -116,6 +117,7 @@ class UtførMigreringServiceTest {
         dataSource.transaction(readOnly = true) { connection ->
             assertThat(MeldeperiodeUtbetalingMappingRepository(connection).hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)).isNotEmpty()
             assertThat(UtbetalingStatusRepository(connection).erAlleUtbetalingerBekreftet(saksnummer)).isTrue()
+            assertThat(SakUtbetalingRepository(connection).hent(saksnummer)!!.migrertTilKafka).isNotNull()
         }
         verify(exactly = 1) { utbetalingKlient.migrering(any()) }
     }
