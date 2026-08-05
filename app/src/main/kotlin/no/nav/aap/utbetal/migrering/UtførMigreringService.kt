@@ -49,6 +49,8 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
             val feiledeMigreringer = mutableListOf<Saksnummer>()
             sakerTilMigrering.forEach { sakUtbetaling ->
                 try {
+                    // Utfør hver enkelt migrering som egen transaksjon. Det siste som skjer er at migreringstjenesten
+                    // til Utsjekk kalles(REST), og hvis den feiler så rulles mugrering tilbake.
                     dataSource.transaction { connection ->
                         utførMigrering(connection, sakUtbetaling.saksnummer, dryRun)
                     }
@@ -87,6 +89,10 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
 
         val migreringRequest = MigreringRequest(uidTilPeriodeMap.keys.toSet().map { Migrering(it, it) })
         if (!dryRun) {
+            // Sett sak_utbetaling til migrert
+            SakUtbetalingRepository(connection).settMigrertTilKafka(saksnummer)
+
+            // Kall utsjekk som migreringstjeneste.
             utbetalingKlient.migrering(migreringRequest)
         }
     }
