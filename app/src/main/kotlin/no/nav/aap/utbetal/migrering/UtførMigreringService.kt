@@ -55,6 +55,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
                     migrerteSaker.add(sakUtbetaling.saksnummer)
                     log.info("Migrering av sak ${sakUtbetaling.saksnummer} fullført")
                 } catch (e: Exception) {
+                    feiledeMigreringer.add(sakUtbetaling.saksnummer)
                     log.error("Feil ved migrering av sak ${sakUtbetaling.saksnummer}: ${e.message}", e)
                 }
             }
