@@ -7,16 +7,10 @@ import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 
 class SjekkMigreringService(private val connection: DBConnection) {
 
-    fun skalTilNyttGrensesnitt(fnr: String): Boolean {
+    fun skalTilNyttGrensesnitt(fnr: String, saksnummer: Saksnummer): Boolean {
         //Safe-guard slik at disse ikke slipper ut i prod enda.
         if (Miljø.erProd()) {
             return false
-        }
-
-        // Sjekk migrering status i sak_utbetaling tabellen.
-        val sakUtbetaling = SakUtbetalingRepository(connection).hent(Saksnummer(fnr))
-        if (sakUtbetaling != null && sakUtbetaling.migrertTilKafka != null) {
-            return true
         }
 
         // Sjekk whitelist
@@ -24,7 +18,9 @@ class SjekkMigreringService(private val connection: DBConnection) {
             return true
         }
 
-        return false
+        // Sjekk migrering status i sak_utbetaling tabellen.
+        val sakUtbetaling = SakUtbetalingRepository(connection).hent(saksnummer)
+        return sakUtbetaling?.migrertTilKafka != null
     }
 
     // Dette er fnr som brukes til testing av nytt utbetalings-api. Skal bare brukes i test, men må ligge i prod scope av kode.
