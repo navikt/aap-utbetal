@@ -47,8 +47,29 @@ fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusM
         }
         prometheus.httpCallCounter("/migrering/sak").increment()
         log.info("Migrering kalt for saksnummer: ${dto.saksnummer}, dryRun: ${dto.dryRun}")
-        dataSource.transaction { connection ->
-            UtførMigreringService(dataSource, UtbetalingRestKlient).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
+        val migrert = dataSource.transaction { connection ->
+            try {
+                UtførMigreringService(dataSource, UtbetalingRestKlient).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
+                true
+            } catch (e: Exception) {
+                false
+            }
         }
-        log.info("Migrering fullført for saksnummer: ${dto.saksnummer}")
+        if (migrert) {
+            log.info("Migrering fullført for saksnummer: ${dto.saksnummer}")
+            respond(
+                response = MigreringsresultatDto(
+                    migrerteSaker = listOf(dto.saksnummer),
+                    feiledeMigreringer = listOf()
+                )
+            )
+        } else {
+            log.info("Migrering mislykkes for saksnummer: ${dto.saksnummer}")
+            respond(
+                response = MigreringsresultatDto(
+                    migrerteSaker = listOf(),
+                    feiledeMigreringer = listOf(dto.saksnummer)
+                )
+            )
+        }
     }
