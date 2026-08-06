@@ -56,7 +56,7 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
         if (eksisterendeTilkjentYtelse == null) {
             val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
             val migreringService = SjekkMigreringService(connection)
-            if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent)) {
+            if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent, tilkjentYtelse.saksnummer)) {
                 UtbetalingJobbService(connection).overførUtbetalingJobbPåNyttGrensesnitt(
                     sakUtbetalingId = sakUtbetalingId,
                     behandlingsreferanse = oppdatertTilkjentYtelse.behandlingsreferanse
@@ -85,7 +85,7 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
      * @return true hvis alle kvitteringer er mottatt, ellers false.
      */
     private fun sjekkOmTidligereUtbetalingerHarFåttKvittering(tilkjentYtelse: TilkjentYtelse): Boolean {
-        if (SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)) {
+        if (SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent, tilkjentYtelse.saksnummer)) {
             return UtbetalingStatusRepository(connection).erAlleUtbetalingerBekreftet(tilkjentYtelse.saksnummer)
         } else {
             val utbetalingRepo = UtbetalingRepository(connection)
@@ -146,7 +146,7 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
      */
     private fun lagre(tilkjentYtelse: TilkjentYtelse): Long {
         val sakUtbetalingRepo = SakUtbetalingRepository(connection)
-        val migrertTilKafka = SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent)
+        val migrertTilKafka = SjekkMigreringService(connection).skalTilNyttGrensesnitt(tilkjentYtelse.personIdent, tilkjentYtelse.saksnummer)
         val sakUtbetalingId = if (tilkjentYtelse.forrigeBehandlingsreferanse == null) {
             sakUtbetalingRepo.lagre(tilkjentYtelse.saksnummer, migrertTilKafka)
         } else {
