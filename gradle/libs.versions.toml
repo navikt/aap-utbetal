@@ -1,7 +1,7 @@
 [versions]
 ktor = "3.5.2"
-komponenter = "2.0.129"
-behandlingsflyt = "0.0.644"
+komponenter = "2.0.132"
+behandlingsflyt = "0.0.646"
 tilgang = "1.0.234"
 jackson = "2.22.1"
 junit-jupiter = "6.1.2"
