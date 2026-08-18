@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt
 
 import io.mockk.every
 import io.mockk.mockk

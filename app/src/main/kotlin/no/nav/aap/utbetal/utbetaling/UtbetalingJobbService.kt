@@ -3,9 +3,9 @@ package no.nav.aap.utbetal.utbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
-import no.nav.aap.utbetal.server.prosessering.OpprettUtbetalingUtfører
-import no.nav.aap.utbetal.server.prosessering.OverførTilØkonomiJobbUtfører
-import no.nav.aap.utbetal.server.prosessering.SendUtbetalingUtfører
+import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OpprettUtbetalingUtfører
+import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendUtbetalingUtfører
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime

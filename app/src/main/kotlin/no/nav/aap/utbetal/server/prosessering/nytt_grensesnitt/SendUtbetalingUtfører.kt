@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode

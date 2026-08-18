@@ -1,6 +1,11 @@
 package no.nav.aap.utbetal.server.prosessering
 
 import no.nav.aap.motor.JobbSpesifikasjon
+import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OpprettUtbetalingUtfører
+import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OverførTilØkonomiJobbUtfører
+import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.SjekkKvitteringFraØkonomiUtfører
+import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendUtbetalingUtfører
+import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SjekkStatusForUtbetalingerUtfører
 
 object ProsesseringsJobber {
 

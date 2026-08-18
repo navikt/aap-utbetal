@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
@@ -8,7 +8,6 @@ import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import no.nav.aap.utbetal.utbetaling.Utbetaling
-import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import no.nav.aap.utbetaling.UtbetalingsperiodeType
