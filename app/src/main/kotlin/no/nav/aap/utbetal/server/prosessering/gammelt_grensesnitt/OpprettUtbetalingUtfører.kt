@@ -1,10 +1,11 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import java.time.LocalDateTime
@@ -33,7 +34,7 @@ class OpprettUtbetalingUtfører(private val connection: DBConnection): JobbUtfø
                 // resten disse til økonomi til 10 sekunder etter at slettet er oversendt. Dette gjøres for å hindre
                 // at utbetalinger blir behandlet i feil rekkefølge.
                 val tidspunktForUtbetalingDersomSlettingAvAvventPeriode = LocalDateTime.now().plusSeconds(10)
-                val overførOm10Sekunder = fun (utbetaling: no.nav.aap.utbetal.utbetaling.Utbetaling) {
+                val overførOm10Sekunder = fun (utbetaling: Utbetaling) {
                     utbetalingJobbService.overførUtbetalingJobb(
                         sakUtbetaling,
                         utbetaling.id!!,

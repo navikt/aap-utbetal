@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.server.prosessering
+package no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt
 
 import no.bekk.bekkopen.date.NorwegianDateUtil.isWorkingDay
 import no.nav.aap.komponenter.dbconnect.DBConnection
