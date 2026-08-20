@@ -175,7 +175,7 @@ class UtbetalingBeregner {
                             utbetalingsperiode = Utbetalingsperiode(
                                 periode = periode,
                                 beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                                fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                                fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
                                 utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET,
                                 utbetalingsdato = høyre.verdi.utbetalingsdato
                             )
@@ -189,7 +189,7 @@ class UtbetalingBeregner {
                         utbetalingsperiode = Utbetalingsperiode(
                             periode = periode,
                             beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
                             utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
                             utbetalingsdato = høyre.verdi.utbetalingsdato
                         )
@@ -204,7 +204,7 @@ class UtbetalingBeregner {
                         utbetalingsperiode =  Utbetalingsperiode(
                             periode = periode,
                             beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                            fastsattDagsats = høyre.verdi.dagsats.tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
                             utbetalingsperiodeType = UtbetalingsperiodeType.NY,
                             utbetalingsdato = høyre.verdi.utbetalingsdato
                         )
@@ -235,7 +235,7 @@ class UtbetalingBeregner {
 
     private fun sammeBeløp(utbetalingData: UtbetalingData, ytelseDetaljer: YtelseDetaljer): Boolean {
         return utbetalingData.beløp == ytelseDetaljer.redusertDagsats.tilUInt() &&
-                utbetalingData.fastsattDagsats == ytelseDetaljer.dagsats.tilUInt()
+                utbetalingData.fastsattDagsats == ytelseDetaljer.dagsatsMedBarnetillegg().tilUInt()
     }
 
 

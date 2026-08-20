@@ -32,7 +32,7 @@ class UtbetalingBeregnerTest {
             startDato = start,
             vedtaksdato =  LocalDate.of(2025, 1, 14).plusDays(9),
             utbetalingsdato = null,
-            1000.0, 1100.0, 1200.0
+            beløpListe = doubleArrayOf(1000.0, 1100.0, 1200.0)
         )
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
@@ -52,7 +52,7 @@ class UtbetalingBeregnerTest {
     fun `Skal tillate utbetalingsperioder i inntil 4 uker etter vedtak`() {
         val nå = LocalDate.now()
         val start = nå.minusDays(nå.dayOfWeek.value - 1L) //mandag i denne uken
-        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, 1000.0)
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, beløpListe = doubleArrayOf(1000.0))
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
@@ -71,7 +71,7 @@ class UtbetalingBeregnerTest {
     fun `Skal hindre utbetaling dersom utbetalingsperioder er over uker etter vedtak`() {
         val nå = LocalDate.now()
         val start = nå.minusDays(nå.dayOfWeek.value - 1L) //mandag i denne uken
-        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, 1000.0, 1000.0, 1000.0)
+        val ty = opprettTilkjentYtelse(startDato = start, vedtaksdato =  start, utbetalingsdato = start, beløpListe = doubleArrayOf(1000.0, 1000.0, 1000.0))
 
         val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
         assertThrows<IllegalArgumentException> {
@@ -88,7 +88,7 @@ class UtbetalingBeregnerTest {
             startDato = start,
             vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
             utbetalingsdato = null,
-            1000.0, 1000.0, 600.0, 500.0)
+            beløpListe = doubleArrayOf(1000.0, 1000.0, 600.0, 500.0))
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -114,7 +114,7 @@ class UtbetalingBeregnerTest {
             startDato = start,
             vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
             utbetalingsdato = null,
-            1000.0, 0.0, 1000.0)
+            beløpListe = doubleArrayOf(1000.0, 0.0, 1000.0))
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -131,7 +131,7 @@ class UtbetalingBeregnerTest {
             startDato = start,
             vedtaksdato =  LocalDate.of(2025, 2, 25).plusDays(9),
             utbetalingsdato = null,
-            1000.0, 0.0, 1000.0)
+            beløpListe = doubleArrayOf(1000.0, 0.0, 1000.0))
 
         val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(nyTilkjentYtelse, utbetalingTidslinje)
 
@@ -139,6 +139,33 @@ class UtbetalingBeregnerTest {
         assertThat(utbetalinger.endringUtbetalinger[0].perioder).hasSize(0)
         assertThat(utbetalinger.endringUtbetalinger[1].perioder).hasSize(0)
         assertThat(utbetalinger.nyeUtbetalinger).isEmpty()
+    }
+
+    @Test
+    fun `Barnetillegg skal med i fastsatt sats`() {
+        //Kan fjernes når erProd sjekk er fjernet i YtelseDetaljer.
+        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+
+        val start = LocalDate.of(2026, 8, 10)
+        val ty = opprettTilkjentYtelse(
+            startDato = start,
+            vedtaksdato =  LocalDate.of(2026, 8, 24),
+            utbetalingsdato = LocalDate.of(2026, 8, 24),
+            antallBarn = 2,
+            barnetilleggSats = 38,
+            beløpListe = doubleArrayOf(1000.0)
+        )
+
+        val utbetalingTidslinje =  Tidslinje<UtbetalingData>()
+        val utbetalinger = UtbetalingBeregner().tilkjentYtelseTilUtbetaling(ty, utbetalingTidslinje)
+
+        assertThat(utbetalinger.endringUtbetalinger).hasSize(0)
+        assertThat(utbetalinger.nyeUtbetalinger).hasSize(1)
+        val nyeUtbetalinger = utbetalinger.nyeUtbetalinger
+        val perioder = nyeUtbetalinger[0].perioder
+        assertThat(perioder.size).isEqualTo(2)
+        verifiserPeriode(utbetalingsperiode = perioder[0], beløp = 1000, fastsattDagsats = 1076)
+        verifiserPeriode(utbetalingsperiode = perioder[1], beløp = 1000, fastsattDagsats = 1076)
     }
 
     private fun verifiserEndretPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int) =
@@ -154,13 +181,26 @@ class UtbetalingBeregnerTest {
         assertThat(utbetalingsperiode.beløp).isEqualTo(beløp.toUInt())
     }
 
+    private fun verifiserPeriode(utbetalingsperiode: Utbetalingsperiode, beløp: Int, fastsattDagsats: Int) {
+        assertThat(utbetalingsperiode.beløp).isEqualTo(beløp.toUInt())
+        assertThat(utbetalingsperiode.fastsattDagsats).isEqualTo(fastsattDagsats.toUInt())
+    }
 
-    private fun opprettTilkjentYtelse(startDato: LocalDate, vedtaksdato: LocalDate, utbetalingsdato: LocalDate?, vararg beløpListe: Double): TilkjentYtelse {
+    private fun opprettTilkjentYtelse(
+        startDato: LocalDate,
+        vedtaksdato: LocalDate,
+        utbetalingsdato: LocalDate?,
+        antallBarn: Int = 0,
+        barnetilleggSats: Int = 0,
+        vararg beløpListe: Double
+    ): TilkjentYtelse {
         val perioder = beløpListe.mapIndexed { i, beløp ->
             lagTilkjentYtelsePeriode(
                 fom = startDato.plusWeeks(i * 2L),
                 tom = startDato.plusWeeks(i * 2L).plusDays(13),
                 utbetalingsdato = utbetalingsdato,
+                antallBarn = antallBarn,
+                barnetilleggSats = barnetilleggSats,
                 beløp = Beløp(BigDecimal(beløp))
             )
         }
@@ -176,17 +216,24 @@ class UtbetalingBeregnerTest {
             perioder = perioder)
     }
 
-    private fun lagTilkjentYtelsePeriode(fom: LocalDate, tom: LocalDate, utbetalingsdato: LocalDate?, beløp: Beløp) =
+    private fun lagTilkjentYtelsePeriode(
+        fom: LocalDate,
+        tom: LocalDate,
+        utbetalingsdato: LocalDate?,
+        antallBarn: Int = 0,
+        barnetilleggSats: Int = 0,
+        beløp: Beløp
+    ) =
         TilkjentYtelsePeriode(
             periode = Periode(fom, tom),
             detaljer = YtelseDetaljer(
                 gradering = Prosent.`0_PROSENT`,
                 dagsats = beløp,
                 grunnbeløp = Beløp(100000L),
-                antallBarn = 0,
-                barnetillegg = Beløp(0L),
+                antallBarn = antallBarn,
+                barnetillegg = Beløp(barnetilleggSats * antallBarn),
                 grunnlagsfaktor = GUnit(BigDecimal.valueOf(0.008)),
-                barnetilleggsats = Beløp(36L),
+                barnetilleggsats = Beløp(barnetilleggSats),
                 redusertDagsats = beløp,
                 utbetalingsdato = utbetalingsdato ?: tom.plusDays(9),
                 meldeperiode = Periode(fom, tom),
