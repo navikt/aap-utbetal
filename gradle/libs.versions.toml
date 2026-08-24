@@ -40,7 +40,7 @@ jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", vers
 jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 
 # Micrometer
-micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
+micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.1" }
 
 # Logging
 logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.6.3" }
