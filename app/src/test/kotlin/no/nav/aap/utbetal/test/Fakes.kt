@@ -15,13 +15,14 @@ data class HelvedKall(
     val slettAvvent: SlettAvvent? = null,
 )
 
-class Fakes : AutoCloseable{
+class Fakes : AutoCloseable {
     private val log: Logger = LoggerFactory.getLogger(Fakes::class.java)
     private val azure = FakeServer(module = { texasFake() }, port = 8081)
     val utbetalinger = ConcurrentHashMap<UUID, Utbetaling>()
     val slettAvventMap = ConcurrentHashMap<UUID, SlettAvvent>()
     val kall: MutableList<HelvedKall> = CopyOnWriteArrayList()
-    private val helvedUtbetaling = FakeServer(module = {helvedUtbetalingFake(utbetalinger, slettAvventMap, kall)})
+    private val helvedUtbetaling = FakeServer(module = { helvedUtbetalingFake(utbetalinger, slettAvventMap, kall) })
+
     init {
         Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
         // Azure
@@ -35,6 +36,7 @@ class Fakes : AutoCloseable{
         System.setProperty("nais.token.introspection.endpoint", "http://localhost:${azure.port()}/introspect")
         System.setProperty("nais.token.endpoint", "http://localhost:${azure.port()}/token")
         System.setProperty("AAP_DRIFT", "drift-rolle")
+        System.setProperty("AAP_DRIFT_LES", "drift-le-rolle")
         System.setProperty("NAIS_TEAM_AAP", "team-aap-rolle")
     }
 

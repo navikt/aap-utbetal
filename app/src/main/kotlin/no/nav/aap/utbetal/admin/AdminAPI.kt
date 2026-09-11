@@ -8,7 +8,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
-import no.nav.aap.tilgang.Drift
+import no.nav.aap.tilgang.DriftLes
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.RollerConfig
 import no.nav.aap.tilgang.SakPathParam
@@ -21,7 +21,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import no.nav.aap.utbetaling.UtbetalingStatus
 import javax.sql.DataSource
 
-private val harDriftsRolleConfig = RollerConfig(listOf(Drift))
+private val harDriftsRolleConfig = RollerConfig(listOf(DriftLes))
 
 fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
     route("/admin/status").authorizedGet<Unit, UtbetalingStatusDto>(harDriftsRolleConfig) {
@@ -52,7 +52,7 @@ fun NormalOpenAPIRoute.hentUtbetalingtidslinjeForSaksnummer(dataSource: DataSour
     route("/admin/utbetalingstidslinje/{saksnummer}").authorizedGet<SaksnummerParameter, UtbetalingstidslinjeDto>(
         AuthorizationParamPathConfig(
             sakPathParam = SakPathParam("saksnummer"),
-            operasjon = Operasjon.DRIFTE,
+            operasjon = Operasjon.DRIFT_LES,
         ),
     ) { params ->
         prometheus.httpCallCounter("/admin/utbetalingstidslinje").increment()
