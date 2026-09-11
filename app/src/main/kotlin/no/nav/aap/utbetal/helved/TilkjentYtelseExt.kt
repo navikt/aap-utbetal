@@ -12,8 +12,8 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.time.LocalDate
 import java.util.UUID
 
-fun TilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap: MeldeperiodeUtbetalingIdMap): UtbetalingMelding {
-    val utbetalingMelding = UtbetalingMelding(
+fun TilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap: MeldeperiodeUtbetalingIdMap): Utbetalingsmelding {
+    val utbetalingsmelding = Utbetalingsmelding(
         sakId = this.saksnummer.toString(),
         behandlingId = this.behandlingsreferanse.toBase64(),
         ident = this.personIdent,
@@ -23,7 +23,7 @@ fun TilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap: MeldeperiodeU
         beslutter = this.beslutterId,
         avvent = this.avvent?.tilAvvent(),
     )
-    return utbetalingMelding
+    return utbetalingsmelding
 }
 
 @VisibleForTesting

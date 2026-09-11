@@ -6,8 +6,9 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.utbetal.helved.UtbetalingMelding import org.slf4j.LoggerFactory
+import no.nav.aap.utbetal.helved.Utbetalingsmelding import org.slf4j.LoggerFactory
 import java.net.URI
+import java.util.UUID
 
 class UtbetalingV2Klient {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -23,10 +24,18 @@ class UtbetalingV2Klient {
         tokenProvider = AzureM2MTokenProvider
     )
 
-    fun simuleringUtbetaling(utbetalingMelding: UtbetalingMelding): Simulering {
-        log.info("Simulering av utbetaling for saksummer ${utbetalingMelding.sakId} og behandling ${utbetalingMelding.behandlingId}")
+    fun simuleringUtbetaling(utbetalingsmelding: Utbetalingsmelding): Simulering {
+        log.info("Simulering av utbetaling for saksummer ${utbetalingsmelding.sakId} og behandling ${utbetalingsmelding.behandlingId}")
         val simuleringUrl = url.resolve("api/dryrun/aap")
-        val request = PostRequest(body = utbetalingMelding)
+        val request = PostRequest(body = utbetalingsmelding)
         return requireNotNull(client.post(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
     }
+
+    fun slettAvventPeriode(referanse: UUID, slettAvventUtbetalingMelding: SlettAvventUtbetalingMelding) {
+        log.info("Slett avvent utbetaling for sakId ${slettAvventUtbetalingMelding.sakId} og referanse $referanse")
+        val slettAvventPeriodeUrl = url.resolve("utbetalinger/$referanse/avvent")
+        val request = PostRequest(body = slettAvventUtbetalingMelding)
+        client.post(slettAvventPeriodeUrl, request) { _, _ -> }
+    }
+
 }

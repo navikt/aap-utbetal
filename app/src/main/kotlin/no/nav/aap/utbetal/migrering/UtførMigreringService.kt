@@ -6,6 +6,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.hendelse.konsument.Status
+import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Migrering
 import no.nav.aap.utbetal.klienter.helved.MigreringRequest
@@ -20,6 +21,9 @@ import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingData
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
+import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -104,15 +108,35 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         val alleUtbetalingerErBekreftet = utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
 
         val utbetalingStatusRepository = UtbetalingStatusRepository(connection)
+        val utbetalingsmeldingRepository = UtbetalingsmeldingRepository(connection)
         tilkjentYtelseListe.forEach { tilkjentYtelse ->
             if (alleUtbetalingerErBekreftet) {
                 // Finn tidspunkt for bekreftelse av utbetaling. Henter det fra siste utbetaling for saken, og dersom det ikke finnes, sett til nå.
                 val utbetalingBekreftetTidspunkt = utbetalingerForSak.map { it.utbetalingEndret ?: it.utbetalingOversendt } .lastOrNull() ?: LocalDateTime.now()
 
                 if (!dryRun) {
-                    utbetalingStatusRepository.oppdaterUtbetalingStatus(
+                    val sakUtbetaling = SakUtbetalingRepository(connection).hent(tilkjentYtelse.saksnummer)
+                        ?: throw IllegalStateException("Fant ikke sak_utbetaling for saksnummer ${tilkjentYtelse.saksnummer}")
+                    utbetalingsmeldingRepository.hent(tilkjentYtelse.behandlingsreferanse)
+                        ?: utbetalingsmeldingRepository.lagre(
+                            Utbetalingsmelding(
+                                sakUtbetalingId = sakUtbetaling.id!!,
+                                tilkjentYtelseId = tilkjentYtelse.id!!,
+                                referanse = tilkjentYtelse.behandlingsreferanse,
+                                utbetalingsmeldingType = UtbetalingsmeldingType.MIGRERT_UTBETALING,
+                                melding = "{}", //Mangler melding på migrerte utbetalinger. Lagrer derfor kun tom JSON.
+                            )
+                        )
+                    utbetalingStatusRepository.oppdaterUtbetalingsstatusV2(
                         tilkjentYtelseId = tilkjentYtelse.id!!,
-                        utbetalingStatusHendelse = UtbetalingStatusHendelse(Status.OK),
+                        referanse = tilkjentYtelse.behandlingsreferanse,
+                        utbetalingStatusHendelse = UtbetalingStatusHendelse(
+                            status = Status.OK,
+                            detaljer = UtbetalingDetaljer(
+                                ytelse = "AAP",
+                                linjer = listOf(), //Vi har ikke disse linjene. Dette kommer kun i status hendelsen fra Utsjekk.
+                            ),
+                        ),
                         statusEndringTidspunkt = utbetalingBekreftetTidspunkt,
                         migrertFraGammeltApi = true
                     )

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 /**
  * Modell for melding som sendes til Kafka ved utbetaling.
  */
-data class UtbetalingMelding(
+data class Utbetalingsmelding(
     /** Angir om det skal gjøres en simulering. */
     val dryrun: Boolean = false,
     /** Saksnummer fra Kelvin. */

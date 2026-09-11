@@ -1,16 +1,15 @@
 package no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.utbetal.helved.tilUtbetalingMelding
-import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
+import no.nav.aap.utbetal.helved.tilUtbetalingsmelding
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
-import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
 import no.nav.aap.utbetal.simulering.SimuleringService
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
@@ -18,13 +17,17 @@ import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
-import java.util.*
+import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
+import java.util.UUID
 
-class SendUtbetalingUtfører(
+class OpprettUtbetalingsmeldingUtfører(
     private val connection: DBConnection,
-    private val utbetalingProdusentFactory: () -> UtbetalingProdusent = { UtbetalingProdusent(KafkaProdusentKonfig()) },
     private val simuleringServiceFactory: (DBConnection) -> SimuleringService = { SimuleringService(it) },
-) : JobbUtfører {
+    ): JobbUtfører {
+
     override fun utfør(input: JobbInput) {
         //OBS: sakId er i dette tilfellet sak_utbetaling_id siden vi ikke har sak_id i utbetalings-appen.
         val sakUtbetalingId = input.sakId()
@@ -36,24 +39,38 @@ class SendUtbetalingUtfører(
         val meldeperiodeUtbetalingMap = MeldeperiodeUtbetalingMappingRepository(connection)
             .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse, true)
 
-        val utbetalingMelding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val utbetalingsmelding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
+        val utbetalingsmeldingJson = DefaultJsonMapper.toJson(utbetalingsmelding)
 
-        val utbetalingProdusent = utbetalingProdusentFactory()
 
-
-        // Lagrer utbetaling status SENDT før vi sender utbetalingshendelsen, slik at vi har en status i databasen som
-        // indikerer at vi har sendt utbetalingen til utsjekk. Hvis vi skulle fått en feil i det å sende ut meldingen
-        // til utsjekk, så vil vi fortsatt ha en status i databasen som indikerer at vi har forsøkt å sende utbetalingen.
-        UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(tilkjentYtelse.id!!, UtbetalingStatusHendelse(
-            status = Status.SENDT,
-            detaljer = UtbetalingDetaljer(
-                ytelse = "AAP",
-                // Lagrer tom liste ved status SENDT, siden vi ikke har fått noen respons fra utsjekk enda. Linjene vil
-                // bli oppdatert når vi får respons fra utsjekk i form av en utbetaling-status-hendelse (som blir
-                // håndtert av UtbetalingStatusKonsument)
-                linjer = listOf(),
-            )
+        // Lagrer utbetalingsmelding i databasen, slik at vi har en kopi av meldingen som ble sendt til utsjekk.
+        // Dette er nyttig for å kunne feilsøke og spore meldinger som er sendt.
+        UtbetalingsmeldingRepository(connection).lagre(Utbetalingsmelding(
+            sakUtbetalingId = sakUtbetalingId,
+            tilkjentYtelseId = tilkjentYtelse.id!!,
+            referanse = tilkjentYtelse.behandlingsreferanse,
+            utbetalingsmeldingType = UtbetalingsmeldingType.UTBETALING,
+            melding = utbetalingsmeldingJson,
         ))
+
+        // Oppdaterer utbetalingsstatus til IKKE_SENDT, siden vi ikke har sendt meldingen til utsjekk enda.
+        // Dette er nyttig for å kunne spore status på utbetalinger.
+        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+            tilkjentYtelseId = tilkjentYtelse.id,
+            referanse = tilkjentYtelse.behandlingsreferanse,
+            utbetalingStatusHendelse = UtbetalingStatusHendelse(
+                status = Status.IKKE_SENDT,
+                detaljer = UtbetalingDetaljer(
+                    ytelse = "AAP",
+                    // Lagrer tom liste ved status IKKE_SENDT, siden vi ikke har fått noen respons fra utsjekk enda. Linjene vil
+                    // bli oppdatert når vi får respons fra utsjekk i form av en utbetaling-status-hendelse (som blir
+                    // håndtert av UtbetalingStatusKonsument)
+                    linjer = listOf(),
+                )
+            )
+        )
+
+        val utbetalingJobbService = UtbetalingJobbService(connection)
 
         // Håndtere endring av avvent utbetaling periode
         if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse)) {
@@ -66,16 +83,29 @@ class SendUtbetalingUtfører(
                     tom = gjeldendeAvventPeriode.periode.tom,
                     feilregistrering = true,
                 )
-                val slettAvventUtbetalingMelding = tilkjentYtelse.copy(perioder = listOf(), avvent = avventUtbetalingFeilregistrering).tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+
                 gjeldendeAvventPeriodeRepo.lagre(
                     GjeldendeAvventPeriode(sakUtbetalingId, Periode(tilkjentYtelse.avvent.fom, tilkjentYtelse.avvent.tom))
                 )
-                utbetalingProdusent.sendUtbetalingHendelse(behandlingsreferanse.toString(), slettAvventUtbetalingMelding)
+
+                utbetalingJobbService.sendSlettAvventPeriode(
+                    tilkjentYtelseId = tilkjentYtelse.id,
+                    sakUtbetalingId = sakUtbetalingId,
+                    saksnummer = tilkjentYtelse.saksnummer,
+                    personIdent = tilkjentYtelse.personIdent,
+                    fom = avventUtbetalingFeilregistrering.fom,
+                    tom = avventUtbetalingFeilregistrering.tom,
+                    overføres = avventUtbetalingFeilregistrering.overføres!!,
+                    årsak = avventUtbetalingFeilregistrering.årsak!!
+                )
             }
         }
 
-        //Send utbetaling
-        utbetalingProdusent.sendUtbetalingHendelse(behandlingsreferanse.toString(), utbetalingMelding)
+        utbetalingJobbService.sendUtbetalingsmelding(
+            tilkjentYtelseId = tilkjentYtelse.id,
+            sakUtbetalingId = sakUtbetalingId,
+            utbetalingsmeldingJson = utbetalingsmeldingJson
+        )
     }
 
     private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse): Boolean {
@@ -104,20 +134,21 @@ class SendUtbetalingUtfører(
 
     companion object: Jobb {
         override fun konstruer(connection: DBConnection): JobbUtfører {
-            return SendUtbetalingUtfører(connection)
+            return OpprettUtbetalingsmeldingUtfører(connection)
         }
 
         override fun type(): String {
-            return "batch.sendUtbetaling"
+            return "batch.opprettUtbetalingsmelding"
         }
 
         override fun navn(): String {
-            return "Sender utbetaling"
+            return "Opprett utbetalingsmelding"
         }
 
         override fun beskrivelse(): String {
-            return "Sender utbetaling på Kafka grensesnitt til Utsjekk"
+            return "Opprett utbetalingsmelding"
         }
+
     }
 
 }

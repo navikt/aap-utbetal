@@ -9,10 +9,14 @@ import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingError
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingLinje
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
+import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.Test
 
@@ -31,15 +35,17 @@ class UtbetalingStatusRepositoryTest {
     @Test
     fun `lagre og henter utbetalingstatus`() {
         val behandlingRef = UUID.randomUUID()
-        opprettTilkjentYtelse(behandlingRef)
-
+        val tilkjentYtelse = opprettTilkjentYtelse(behandlingRef)
+        opprettUtbetalingsmelding(tilkjentYtelse.id!!, behandlingRef)
 
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+                ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
-                tilkjentYtelse!!.id!!,
-                lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                tilkjentYtelseId = tilkjentYtelse.id!!,
+                referanse = behandlingRef,
+                utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
             )
 
             val utbetalingStatus = UtbetalingStatusRepository(connection).hent(tilkjentYtelse.behandlingsreferanse)
@@ -52,23 +58,27 @@ class UtbetalingStatusRepositoryTest {
     @Test
     fun `oppdatere utbetalingstatus`() {
         val behandlingRef = UUID.randomUUID()
-        opprettTilkjentYtelse(behandlingRef)
+        val tilkjentYtelse = opprettTilkjentYtelse(behandlingRef)
+        opprettUtbetalingsmelding(tilkjentYtelse.id!!, behandlingRef)
 
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+                ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
-                tilkjentYtelse!!.id!!,
-                lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                tilkjentYtelseId = tilkjentYtelse.id!!,
+                referanse = behandlingRef,
+                utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
             )
 
             val utbetalingStatus = UtbetalingStatusRepository(connection).hent(tilkjentYtelse.behandlingsreferanse)
             assertThat(utbetalingStatus).isNotNull()
             assertThat(utbetalingStatus!!.status).isEqualTo(Status.HOS_OPPDRAG)
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
-                tilkjentYtelse.id,
-                lagUtbetalingStatusHendelse(Status.OK)
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                tilkjentYtelseId = tilkjentYtelse.id,
+                referanse = behandlingRef,
+                utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.OK)
             )
 
             val oppdatertUtbetalingStatus = UtbetalingStatusRepository(connection).hent(tilkjentYtelse.behandlingsreferanse)
@@ -81,14 +91,17 @@ class UtbetalingStatusRepositoryTest {
     @Test
     fun `utbetalingstatus med feilet status`() {
         val behandlingRef = UUID.randomUUID()
-        opprettTilkjentYtelse(behandlingRef)
+        val tilkjentYtelse = opprettTilkjentYtelse(behandlingRef)
+        opprettUtbetalingsmelding(tilkjentYtelse.id!!, behandlingRef)
 
         dataSource.transaction { connection ->
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+                ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
-                tilkjentYtelse!!.id!!,
-                lagUtbetalingStatusHendelse(Status.FEILET)
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                tilkjentYtelseId = tilkjentYtelse.id!!,
+                referanse = behandlingRef,
+                utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.FEILET)
             )
 
             val utbetalingStatus = UtbetalingStatusRepository(connection).hent(tilkjentYtelse.behandlingsreferanse)
@@ -102,29 +115,35 @@ class UtbetalingStatusRepositoryTest {
 
     @Test
     fun `finn antall utbetalinger per status`() {
-        val ty1Id = opprettTilkjentYtelse(UUID.randomUUID())
-        val ty2Id = opprettTilkjentYtelse(UUID.randomUUID())
-        val ty3Id = opprettTilkjentYtelse(UUID.randomUUID())
-        val ty4Id = opprettTilkjentYtelse(UUID.randomUUID())
-        val ty5Id = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty1 = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty2 = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty3 = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty4 = opprettTilkjentYtelse(UUID.randomUUID())
+        val ty5 = opprettTilkjentYtelse(UUID.randomUUID())
+        opprettUtbetalingsmelding(ty1.id!!, ty1.behandlingsreferanse,)
+        opprettUtbetalingsmelding(ty2.id!!, ty2.behandlingsreferanse,)
+        opprettUtbetalingsmelding(ty3.id!!, ty3.behandlingsreferanse,)
+        opprettUtbetalingsmelding(ty4.id!!, ty4.behandlingsreferanse,)
+        opprettUtbetalingsmelding(ty5.id!!, ty5.behandlingsreferanse,)
 
-        val oppdaterStatus = fun (tilkjentYtelseId: Long, status: Status) {
+        val oppdaterStatus = fun (tilkjentYtelse: TilkjentYtelse, status: Status) {
             dataSource.transaction { connection ->
-                UtbetalingStatusRepository(connection).oppdaterUtbetalingStatus(
-                    tilkjentYtelseId = tilkjentYtelseId,
+                UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                    tilkjentYtelseId = tilkjentYtelse.id!!,
+                    referanse = tilkjentYtelse.behandlingsreferanse,
                     utbetalingStatusHendelse = lagUtbetalingStatusHendelse(status)
                 )
             }
         }
 
-        oppdaterStatus(ty1Id, Status.MOTTATT)
+        oppdaterStatus(ty1, Status.MOTTATT)
 
-        oppdaterStatus(ty2Id, Status.MOTTATT)
-        oppdaterStatus(ty2Id, Status.OK)
+        oppdaterStatus(ty2, Status.MOTTATT)
+        oppdaterStatus(ty2, Status.OK)
 
-        oppdaterStatus(ty3Id, Status.FEILET)
-        oppdaterStatus(ty4Id, Status.FEILET)
-        oppdaterStatus(ty5Id, Status.FEILET)
+        oppdaterStatus(ty3, Status.FEILET)
+        oppdaterStatus(ty4, Status.FEILET)
+        oppdaterStatus(ty5, Status.FEILET)
 
         val antallPerStatus = dataSource.transaction { connection ->
             UtbetalingStatusRepository(connection).antallUtbetalingerPerStatus()
@@ -157,19 +176,36 @@ class UtbetalingStatusRepositoryTest {
         )
     }
 
-    private fun opprettTilkjentYtelse(behandlingRef: UUID): Long {
+    private fun opprettTilkjentYtelse(behandlingRef: UUID): TilkjentYtelse {
         val saksnummer = Saksnummer("123")
         return dataSource.transaction { connection ->
-            TilkjentYtelseRepository(connection).lagreTilkjentYtelse(
-                TilkjentYtelseTestUtil.opprettTilkjentYtelse(
-                    saksnummer = saksnummer,
-                    behandlingRef = behandlingRef,
-                    forrigeBehandlingRef = null,
-                    antallPerioder = 3,
-                    beløp = Beløp(1000L),
-                    startDato = LocalDate.now()
+            val tilkjentYtelse = TilkjentYtelseTestUtil.opprettTilkjentYtelse(
+                saksnummer = saksnummer,
+                behandlingRef = behandlingRef,
+                forrigeBehandlingRef = null,
+                antallPerioder = 3,
+                beløp = Beløp(1000L),
+                startDato = LocalDate.now()
+            )
+            val tilkjentYtelseId = TilkjentYtelseRepository(connection).lagreTilkjentYtelse(tilkjentYtelse)
+            tilkjentYtelse.copy(id = tilkjentYtelseId)
+        }
+    }
+
+    private fun opprettUtbetalingsmelding(tilkjentYtelseId: Long, referanse: UUID) {
+        return dataSource.transaction { connection ->
+
+            UtbetalingsmeldingRepository(connection).lagre(
+                Utbetalingsmelding(
+                    sakUtbetalingId = 123,
+                    tilkjentYtelseId = tilkjentYtelseId,
+                    referanse = referanse,
+                    utbetalingsmeldingType = UtbetalingsmeldingType.UTBETALING,
+                    melding = "{}",
+                    opprettet = LocalDateTime.now(),
                 )
             )
+
         }
     }
 

@@ -57,7 +57,7 @@ class TilkjentYtelseService(private val connection: DBConnection, private val ut
             val sakUtbetalingId = lagre(oppdatertTilkjentYtelse)
             val migreringService = SjekkMigreringService(connection)
             if (migreringService.skalTilNyttGrensesnitt(oppdatertTilkjentYtelse.personIdent, tilkjentYtelse.saksnummer)) {
-                UtbetalingJobbService(connection).overførUtbetalingJobbPåNyttGrensesnitt(
+                UtbetalingJobbService(connection).opprettUtbetalingsmelding(
                     sakUtbetalingId = sakUtbetalingId,
                     behandlingsreferanse = oppdatertTilkjentYtelse.behandlingsreferanse
                 )

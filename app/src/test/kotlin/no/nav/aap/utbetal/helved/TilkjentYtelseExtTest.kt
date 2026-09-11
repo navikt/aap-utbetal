@@ -41,7 +41,7 @@ class TilkjentYtelseExtTest {
         )
         val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.utbetalinger).hasSize(1)
         assertThat(melding.utbetalinger.first().utbetaltBeløp).isEqualTo(500u)
@@ -65,7 +65,7 @@ class TilkjentYtelseExtTest {
         )
         val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.utbetalinger).isEmpty()
     }
@@ -87,7 +87,7 @@ class TilkjentYtelseExtTest {
         )
         val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.utbetalinger).isEmpty()
     }
@@ -109,7 +109,7 @@ class TilkjentYtelseExtTest {
         )
         val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.utbetalinger).hasSize(1)
         assertThat(melding.utbetalinger.first().utbetaltBeløp).isEqualTo(800u)
@@ -159,7 +159,7 @@ class TilkjentYtelseExtTest {
             meldeperiodeFremtidig to UUID.randomUUID(),
         )
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.utbetalinger).hasSize(1)
         assertThat(melding.utbetalinger.first().fom).isEqualTo(meldeperiodeFortidig.fom.toString())
@@ -183,7 +183,7 @@ class TilkjentYtelseExtTest {
         )
         val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
 
-        val melding = tilkjentYtelse.tilUtbetalingMelding(meldeperiodeUtbetalingMap)
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
         assertThat(melding.sakId).isEqualTo(saksnummer.toString())
         assertThat(melding.ident).isEqualTo(personIdent)

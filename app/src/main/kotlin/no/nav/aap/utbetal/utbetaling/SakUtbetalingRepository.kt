@@ -43,9 +43,31 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         }
     }
 
+    fun hent(sakUtbetalingId: Long): SakUtbetaling {
+        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE ID = ? and AKTIV = TRUE"
+
+        return connection.queryFirst(sql) {
+            setParams {
+                setLong(1, sakUtbetalingId)
+            }
+            setRowMapper { it.tilSakUtbetaling() }
+        }
+
+    }
+
     fun hent(saksnummer: Saksnummer): SakUtbetaling? {
         val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE SAKSNUMMER = ? and AKTIV = TRUE"
 
+        return querySakUtbetaling(sql, saksnummer)
+    }
+
+    fun hentMedLås(saksnummer: Saksnummer): SakUtbetaling? {
+        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE SAKSNUMMER = ? and AKTIV = TRUE FOR UPDATE NOWAIT"
+
+        return querySakUtbetaling(sql, saksnummer)
+    }
+
+    private fun querySakUtbetaling(sql: String, saksnummer: Saksnummer): SakUtbetaling? {
         return connection.queryFirstOrNull(sql) {
             setParams {
                 setString(1, saksnummer.toString())

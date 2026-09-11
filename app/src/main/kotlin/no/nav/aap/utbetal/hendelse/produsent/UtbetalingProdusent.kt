@@ -1,7 +1,7 @@
 package no.nav.aap.utbetal.hendelse.produsent
 
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.utbetal.helved.UtbetalingMelding
+import no.nav.aap.utbetal.helved.Utbetalingsmelding
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusent
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
 
@@ -15,8 +15,8 @@ class UtbetalingProdusent(
     producerName = "AapUtbetalingProdusent",
 ) {
 
-     fun sendUtbetalingHendelse(key: String, utbetalingMelding: UtbetalingMelding) {
-        val json = DefaultJsonMapper.toJson(utbetalingMelding)
+     fun sendUtbetalingHendelse(key: String, utbetalingsmelding: Utbetalingsmelding) {
+        val json = DefaultJsonMapper.toJson(utbetalingsmelding)
         produser(key, json)
     }
 
