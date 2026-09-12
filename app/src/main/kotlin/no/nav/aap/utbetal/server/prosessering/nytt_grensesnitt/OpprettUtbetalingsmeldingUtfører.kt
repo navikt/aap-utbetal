@@ -73,6 +73,7 @@ class OpprettUtbetalingsmeldingUtfører(
         val utbetalingJobbService = UtbetalingJobbService(connection)
 
         // Håndtere endring av avvent utbetaling periode
+        var utsettUtbetalingEtterSlettAvventPeriode = false
         if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse)) {
             val gjeldendeAvventPeriodeRepo = GjeldendeAvventPeriodeRepository(connection)
             val gjeldendeAvventPeriode = gjeldendeAvventPeriodeRepo.hentGjeldendeAvventPeriode(sakUtbetalingId)
@@ -98,13 +99,15 @@ class OpprettUtbetalingsmeldingUtfører(
                     overføres = avventUtbetalingFeilregistrering.overføres!!,
                     årsak = avventUtbetalingFeilregistrering.årsak!!
                 )
+                utsettUtbetalingEtterSlettAvventPeriode = true
             }
         }
 
         utbetalingJobbService.sendUtbetalingsmelding(
             tilkjentYtelseId = tilkjentYtelse.id,
             sakUtbetalingId = sakUtbetalingId,
-            utbetalingsmeldingJson = utbetalingsmeldingJson
+            utbetalingsmeldingJson = utbetalingsmeldingJson,
+            utsettUtbetalingEtterSlettAvventPeriode = utsettUtbetalingEtterSlettAvventPeriode
         )
     }
 

@@ -18,6 +18,7 @@ import java.util.*
 class UtbetalingJobbService(private val connection: DBConnection) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
+    private val utsettUtbetalingAntallSekunder = 10L
 
     fun opprettUtbetalingJobb(sakUtbetalingId: Long, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å overføre utbetaling til økonomi for behandlingsreferanse: $behandlingsreferanse")
@@ -80,7 +81,8 @@ class UtbetalingJobbService(private val connection: DBConnection) {
     fun sendUtbetalingsmelding(
         tilkjentYtelseId: Long,
         sakUtbetalingId: Long,
-        utbetalingsmeldingJson: String
+        utbetalingsmeldingJson: String,
+        utsettUtbetalingEtterSlettAvventPeriode: Boolean,
     ) {
         log.info("Oppretter jobb for å sende utbetalingsmelding til Utsjekk.")
         FlytJobbRepository(connection).leggTil(
@@ -88,6 +90,8 @@ class UtbetalingJobbService(private val connection: DBConnection) {
                 .forSak(sakUtbetalingId)
                 .medParameter("tilkjentYtelseId", tilkjentYtelseId.toString())
                 .medParameter("utbetalingsmelding", utbetalingsmeldingJson)
+                .medNesteKjøring(LocalDateTime.now()
+                    .plusSeconds(if (utsettUtbetalingEtterSlettAvventPeriode) utsettUtbetalingAntallSekunder else 0))
         )
     }
 
