@@ -42,7 +42,7 @@ class UtbetalingStatusRepositoryTest {
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
                 ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                 tilkjentYtelseId = tilkjentYtelse.id!!,
                 referanse = behandlingRef,
                 utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
@@ -65,7 +65,7 @@ class UtbetalingStatusRepositoryTest {
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
                 ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                 tilkjentYtelseId = tilkjentYtelse.id!!,
                 referanse = behandlingRef,
                 utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.HOS_OPPDRAG)
@@ -75,7 +75,7 @@ class UtbetalingStatusRepositoryTest {
             assertThat(utbetalingStatus).isNotNull()
             assertThat(utbetalingStatus!!.status).isEqualTo(Status.HOS_OPPDRAG)
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                 tilkjentYtelseId = tilkjentYtelse.id,
                 referanse = behandlingRef,
                 utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.OK)
@@ -98,7 +98,7 @@ class UtbetalingStatusRepositoryTest {
             val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
                 ?: throw IllegalStateException("Finner ikke tilkjent ytelse for behandling: $behandlingRef")
 
-            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                 tilkjentYtelseId = tilkjentYtelse.id!!,
                 referanse = behandlingRef,
                 utbetalingStatusHendelse = lagUtbetalingStatusHendelse(Status.FEILET)
@@ -128,7 +128,7 @@ class UtbetalingStatusRepositoryTest {
 
         val oppdaterStatus = fun (tilkjentYtelse: TilkjentYtelse, status: Status) {
             dataSource.transaction { connection ->
-                UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                     tilkjentYtelseId = tilkjentYtelse.id!!,
                     referanse = tilkjentYtelse.behandlingsreferanse,
                     utbetalingStatusHendelse = lagUtbetalingStatusHendelse(status)

@@ -68,7 +68,7 @@ class UtbetalingStatusKonsument(
                     val sakUtbetaling = SakUtbetalingRepository(connection).hent(utbetalingsmelding.sakUtbetalingId)
                     val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse) ?: throw IllegalStateException("Fant ikke utbetalingsmelding for referanse $referanse")
                     if (sakUtbetaling.migrertTilKafka != null) {
-                        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+                        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
                             utbetalingsmelding.tilkjentYtelseId,
                             referanse,
                             utbetalingStatusHendelse

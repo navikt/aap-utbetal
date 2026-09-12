@@ -9,7 +9,6 @@ import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatus
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import java.util.UUID
 
@@ -30,7 +29,7 @@ class SendUtbetalingsmeldingUtfører(
     }
 
     private fun settStatusTilSendt(tilkjentYtelseId: Long, referanse: UUID) {
-        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
             tilkjentYtelseId = tilkjentYtelseId,
             referanse = referanse,
             UtbetalingStatusHendelse(

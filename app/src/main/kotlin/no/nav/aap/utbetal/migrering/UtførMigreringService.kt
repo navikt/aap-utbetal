@@ -127,7 +127,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
                                 melding = "{}", //Mangler melding på migrerte utbetalinger. Lagrer derfor kun tom JSON.
                             )
                         )
-                    utbetalingStatusRepository.oppdaterUtbetalingsstatusV2(
+                    utbetalingStatusRepository.oppdaterUtbetalingsstatus(
                         tilkjentYtelseId = tilkjentYtelse.id!!,
                         referanse = tilkjentYtelse.behandlingsreferanse,
                         utbetalingStatusHendelse = UtbetalingStatusHendelse(

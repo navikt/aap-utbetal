@@ -30,7 +30,7 @@ class SendSlettAvventPeriodeUtfører(private val connection: DBConnection): Jobb
         //Opprettet en tilfeldig referanse for sletting av avvent periode.
         val referanse = UUID.randomUUID()
 
-        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
             tilkjentYtelseId = tilkjentYtelseId,
             referanse = referanse,
             utbetalingStatusHendelse = UtbetalingStatusHendelse(

@@ -55,7 +55,7 @@ class OpprettUtbetalingsmeldingUtfører(
 
         // Oppdaterer utbetalingsstatus til IKKE_SENDT, siden vi ikke har sendt meldingen til utsjekk enda.
         // Dette er nyttig for å kunne spore status på utbetalinger.
-        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatusV2(
+        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
             tilkjentYtelseId = tilkjentYtelse.id,
             referanse = tilkjentYtelse.behandlingsreferanse,
             utbetalingStatusHendelse = UtbetalingStatusHendelse(
