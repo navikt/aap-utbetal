@@ -57,6 +57,7 @@ class UtbetalingJobbService(private val connection: DBConnection) {
         tilkjentYtelseId: Long,
         sakUtbetalingId: Long,
         saksnummer: Saksnummer,
+        referanse: UUID,
         personIdent: String,
         fom: LocalDate,
         tom: LocalDate,
@@ -69,6 +70,7 @@ class UtbetalingJobbService(private val connection: DBConnection) {
                 .forSak(sakUtbetalingId)
                 .medParameter("tilkjentYtelseId", tilkjentYtelseId.toString())
                 .medParameter("saksnummer", saksnummer.toString())
+                .medParameter("referanse", referanse.toString())
                 .medParameter("personIdent", personIdent)
                 .medParameter("fom", fom.toString())
                 .medParameter("tom", tom.toString())

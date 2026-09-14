@@ -20,6 +20,7 @@ class SendSlettAvventPeriodeUtfører(private val connection: DBConnection): Jobb
     override fun utfør(input: JobbInput) {
         val tilkjentYtelseId = input.parameter("tilkjentYtelseId").toLong()
         val saksnummer = input.parameter("saksnummer")
+        val referanse = UUID.fromString(input.parameter("referanse"))
         val personIdent = input.parameter("personIdent")
         val fom = LocalDate.parse(input.parameter("fom"))
         val tom = LocalDate.parse(input.parameter("tom"))
@@ -28,8 +29,6 @@ class SendSlettAvventPeriodeUtfører(private val connection: DBConnection): Jobb
 
 
         //Opprettet en tilfeldig referanse for sletting av avvent periode.
-        val referanse = UUID.randomUUID()
-
         UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
             tilkjentYtelseId = tilkjentYtelseId,
             referanse = referanse,
