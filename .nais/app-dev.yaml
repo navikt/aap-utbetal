@@ -82,6 +82,8 @@ spec:
           value: 5b4656d2-e8f0-4df1-9e10-269133df697f
         - name: AAP_DRIFT
           value: bc89623f-4624-4978-ac54-acd048c0f2a5
+        - name: AAP_DRIFT_LES
+          value: 8e5bc6be-a934-41f0-8a92-e974ea7b80d3
         - name: NAIS_TEAM_AAP
           value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
     gcp:
