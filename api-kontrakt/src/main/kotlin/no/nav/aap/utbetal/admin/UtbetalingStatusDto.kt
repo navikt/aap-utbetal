@@ -6,10 +6,10 @@ import java.util.UUID
 
 data class UtbetalingStatusDto(
     val utbetalingerSomManglerKvittering: List<UtbetalingInfoDto>,
-    val utbetalingerMedFeiletStatus: List<UtbetalingInfoDto>  ,
+    val utbetalingerMedFeiletStatus: List<UtbetalingInfoDto>,
 )
 
-data  class UtbetalingInfoDto(
+data class UtbetalingInfoDto(
     val utbetalingRef: UUID,
     val saksnummer: String,
     val behandlingsreferanse: UUID,
