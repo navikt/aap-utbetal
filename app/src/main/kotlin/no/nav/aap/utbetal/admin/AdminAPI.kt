@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
+import no.nav.aap.tilgang.Drift
 import no.nav.aap.tilgang.DriftLes
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.RollerConfig
@@ -21,7 +22,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import no.nav.aap.utbetaling.UtbetalingStatus
 import javax.sql.DataSource
 
-private val harDriftsRolleConfig = RollerConfig(listOf(DriftLes))
+private val harDriftsRolleConfig = RollerConfig(listOf(DriftLes, Drift))
 
 fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
     route("/admin/status").authorizedGet<Unit, UtbetalingStatusDto>(harDriftsRolleConfig) {
