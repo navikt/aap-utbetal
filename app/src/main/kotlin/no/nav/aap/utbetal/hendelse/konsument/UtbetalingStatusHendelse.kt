@@ -31,6 +31,12 @@ enum class Status {
      * Status "SENDT" betyr at melding er lagt på ut-topic, men har ikke fått noen status oppdatering enda.
      */
     SENDT,
+    /**
+     * Egen status kun for denne modulen.
+     * Ikke sendt enda, men ligger i kø for å bli sendt.
+     */
+    IKKE_SENDT,
+
 }
 
 data class UtbetalingError(

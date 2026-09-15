@@ -6,19 +6,60 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingLinje
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import java.time.LocalDateTime
 import java.util.*
 
 class UtbetalingStatusRepository(private val connection: DBConnection) {
 
-    fun oppdaterUtbetalingStatus(
+
+    fun oppdaterUtbetalingsstatus(
         tilkjentYtelseId: Long,
+        referanse: UUID,
         utbetalingStatusHendelse: UtbetalingStatusHendelse,
         statusEndringTidspunkt: LocalDateTime = LocalDateTime.now(),
         migrertFraGammeltApi: Boolean = false
     ) {
-        slettTidligereStatus(tilkjentYtelseId, statusEndringTidspunkt)
-        lagreUtbetalingStatus(tilkjentYtelseId, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
+        val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse)
+            ?: throw IllegalArgumentException("Finner ikke utbetalingsmelding for referanse: $referanse")
+        slettTidligereUtbetalingsstatus(utbetalingsmelding.id!!, statusEndringTidspunkt)
+        lagreUtbetalingsstatus(tilkjentYtelseId, utbetalingsmelding.id, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
+    }
+
+    private fun slettTidligereUtbetalingsstatus(utbetalingsmeldingId: Long, endretTidspunkt: LocalDateTime) {
+        val sql = """
+            UPDATE UTBETALING_STATUS
+            SET AKTIV = FALSE, ENDRET_TID = ?
+            WHERE UTBETALINGSMELDING_ID = ?
+        """.trimIndent()
+        connection.execute(sql) {
+            setParams {
+                setLocalDateTime(1, endretTidspunkt)
+                setLong(2, utbetalingsmeldingId)
+            }
+        }
+    }
+
+    private fun lagreUtbetalingsstatus(tilkjentYtelseId: Long, utbetalingsmeldingId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, opprettetTidspunkt: LocalDateTime, migrertFraGammeltApi: Boolean) {
+        val sql = """
+            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, UTBETALINGSMELDING_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE, OPPRETTET_TID, MIGRERT_FRA_GAMMELT_API)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent()
+        val utbetalingStatusId = connection.executeReturnKey(sql) {
+            setParams {
+                setLong(1, tilkjentYtelseId)
+                setLong(2, utbetalingsmeldingId)
+                setEnumName(3, utbetalingStatusHendelse.status)
+                setInt(4, utbetalingStatusHendelse.error?.statusKode)
+                setString(5, utbetalingStatusHendelse.error?.msg)
+                setString(6, utbetalingStatusHendelse.error?.doc)
+                setLocalDateTime(7, opprettetTidspunkt)
+                setLocalDateTime(8, if (migrertFraGammeltApi) LocalDateTime.now() else null)
+            }
+        }
+        if (utbetalingStatusHendelse.detaljer != null) {
+            lagreUtbetalingLinjer(utbetalingStatusId, utbetalingStatusHendelse.detaljer.linjer)
+        }
     }
 
     fun hent(behandlingRef: UUID): UtbetalingStatus? {
@@ -133,41 +174,6 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
                     klassekode = row.getString("KLASSEKODE"),
                 )
             }
-        }
-    }
-
-    private fun slettTidligereStatus(tilkjentYtelseId: Long, endretTidspunkt: LocalDateTime) {
-        val sql = """
-            UPDATE UTBETALING_STATUS
-            SET AKTIV = FALSE, ENDRET_TID = ?
-            WHERE TILKJENT_YTELSE_ID = ?
-        """.trimIndent()
-        connection.execute(sql) {
-            setParams {
-                setLocalDateTime(1, endretTidspunkt)
-                setLong(2, tilkjentYtelseId)
-            }
-        }
-    }
-
-    private fun lagreUtbetalingStatus(tilkjentYtelseId: Long, utbetalingStatusHendelse: UtbetalingStatusHendelse, opprettetTidspunkt: LocalDateTime, migrertFraGammeltApi: Boolean) {
-        val sql = """
-            INSERT INTO UTBETALING_STATUS (TILKJENT_YTELSE_ID, STATUS, HTTP_STATUS_KODE, FEILMELDING, DOKUMENTASJON_REFERANSE, OPPRETTET_TID, MIGRERT_FRA_GAMMELT_API)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """.trimIndent()
-        val utbetalingStatusId = connection.executeReturnKey(sql) {
-            setParams {
-                setLong(1, tilkjentYtelseId)
-                setEnumName(2, utbetalingStatusHendelse.status)
-                setInt(3, utbetalingStatusHendelse.error?.statusKode)
-                setString(4, utbetalingStatusHendelse.error?.msg)
-                setString(5, utbetalingStatusHendelse.error?.doc)
-                setLocalDateTime(6, opprettetTidspunkt)
-                setLocalDateTime(7, if (migrertFraGammeltApi) LocalDateTime.now() else null)
-            }
-        }
-        if (utbetalingStatusHendelse.detaljer != null) {
-            lagreUtbetalingLinjer(utbetalingStatusId, utbetalingStatusHendelse.detaljer.linjer)
         }
     }
 

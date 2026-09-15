@@ -16,6 +16,9 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
 import no.nav.aap.utbetaling.helved.toBase64
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -48,7 +51,8 @@ class UtbetalingStatusKonsumentTest {
         )
         val behandlingRef = UUID.randomUUID()
         lagreTilkjentYtelse(behandlingRef, periode)
-        lagreSakUtbetaling(behandlingRef)
+        val sakUtbetalingId = lagreSakUtbetaling(behandlingRef)
+        lagreUtbetalingsmelding(behandlingRef, sakUtbetalingId)
 
         val producerProps = Properties().apply {
             put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers)
@@ -87,10 +91,25 @@ class UtbetalingStatusKonsumentTest {
         }
     }
 
-    private fun lagreSakUtbetaling(behandlingRef: UUID) {
-        dataSource.transaction { connection ->
+    private fun lagreSakUtbetaling(behandlingRef: UUID): Long {
+        return dataSource.transaction { connection ->
             val saksnummer = TilkjentYtelseRepository(connection).hent(behandlingRef)!!.saksnummer
             SakUtbetalingRepository(connection).lagre(saksnummer, true)
+        }
+    }
+
+    private fun lagreUtbetalingsmelding(behandlingRef: UUID, sakUtbetalingId: Long) {
+        dataSource.transaction { connection ->
+            val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingRef)
+            val utbetalingsmelding = Utbetalingsmelding(
+                sakUtbetalingId = sakUtbetalingId,
+                tilkjentYtelseId = tilkjentYtelse!!.id!!,
+                referanse = behandlingRef,
+                utbetalingsmeldingType = UtbetalingsmeldingType.UTBETALING,
+                melding = "{}", //JSON dummy
+                opprettet = LocalDateTime.now()
+            )
+            UtbetalingsmeldingRepository(connection).lagre(utbetalingsmelding)
         }
     }
 
