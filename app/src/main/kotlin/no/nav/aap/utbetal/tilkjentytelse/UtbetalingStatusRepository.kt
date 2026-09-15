@@ -22,11 +22,11 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
     ) {
         val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse)
             ?: throw IllegalArgumentException("Finner ikke utbetalingsmelding for referanse: $referanse")
-        slettTidligereUtbetalingsstatus(utbetalingsmelding.id!!, statusEndringTidspunkt)
+        deaktiverTidligereUtbetalingsstatus(utbetalingsmelding.id!!, statusEndringTidspunkt)
         lagreUtbetalingsstatus(tilkjentYtelseId, utbetalingsmelding.id, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
     }
 
-    private fun slettTidligereUtbetalingsstatus(utbetalingsmeldingId: Long, endretTidspunkt: LocalDateTime) {
+    private fun deaktiverTidligereUtbetalingsstatus(utbetalingsmeldingId: Long, endretTidspunkt: LocalDateTime) {
         val sql = """
             UPDATE UTBETALING_STATUS
             SET AKTIV = FALSE, ENDRET_TID = ?
