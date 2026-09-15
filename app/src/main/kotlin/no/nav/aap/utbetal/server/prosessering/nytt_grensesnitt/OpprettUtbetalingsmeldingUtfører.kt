@@ -184,6 +184,7 @@ class OpprettUtbetalingsmeldingUtfører(
 
         UtbetalingJobbService(connection).sendUtbetalingsmelding(
             tilkjentYtelseId = tilkjentYtelse.id,
+            behandlingsreferanse = tilkjentYtelse.behandlingsreferanse,
             sakUtbetalingId = sakUtbetalingId,
             utbetalingsmeldingJson = utbetalingsmeldingJson,
             utsettUtbetalingEtterSlettAvventPeriode = utsettUtbetalingEtterSlettAvventPeriode
