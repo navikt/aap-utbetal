@@ -6,6 +6,7 @@ import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OpprettUtbetalingUtfører
+import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.OpprettUtbetalingsmeldingUtfører
 import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OverførTilØkonomiJobbUtfører
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendSlettAvventPeriodeUtfører
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendUtbetalingsmeldingUtfører
@@ -47,7 +48,7 @@ class UtbetalingJobbService(private val connection: DBConnection) {
     fun opprettUtbetalingsmelding(sakUtbetalingId: Long, behandlingsreferanse: UUID) {
         log.info("Oppretter jobb for å opprette utbetalingsmelding, og starte jobb for å sende den til Utsjekk.")
         FlytJobbRepository(connection).leggTil(
-            JobbInput(OpprettUtbetalingUtfører)
+            JobbInput(OpprettUtbetalingsmeldingUtfører)
                 .forSak(sakUtbetalingId)
                 .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
         )

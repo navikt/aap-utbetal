@@ -6,6 +6,7 @@ import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.OverførTilØk
 import no.nav.aap.utbetal.server.prosessering.gammelt_grensesnitt.SjekkKvitteringFraØkonomiUtfører
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendSlettAvventPeriodeUtfører
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendUtbetalingsmeldingUtfører
+import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.OpprettUtbetalingsmeldingUtfører
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SjekkStatusForUtbetalingerUtfører
 
 object ProsesseringsJobber {
@@ -18,7 +19,7 @@ object ProsesseringsJobber {
             OverførTilØkonomiJobbUtfører,
             SjekkKvitteringFraØkonomiUtfører,
             //Nytt grensesnitt for utbetalinger
-            OpprettUtbetalingUtfører,
+            OpprettUtbetalingsmeldingUtfører,
             SendUtbetalingsmeldingUtfører,
             SendSlettAvventPeriodeUtfører,
             SjekkStatusForUtbetalingerUtfører,
