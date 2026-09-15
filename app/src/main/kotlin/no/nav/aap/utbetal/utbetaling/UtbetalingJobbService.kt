@@ -83,6 +83,7 @@ class UtbetalingJobbService(private val connection: DBConnection) {
 
     fun sendUtbetalingsmelding(
         tilkjentYtelseId: Long,
+        behandlingsreferanse: UUID,
         sakUtbetalingId: Long,
         utbetalingsmeldingJson: String,
         utsettUtbetalingEtterSlettAvventPeriode: Boolean,
@@ -92,6 +93,7 @@ class UtbetalingJobbService(private val connection: DBConnection) {
             JobbInput(SendUtbetalingsmeldingUtfører)
                 .forSak(sakUtbetalingId)
                 .medParameter("tilkjentYtelseId", tilkjentYtelseId.toString())
+                .medParameter("behandlingsreferanse", behandlingsreferanse.toString())
                 .medParameter("utbetalingsmelding", utbetalingsmeldingJson)
                 .medNesteKjøring(LocalDateTime.now()
                     .plusSeconds(if (utsettUtbetalingEtterSlettAvventPeriode) utsettUtbetalingAntallSekunder else 0))
