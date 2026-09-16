@@ -42,6 +42,10 @@ class OpprettUtbetalingsmeldingUtfører(
         val meldeperiodeUtbetalingMap = MeldeperiodeUtbetalingMappingRepository(connection)
             .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse, true)
 
+        // Initialiserer GJELDENDE_AVVENT_PERIODE første gang avvent settes for en sak (utenom migrering),
+        // slik at en senere endring av avvent-perioden faktisk kan oppdages og feilregistreres.
+        initialiserGjeldendeAvventPeriodeHvisFørsteGang(sakUtbetalingId, tilkjentYtelse)
+
         // Håndtere endring av avvent utbetaling periode
         var utsettUtbetalingEtterSlettAvventPeriode = false
         if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse)) {
@@ -55,6 +59,15 @@ class OpprettUtbetalingsmeldingUtfører(
             meldeperiodeUtbetalingMap = meldeperiodeUtbetalingMap,
             utsettUtbetalingEtterSlettAvventPeriode = utsettUtbetalingEtterSlettAvventPeriode
         )
+    }
+
+    private fun initialiserGjeldendeAvventPeriodeHvisFørsteGang(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse) {
+        val gjeldendeAvventPeriodeRepo = GjeldendeAvventPeriodeRepository(connection)
+        val gjeldendeAvventPeriode = gjeldendeAvventPeriodeRepo.hentGjeldendeAvventPeriode(sakUtbetalingId)
+        val nyAvventPeriode = tilkjentYtelse.avventPeriode()
+        if (gjeldendeAvventPeriode == null && nyAvventPeriode != null) {
+            gjeldendeAvventPeriodeRepo.lagre(GjeldendeAvventPeriode(sakUtbetalingId, nyAvventPeriode))
+        }
     }
 
     private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse): Boolean {
