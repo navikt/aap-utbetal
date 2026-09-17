@@ -16,9 +16,11 @@ import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.tilgang.NoAuthConfig
 import no.nav.aap.utbetal.NyApiTest.Companion.WHITELISTET_FNR
 import no.nav.aap.utbetal.NyApiTest.Companion.fakeUtbetalingsmeldingSender
+import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
+import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
@@ -73,7 +75,7 @@ import no.nav.aap.utbetal.helved.Utbetalingsmelding as HelvedUtbetalingsmelding
  */
 class NyApiTest {
 
-    val dataSource = initDatasource(dbConfig)
+    private val dataSource = initDatasource(dbConfig)
 
     @AfterTest
     fun cleanup() {
@@ -475,6 +477,7 @@ class NyApiTest {
         @JvmStatic
         @AfterAll
         fun afterAll() {
+            SendUtbetalingsmeldingUtfører.senderFactory = { UtbetalingProdusent(KafkaProdusentKonfig()) }
             server.stop()
             postgres.close()
         }
