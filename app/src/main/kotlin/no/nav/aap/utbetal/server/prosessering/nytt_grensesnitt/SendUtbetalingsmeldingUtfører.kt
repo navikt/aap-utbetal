@@ -9,12 +9,13 @@ import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
+import no.nav.aap.utbetal.hendelse.produsent.UtbetalingsmeldingSender
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import java.util.UUID
 
 class SendUtbetalingsmeldingUtfører(
     private val connection: DBConnection,
-    private val utbetalingProdusentFactory: () -> UtbetalingProdusent = { UtbetalingProdusent(KafkaProdusentKonfig()) },
+    private val utbetalingsmeldingSenderFactory: () -> UtbetalingsmeldingSender = senderFactory,
     ): JobbUtfører {
 
     override fun utfør(input: JobbInput) {
@@ -25,7 +26,7 @@ class SendUtbetalingsmeldingUtfører(
         // Status settes til sendt. Ruller tilbake dersom sending feiler.
         settStatusTilSendt(tilkjentYtelseId, behandlingsreferanse)
 
-        utbetalingProdusentFactory().produser(behandlingsreferanse.toString(), utbetalingsmelding)
+        utbetalingsmeldingSenderFactory().produser(behandlingsreferanse.toString(), utbetalingsmelding)
     }
 
     private fun settStatusTilSendt(tilkjentYtelseId: Long, referanse: UUID) {
@@ -46,6 +47,10 @@ class SendUtbetalingsmeldingUtfører(
     }
 
     companion object: Jobb {
+        // Overstyrbar kun for tester, slik at Kafka-sending kan mockes uten en ekte broker.
+        // Skal ikke overstyres i produksjonskode.
+        var senderFactory: () -> UtbetalingsmeldingSender = { UtbetalingProdusent(KafkaProdusentKonfig()) }
+
         override fun konstruer(connection: DBConnection): JobbUtfører {
             return SendUtbetalingsmeldingUtfører(connection)
         }

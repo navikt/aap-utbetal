@@ -22,20 +22,24 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
     ) {
         val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse)
             ?: throw IllegalArgumentException("Finner ikke utbetalingsmelding for referanse: $referanse")
-        deaktiverTidligereUtbetalingsstatus(utbetalingsmelding.id!!, statusEndringTidspunkt)
-        lagreUtbetalingsstatus(tilkjentYtelseId, utbetalingsmelding.id, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
+        deaktiverTidligereUtbetalingsstatus(tilkjentYtelseId, statusEndringTidspunkt)
+        lagreUtbetalingsstatus(tilkjentYtelseId, utbetalingsmelding.id!!, utbetalingStatusHendelse, statusEndringTidspunkt, migrertFraGammeltApi)
     }
 
-    private fun deaktiverTidligereUtbetalingsstatus(utbetalingsmeldingId: Long, endretTidspunkt: LocalDateTime) {
+    private fun deaktiverTidligereUtbetalingsstatus(tilkjentYtelseId: Long, endretTidspunkt: LocalDateTime) {
+        // NB: Må deaktivere på TILKJENT_YTELSE_ID (ikke UTBETALINGSMELDING_ID), siden den unike
+        // partial-indeksen IDX_UTBETALING_STATUS_TILKJENT_YTELSE_ID kun tillater én aktiv rad per
+        // TILKJENT_YTELSE_ID - uavhengig av hvilken utbetalingsmelding (f.eks. vanlig utbetaling
+        // eller slett-avvent-periode) statusen gjelder for.
         val sql = """
             UPDATE UTBETALING_STATUS
             SET AKTIV = FALSE, ENDRET_TID = ?
-            WHERE UTBETALINGSMELDING_ID = ?
+            WHERE TILKJENT_YTELSE_ID = ? AND AKTIV = TRUE
         """.trimIndent()
         connection.execute(sql) {
             setParams {
                 setLocalDateTime(1, endretTidspunkt)
-                setLong(2, utbetalingsmeldingId)
+                setLong(2, tilkjentYtelseId)
             }
         }
     }
