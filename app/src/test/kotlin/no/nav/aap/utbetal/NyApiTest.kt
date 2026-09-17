@@ -14,19 +14,19 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.testutil.TestUtil
 import no.nav.aap.tilgang.NoAuthConfig
+import no.nav.aap.utbetal.NyApiTest.Companion.WHITELISTET_FNR
+import no.nav.aap.utbetal.NyApiTest.Companion.fakeUtbetalingsmeldingSender
 import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
-import no.nav.aap.utbetal.helved.Utbetalingsmelding as HelvedUtbetalingsmelding
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
 import no.nav.aap.utbetal.server.prosessering.nytt_grensesnitt.SendUtbetalingsmeldingUtfører
 import no.nav.aap.utbetal.server.server
-import no.nav.aap.utbetal.simulering.UtbetalingOgSimuleringDto
-import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.test.FakeUtbetalingsmeldingSender
+import no.nav.aap.utbetal.test.Fakes
 import no.nav.aap.utbetal.tilkjentytelse.MeldeperiodeDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvventDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDetaljerDto
@@ -37,6 +37,7 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekkDto
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -53,6 +54,7 @@ import javax.sql.DataSource
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import no.nav.aap.utbetal.helved.Utbetalingsmelding as HelvedUtbetalingsmelding
 
 /**
  * Tester tilsvarende [ApiTest], men for utbetaling på det nye (Kafka-baserte) grensesnittet.
@@ -244,6 +246,32 @@ class NyApiTest {
         assertThat(feilregKall.slettAvvent.avvent.årsak).isEqualTo(gammelAvvent.årsak)
         assertThat(feilregKall.slettAvvent.avvent.overføres).isEqualTo(gammelAvvent.overføres)
         assertThat(feilregKall.slettAvvent.avvent.feilregistrering).isTrue()
+
+        val utbetalingsmeldinger = finnUtbetalingsmeldinger(ty2.behandlingsreferanse)
+        assertThat(utbetalingsmeldinger).hasSize(2)
+        assertThat(utbetalingsmeldinger[0].utbetalingsmeldingType).isEqualTo(UtbetalingsmeldingType.SLETT_AVVENT_PERIODE)
+        assertThat(utbetalingsmeldinger[1].utbetalingsmeldingType).isEqualTo(UtbetalingsmeldingType.UTBETALING)
+    }
+
+    private data class UtbetalingsmeldingRow(
+        val id: Long,
+        val utbetalingsmeldingType: UtbetalingsmeldingType,
+    )
+
+    private fun finnUtbetalingsmeldinger(behandlingsreferanse: UUID): List<UtbetalingsmeldingRow> {
+        return dataSource.transaction { connection ->
+            val ty = TilkjentYtelseRepository(connection).hent(behandlingsreferanse)
+            val sql = "select id, meldingstype from utbetalingsmelding where tilkjent_ytelse_id = ? order by id"
+            connection.queryList(sql) {
+                setParams {setLong(1, ty!!.id!!) }
+                setRowMapper {
+                    UtbetalingsmeldingRow(
+                        id = it.getLong("id"),
+                        utbetalingsmeldingType = it.getEnum("meldingstype"),
+                    )
+                }
+            }
+        }
     }
 
     @Test
