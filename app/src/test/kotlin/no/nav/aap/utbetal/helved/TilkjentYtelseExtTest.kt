@@ -25,27 +25,43 @@ class TilkjentYtelseExtTest {
     private val vedtakstidspunkt = LocalDateTime.now()
 
     @Test
-    fun `perioder med redusertDagsats over 0 skal inkluderes`() {
-        val meldeperiode = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(1))
+    fun `perioder med redusertDagsats over 0 skal inkluderes og at periode med helg splittes`() {
+        val meldeperiode1 = Periode(LocalDate.parse("2026-08-24"), LocalDate.parse("2026-09-06"))
+        val meldeperiode2 = Periode(LocalDate.parse("2026-09-07"), LocalDate.parse("2026-09-20"))
         val tilkjentYtelse = lagTilkjentYtelse(
             listOf(
                 lagPeriode(
-                    fom = meldeperiode.fom,
-                    tom = meldeperiode.tom,
+                    fom = meldeperiode1.fom,
+                    tom = meldeperiode1.tom,
                     dagsats = Beløp(1000),
                     redusertDagsats = Beløp(500),
-                    utbetalingsdato = LocalDate.now().minusDays(1),
-                    meldeperiode = meldeperiode,
+                    utbetalingsdato = meldeperiode1.tom.plusDays(1),
+                    meldeperiode = meldeperiode1,
+                ),
+                lagPeriode(
+                    fom = meldeperiode2.fom,
+                    tom = meldeperiode2.tom,
+                    dagsats = Beløp(1000),
+                    redusertDagsats = Beløp(0),
+                    utbetalingsdato = meldeperiode2.tom.plusDays(1),
+                    meldeperiode = meldeperiode2,
                 )
+
             )
         )
-        val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode)
+        val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode1, meldeperiode2)
 
         val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
-        assertThat(melding.utbetalinger).hasSize(1)
-        assertThat(melding.utbetalinger.first().utbetaltBeløp).isEqualTo(500u)
-        assertThat(melding.utbetalinger.first().sats).isEqualTo(1000u)
+        assertThat(melding.utbetalinger).hasSize(2)
+        assertThat(melding.utbetalinger[0].fom).isEqualTo("2026-08-24")
+        assertThat(melding.utbetalinger[0].tom).isEqualTo("2026-08-28")
+        assertThat(melding.utbetalinger[0].utbetaltBeløp).isEqualTo(500u)
+        assertThat(melding.utbetalinger[0].sats).isEqualTo(1000u)
+        assertThat(melding.utbetalinger[1].fom).isEqualTo("2026-08-31")
+        assertThat(melding.utbetalinger[1].tom).isEqualTo("2026-09-04")
+        assertThat(melding.utbetalinger[1].utbetaltBeløp).isEqualTo(500u)
+        assertThat(melding.utbetalinger[1].sats).isEqualTo(1000u)
     }
 
     @Test
@@ -80,7 +96,7 @@ class TilkjentYtelseExtTest {
                     tom = meldeperiode.tom,
                     dagsats = Beløp(1000),
                     redusertDagsats = Beløp(500),
-                    utbetalingsdato = LocalDate.now().plusDays(1),
+                    utbetalingsdato = LocalDate.now().plusDays(114),
                     meldeperiode = meldeperiode,
                 )
             )
@@ -94,7 +110,7 @@ class TilkjentYtelseExtTest {
 
     @Test
     fun `perioder med utbetalingsdato i dag skal inkluderes`() {
-        val meldeperiode = Periode(LocalDate.now().minusDays(13), LocalDate.now())
+        val meldeperiode = Periode(LocalDate.now().minusDays(10), LocalDate.now())
         val tilkjentYtelse = lagTilkjentYtelse(
             listOf(
                 lagPeriode(
@@ -111,12 +127,11 @@ class TilkjentYtelseExtTest {
 
         val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
-        assertThat(melding.utbetalinger).hasSize(1)
-        assertThat(melding.utbetalinger.first().utbetaltBeløp).isEqualTo(800u)
+        assertThat(melding.utbetalinger).isNotEmpty()
     }
 
     @Test
-    fun `bare perioder som oppfyller begge krav skal inkluderes`() {
+    fun `bare perioder som har mer enn 0 til utbetaling og utbetalingsdato i dag eller tidligere skal inkluderes`() {
         val meldeperiodeFortidig = Periode(LocalDate.now().minusDays(28), LocalDate.now().minusDays(15))
         val meldeperiodeNylig = Periode(LocalDate.now().minusDays(14), LocalDate.now().minusDays(1))
         val meldeperiodeFremtidig = Periode(LocalDate.now().plusDays(1), LocalDate.now().plusDays(14))
@@ -146,24 +161,26 @@ class TilkjentYtelseExtTest {
                     fom = meldeperiodeFremtidig.fom,
                     tom = meldeperiodeFremtidig.tom,
                     dagsats = Beløp(1000),
-                    redusertDagsats = Beløp(500),
+                    redusertDagsats = Beløp(1000),
                     utbetalingsdato = LocalDate.now().plusDays(1),
                     meldeperiode = meldeperiodeFremtidig,
                 ),
             )
         )
 
-        val meldeperiodeUtbetalingMap = mapOf(
-            meldeperiodeFortidig to UUID.randomUUID(),
-            meldeperiodeNylig to UUID.randomUUID(),
-            meldeperiodeFremtidig to UUID.randomUUID(),
-        )
+        val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiodeFortidig, meldeperiodeNylig, meldeperiodeFremtidig)
 
         val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
 
-        assertThat(melding.utbetalinger).hasSize(1)
-        assertThat(melding.utbetalinger.first().fom).isEqualTo(meldeperiodeFortidig.fom.toString())
-        assertThat(melding.utbetalinger.first().tom).isEqualTo(meldeperiodeFortidig.tom.toString())
+        melding.utbetalinger.forEach {
+            if (it.utbetaltBeløp == 0u) {
+                throw AssertionError("Utbetaling med utbetaltBeløp 0 skal ikke inkluderes")
+            }
+            if (LocalDate.parse(it.fom) > LocalDate.now() || LocalDate.parse(it.tom) > LocalDate.now().plusWeeks(4)) {
+                throw AssertionError("Utbetalingperiode i fremtiden skal ikke inkluderes")
+            }
+        }
+
     }
 
     @Test
@@ -282,8 +299,7 @@ class TilkjentYtelseExtTest {
         )
     }
 
-    private fun lagMeldeperiodeMap(meldeperiode: Periode): MeldeperiodeUtbetalingIdMap {
-        return mapOf(meldeperiode to UUID.randomUUID())
-    }
+    private fun lagMeldeperiodeMap(vararg meldeperioder: Periode) = meldeperioder.associateWith { UUID.randomUUID() }
+
 }
 
