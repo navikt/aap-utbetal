@@ -25,7 +25,7 @@ class TilkjentYtelseExtTest {
     private val vedtakstidspunkt = LocalDateTime.now()
 
     @Test
-    fun `perioder med redusertDagsats over 0 skal inkluderes`() {
+    fun `perioder med redusertDagsats over 0 skal inkluderes og at periode med helg splittes`() {
         val meldeperiode1 = Periode(LocalDate.parse("2026-08-24"), LocalDate.parse("2026-09-06"))
         val meldeperiode2 = Periode(LocalDate.parse("2026-09-07"), LocalDate.parse("2026-09-20"))
         val tilkjentYtelse = lagTilkjentYtelse(
@@ -88,7 +88,7 @@ class TilkjentYtelseExtTest {
 
     @Test
     fun `perioder med utbetalingsdato frem i tid skal ikke inkluderes`() {
-        val meldeperiode = Periode(LocalDate.now().plusDays(100), LocalDate.now().plusDays(113))
+        val meldeperiode = Periode(LocalDate.now().plusDays(1), LocalDate.now().plusDays(14))
         val tilkjentYtelse = lagTilkjentYtelse(
             listOf(
                 lagPeriode(
