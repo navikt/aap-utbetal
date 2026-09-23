@@ -167,7 +167,7 @@ class UtbetalingBeregner {
     private fun prioriterHøyreSideCrossJoinMedEndring(nyUtbetalingRef: UUID): JoinStyle.OUTER_JOIN<UtbetalingData, YtelseDetaljer, UtbetalingsperiodeMedReferanse> {
         return JoinStyle.OUTER_JOIN { periode, venstre, høyre ->
             if (venstre != null && høyre != null) {
-                if (sammeBeløp(venstre.verdi, høyre.verdi)) {
+                if (sammeBeløp(periode, venstre.verdi, høyre.verdi)) {
                     return@OUTER_JOIN Segment(
                         periode,
                         UtbetalingsperiodeMedReferanse(
@@ -175,7 +175,7 @@ class UtbetalingBeregner {
                             utbetalingsperiode = Utbetalingsperiode(
                                 periode = periode,
                                 beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                                fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
+                                fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg(periode).tilUInt(),
                                 utbetalingsperiodeType = UtbetalingsperiodeType.UENDRET,
                                 utbetalingsdato = høyre.verdi.utbetalingsdato
                             )
@@ -189,7 +189,7 @@ class UtbetalingBeregner {
                         utbetalingsperiode = Utbetalingsperiode(
                             periode = periode,
                             beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg(periode).tilUInt(),
                             utbetalingsperiodeType = UtbetalingsperiodeType.ENDRET,
                             utbetalingsdato = høyre.verdi.utbetalingsdato
                         )
@@ -204,7 +204,7 @@ class UtbetalingBeregner {
                         utbetalingsperiode =  Utbetalingsperiode(
                             periode = periode,
                             beløp = høyre.verdi.redusertDagsats.tilUInt(),
-                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg().tilUInt(),
+                            fastsattDagsats = høyre.verdi.dagsatsMedBarnetillegg(periode).tilUInt(),
                             utbetalingsperiodeType = UtbetalingsperiodeType.NY,
                             utbetalingsdato = høyre.verdi.utbetalingsdato
                         )
@@ -233,9 +233,9 @@ class UtbetalingBeregner {
         }
     }
 
-    private fun sammeBeløp(utbetalingData: UtbetalingData, ytelseDetaljer: YtelseDetaljer): Boolean {
+    private fun sammeBeløp(periode: Periode, utbetalingData: UtbetalingData, ytelseDetaljer: YtelseDetaljer): Boolean {
         return utbetalingData.beløp == ytelseDetaljer.redusertDagsats.tilUInt() &&
-                utbetalingData.fastsattDagsats == ytelseDetaljer.dagsatsMedBarnetillegg().tilUInt()
+                utbetalingData.fastsattDagsats == ytelseDetaljer.dagsatsMedBarnetillegg(periode).tilUInt()
     }
 
 

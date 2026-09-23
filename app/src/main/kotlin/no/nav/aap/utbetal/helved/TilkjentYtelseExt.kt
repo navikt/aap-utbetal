@@ -55,7 +55,7 @@ private fun List<TilkjentYtelsePeriode>.tilUtbetalinger(meldeperiodeUtbetalingMa
                 id = utbetalingId.toString(),
                 fom = tyPeriode.periode.fom.toString(),
                 tom = tyPeriode.periode.tom.toString(),
-                sats = tyPeriode.detaljer.dagsatsMedBarnetillegg().avrundet(),
+                sats = tyPeriode.detaljer.dagsatsMedBarnetillegg(tyPeriode.periode).avrundet(),
                 utbetaltBeløp = tyPeriode.detaljer.redusertDagsats.avrundet(),
             )
         }
