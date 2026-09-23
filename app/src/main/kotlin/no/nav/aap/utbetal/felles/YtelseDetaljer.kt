@@ -26,11 +26,11 @@ data class YtelseDetaljer(
      * Dagsats som skal brukes for å finne rekke skattekort. Skal brukes i feltet fastsattDagsats u utbetalingsperioden.
      */
     fun dagsatsMedBarnetillegg(): Beløp {
-        if (Miljø.erProd()) {
+//        if (Miljø.erProd()) {
             //Behold dagens logikk til vi har sjekket at det virker i testmiljø.
             return dagsats
-        }
-        return dagsats.pluss(barnetillegg)
+//        }
+//        return dagsats.pluss(barnetillegg)
     }
 
 }
