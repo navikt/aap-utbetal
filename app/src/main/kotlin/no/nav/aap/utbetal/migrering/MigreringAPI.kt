@@ -52,6 +52,7 @@ fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusM
                 UtførMigreringService(dataSource, UtbetalingRestKlient).utførMigrering(connection, Saksnummer(dto.saksnummer), dto.dryRun)
                 true
             } catch (e: Exception) {
+                log.error("Migrering feilet med feilmelding: ${e.message}", e)
                 false
             }
         }
