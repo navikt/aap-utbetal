@@ -51,7 +51,8 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
 
             val migrerteSaker = mutableListOf<Saksnummer>()
             val feiledeMigreringer = mutableListOf<Saksnummer>()
-            sakerTilMigrering.forEach { sakUtbetaling ->
+            val antallSaker = sakerTilMigrering.size
+            sakerTilMigrering.forEachIndexed { index, sakUtbetaling ->
                 try {
                     // Utfør hver enkelt migrering som egen transaksjon. Det siste som skjer er at migreringstjenesten
                     // til Utsjekk kalles(REST), og hvis den feiler så rulles mugrering tilbake.
@@ -59,7 +60,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
                         utførMigrering(connection, sakUtbetaling.saksnummer, dryRun)
                     }
                     migrerteSaker.add(sakUtbetaling.saksnummer)
-                    log.info("Migrering av sak ${sakUtbetaling.saksnummer} fullført")
+                    log.info("Migrering av sak ${sakUtbetaling.saksnummer} fullført (${index+1} av $antallSaker)")
                 } catch (e: Exception) {
                     feiledeMigreringer.add(sakUtbetaling.saksnummer)
                     log.error("Feil ved migrering av sak ${sakUtbetaling.saksnummer}: ${e.message}", e)
