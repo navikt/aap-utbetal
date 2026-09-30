@@ -34,7 +34,7 @@ class SakUtbetalingRepository(val connection: DBConnection) {
     }
 
     fun settMigrertTilKafka(saksnummer: Saksnummer) {
-        val sql = "UPDATE SAK_UTBETALING SET MIGRERT_TIL_KAFKA = ? WHERE SAKSNUMMER = ?"
+        val sql = "UPDATE SAK_UTBETALING SET MIGRERT_TIL_KAFKA = ? WHERE SAKSNUMMER = ? AND AKTIV = TRUE"
         return connection.execute(sql) {
             setParams {
                 setLocalDateTime(1, LocalDateTime.now())
