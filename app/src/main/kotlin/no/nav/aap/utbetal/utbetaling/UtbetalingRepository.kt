@@ -207,20 +207,23 @@ class UtbetalingRepository(private val connection: DBConnection) {
     fun hentUtbetalingerSomManglerKvittering(saksnummer: Saksnummer? = null): List<UtbetalingLight> {
         val hentAlleSendteUtbetalingerSql = """
             SELECT 
-                ID,
-                UTBETALING_REF,
-                SAKSNUMMER,
-                BEHANDLING_REF,
-                UTBETALING_STATUS,
-                UTBETALING_OPPRETTET,
-                UTBETALING_ENDRET,
-                VERSJON
+                U.ID,
+                U.UTBETALING_REF,
+                U.SAKSNUMMER,
+                U.BEHANDLING_REF,
+                U.UTBETALING_STATUS,
+                U.UTBETALING_OPPRETTET,
+                U.UTBETALING_ENDRET,
+                U.VERSJON
             FROM 
-                UTBETALING
+                UTBETALING U,
+                SAK_UTBETALING SU
             WHERE
-                UTBETALING_STATUS IN ('SENDT', 'FEILET') AND
-                SLETTET = FALSE
-        """ + if (saksnummer != null) { " AND SAKSNUMMER = ?" } else ""
+                U.SAK_UTBETALING_ID = SU.ID AND
+                SU.AKTIV = TRUE AND
+                U.UTBETALING_STATUS IN ('SENDT', 'FEILET') AND
+                U.SLETTET = FALSE
+        """ + if (saksnummer != null) { " AND U.SAKSNUMMER = ?" } else ""
 
         return connection.queryList(hentAlleSendteUtbetalingerSql) {
             setParams {
@@ -440,8 +443,8 @@ class UtbetalingRepository(private val connection: DBConnection) {
     }
 
     fun hentMigreringStatus(): UtbetalingMigreringStatus {
-        val antallIkkeMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is null"
-        val antallMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is not null"
+        val antallIkkeMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is null and aktiv = true"
+        val antallMigrerteSakerSql = "select count(1) as antall from sak_utbetaling where migrert_til_kafka is not null and aktiv = true"
         val mapAntall = {row: Row -> row.getInt("antall")}
         return UtbetalingMigreringStatus(
             antallIkkeMigrerteSaker = connection.queryFirst(antallIkkeMigrerteSakerSql) {setRowMapper { mapAntall(it) }},
