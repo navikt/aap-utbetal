@@ -6,6 +6,8 @@ import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertThrows
+import java.sql.SQLException
 import kotlin.test.Test
 
 class SakUtbetalingRepositoryTest {
@@ -63,6 +65,81 @@ class SakUtbetalingRepositoryTest {
             assertThat(hentet).isNotNull
             assertThat(hentet!!.migrertTilKafka).isNotNull()
         }
+    }
+
+    @Test
+    fun `flere inaktive rader og en aktiv rad kan ha samme saksnummer`() {
+        dataSource.transaction { connection ->
+            val saksnummer = Saksnummer("sak-008")
+            val repository = SakUtbetalingRepository(connection)
+
+            repeat(2) {
+                val id = repository.lagre(saksnummer, migrertTilKafka = false)
+                connection.execute("UPDATE SAK_UTBETALING SET AKTIV = FALSE WHERE ID = ?") {
+                    setParams { setLong(1, id) }
+                }
+            }
+            val aktivId = repository.lagre(saksnummer, migrertTilKafka = false)
+
+            assertThat(repository.hent(saksnummer)?.id).isEqualTo(aktivId)
+            assertThat(repository.hent(aktivId).id).isEqualTo(aktivId)
+
+            repository.settMigrertTilKafka(saksnummer)
+            assertThat(repository.hent(saksnummer)?.migrertTilKafka).isNotNull()
+
+            val inaktiveUtenMigreringstidspunkt = connection.queryList(
+                "SELECT ID FROM SAK_UTBETALING WHERE SAKSNUMMER = ? AND AKTIV = FALSE AND MIGRERT_TIL_KAFKA IS NULL"
+            ) {
+                setParams { setString(1, saksnummer.toString()) }
+                setRowMapper { it.getLong("ID") }
+            }
+            assertThat(inaktiveUtenMigreringstidspunkt).hasSize(2)
+        }
+    }
+
+    @Test
+    fun `to aktive rader kan ikke ha samme saksnummer`() {
+        val saksnummer = Saksnummer("sak-009")
+        dataSource.transaction { connection ->
+            SakUtbetalingRepository(connection).lagre(saksnummer, migrertTilKafka = false)
+        }
+
+        assertUnikhetsbrudd {
+            dataSource.transaction { connection ->
+                SakUtbetalingRepository(connection).lagre(saksnummer, migrertTilKafka = false)
+            }
+        }
+    }
+
+    @Test
+    fun `inaktiv rad kan ikke reaktiveres når aktiv rad har samme saksnummer`() {
+        val saksnummer = Saksnummer("sak-010")
+        val inaktivId = dataSource.transaction { connection ->
+            val repository = SakUtbetalingRepository(connection)
+            val id = repository.lagre(saksnummer, migrertTilKafka = false)
+            connection.execute("UPDATE SAK_UTBETALING SET AKTIV = FALSE WHERE ID = ?") {
+                setParams { setLong(1, id) }
+            }
+            repository.lagre(saksnummer, migrertTilKafka = false)
+            id
+        }
+
+        assertUnikhetsbrudd {
+            dataSource.transaction { connection ->
+                connection.execute("UPDATE SAK_UTBETALING SET AKTIV = TRUE WHERE ID = ?") {
+                    setParams { setLong(1, inaktivId) }
+                }
+            }
+        }
+    }
+
+    private fun assertUnikhetsbrudd(block: () -> Unit) {
+        val exception = assertThrows<Exception>(block)
+        val sqlState = generateSequence(exception as Throwable) { it.cause }
+            .filterIsInstance<SQLException>()
+            .firstOrNull()
+            ?.sqlState
+        assertThat(sqlState).isEqualTo("23505")
     }
 
     @Test
