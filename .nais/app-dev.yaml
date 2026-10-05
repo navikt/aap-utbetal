@@ -69,6 +69,8 @@ spec:
                 - application: tilgang
                 - application: utsjekk
                   namespace: helved
+                - application: logging
+                  namespace: nais-system
     env:
         - name: INTEGRASJON_UTSJEKK_URL
           value: http://utsjekk.helved
