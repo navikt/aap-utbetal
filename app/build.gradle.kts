@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("aap.conventions")
-    alias(libs.plugins.ktor)
+    alias(kelvinLibs.plugins.ktor)
 }
 
 application {
@@ -24,39 +24,37 @@ dependencies {
     implementation(libs.ktorOpenapiGenerator)
     implementation(libs.behandlingsflytKontrakt)
 
-    implementation(libs.ktorServerAuth)
-    implementation(libs.ktorServerAuthJwt)
-    implementation(libs.ktorServerCallLogging)
-    implementation(libs.ktorServerCallId)
-    implementation(libs.ktorServerContentNegotiation)
-    implementation(libs.ktorServerMetricsMicrometer)
-    implementation(libs.ktorServerNetty)
-    implementation(libs.ktorServerStatusPages)
+    implementation(kelvinLibs.ktor.server.auth)
+    implementation(kelvinLibs.ktor.server.auth.jwt)
+    implementation(kelvinLibs.ktor.server.call.logging)
+    implementation(kelvinLibs.ktor.server.call.id)
+    implementation(kelvinLibs.ktor.server.content.negotiation)
+    implementation(kelvinLibs.ktor.server.metrics.micrometer)
+    implementation(kelvinLibs.ktor.server.netty)
+    implementation(kelvinLibs.ktor.server.status.pages)
 
-    implementation(libs.ktorSerializationJackson)
-    implementation(libs.jacksonDatabind)
-    implementation(libs.jacksonDatatypeJsr310)
-    implementation(libs.micrometerPrometheus)
-    implementation(libs.logbackClassic)
-    implementation(libs.logstashLogbackEncoder)
-    implementation(libs.kafkaClients)
+    implementation(kelvinLibs.ktor.serialization.jackson)
+    implementation(kelvinLibs.jackson.databind)
+    implementation(kelvinLibs.jackson.datatype.jsr310)
+    implementation(kelvinLibs.micrometer.prometheus)
+    implementation(kelvinLibs.logback.classic)
+    implementation(kelvinLibs.logstash.logback.encoder)
+    implementation(kelvinLibs.kafka.clients)
 
     implementation("no.bekk.bekkopen:nocommons:0.17.0")
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
-    implementation(libs.hikari)
-    implementation(libs.flywayPostgresql)
-    runtimeOnly(libs.postgresql)
+    implementation(kelvinLibs.hikaricp)
+    implementation(kelvinLibs.flyway.postgresql)
+    runtimeOnly(kelvinLibs.postgresql)
 
     testImplementation(libs.motorTestUtils)
-    testImplementation(libs.nimbusJoseJwt)
-    testImplementation(libs.junitJupiterApi)
-    testRuntimeOnly(libs.junitJupiterEngine)
-    testImplementation(libs.assertjCore)
-    testImplementation(libs.testcontainersPostgresql)
-    testImplementation(libs.testcontainersKafka)
-    testImplementation(libs.mockk)
+    testImplementation(kelvinLibs.nimbus.jose.jwt)
+    testImplementation(kelvinLibs.bundles.junit)
+    testImplementation(kelvinLibs.testcontainers.postgresql)
+    testImplementation(kelvinLibs.testcontainers.kafka)
+    testImplementation(kelvinLibs.mockk)
     testImplementation(kotlin("test"))
 }
 
