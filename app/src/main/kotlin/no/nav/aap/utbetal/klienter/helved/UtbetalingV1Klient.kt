@@ -32,8 +32,8 @@ interface UtbetalingKlient {
     fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling)
     fun hentUtbetaling(utbetalingRef: UUID): Utbetaling
     fun hentStatus(utbetalingRef: UUID): UtbetalingStatus
-    fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering
-    fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering
+    fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): SimuleringV1
+    fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): SimuleringV1
     fun migrering(migreringRequest: MigreringRequest)
 }
 
@@ -92,14 +92,14 @@ object UtbetalingRestKlient : UtbetalingKlient {
         return client.get<UtbetalingStatus>(hentStatusUrl, request)!!
     }
 
-    override fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+    override fun simuleringUtbetaling(utbetalingRef: UUID, utbetaling: Utbetaling): SimuleringV1 {
         log.info("Simulering av utbetaling for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
         val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
         val request = PostRequest(body = utbetaling)
         return requireNotNull(client.post(simuleringUrl, request) { body, _ -> DefaultJsonMapper.fromJson(body) })
     }
 
-    override fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): Simulering {
+    override fun simuleringOpphør(utbetalingRef: UUID, utbetaling: Utbetaling): SimuleringV1 {
         log.info("Simulering av opphør for saksummer ${utbetaling.sakId} og behandling ${utbetaling.behandlingId}")
         val simuleringUrl = url.resolve("utbetalinger/$utbetalingRef/simuler")
         val request = DeleteMedBodyRequest(body = utbetaling)
