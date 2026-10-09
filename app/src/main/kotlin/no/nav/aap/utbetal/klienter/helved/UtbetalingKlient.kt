@@ -76,8 +76,8 @@ object UtbetalingRestKlient : UtbetalingKlient {
     override fun opphør(utbetalingRef: UUID, helvedUtbetaling: Utbetaling) {
         log.info("Opphør av utbetaling for saksnummer ${helvedUtbetaling.sakId}, behandingId ${helvedUtbetaling.behandlingId} (${helvedUtbetaling.behandlingId.base64ToUUID()}) og utbetalingRef $utbetalingRef")
         val opphørUrl = url.resolve(("utbetalinger/$utbetalingRef"))
-        val request = DeleteMedBodyRequest<Utbetaling>(body = helvedUtbetaling)
-        client.deleteMedBody<Utbetaling, Unit>(opphørUrl, request) { _, _ -> }
+        val request = DeleteMedBodyRequest(body = helvedUtbetaling)
+        client.deleteMedBody(opphørUrl, request) { _, _ -> }
     }
 
     override fun hentUtbetaling(utbetalingRef: UUID): Utbetaling {

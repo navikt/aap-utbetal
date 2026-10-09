@@ -9,7 +9,6 @@ import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
 import no.nav.aap.utbetal.klienter.helved.HelvedUtbetalingOppretter
-import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.klienter.helved.UtbetalingRestKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse

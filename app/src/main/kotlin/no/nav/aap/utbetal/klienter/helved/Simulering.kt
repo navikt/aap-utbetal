@@ -20,7 +20,7 @@ data class Simulering(
             Tidslinje(perioder.map { Segment(it, Unit) })
         val simuleringsperioderTidslinje =
             Tidslinje(this.perioder.map { periode -> Segment(Periode(periode.fom, periode.tom), periode.utbetalinger) })
-        val klippetTidslinje = simuleringsperioderTidslinje.disjoint(klippePerioder, { p, v, -> Segment(p, v.verdi)})
+        val klippetTidslinje = simuleringsperioderTidslinje.disjoint(klippePerioder, { p, v -> Segment(p, v.verdi)})
         return Simulering(
             perioder =  klippetTidslinje
                 .segmenter()
