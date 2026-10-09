@@ -1,6 +1,5 @@
 package no.nav.aap.utbetal.felles
 
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Beløp
 import no.nav.aap.komponenter.verdityper.GUnit

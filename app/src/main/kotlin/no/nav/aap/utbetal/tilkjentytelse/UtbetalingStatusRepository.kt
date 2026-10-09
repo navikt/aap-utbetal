@@ -87,7 +87,7 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         """.trimIndent()
 
 
-        val utbetalinger = connection.queryList<UtbetalingStatusLight>(hentUtbetalingStatusSql) {
+        val utbetalinger = connection.queryList(hentUtbetalingStatusSql) {
             setParams {
                 setString(1, saksnummer.toString())
             }
