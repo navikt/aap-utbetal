@@ -6,18 +6,18 @@ import java.time.LocalDate
 import kotlin.test.Test
 
 
-class SimuleringTest {
+class SimuleringV1Test {
 
     @Test
     fun `Skal kunne klippe opp simulering med ingen perioder`() {
-        val simulering = Simulering(perioder = listOf())
+        val simulering = SimuleringV1(perioder = listOf())
         val klippetSimulering = simulering.klipp(listOf())
         assertThat(klippetSimulering.perioder).hasSize(0)
     }
 
     @Test
     fun `Skal kunne klippe opp simulering med en periode`() {
-        val simulering = Simulering(perioder = listOf(
+        val simulering = SimuleringV1(perioder = listOf(
             simPeriode("2025-01-01/2025-01-10")
         ))
         val klippetSimulering = simulering.klipp(listOf())
@@ -26,7 +26,7 @@ class SimuleringTest {
 
     @Test
     fun `Skal kunne klippe opp simulering med en periode med en klippeperiode`() {
-        val simulering = Simulering(perioder = listOf(
+        val simulering = SimuleringV1(perioder = listOf(
             simPeriode("2025-01-01/2025-01-10")
         ))
         val klippetSimulering = simulering.klipp(listOf(periode("2025-01-01/2025-01-05")))
@@ -37,7 +37,7 @@ class SimuleringTest {
 
     @Test
     fun `Skal kunne klippe opp simulering med en periode med en klippeperiode midt i simulering`() {
-        val simulering = Simulering(perioder = listOf(
+        val simulering = SimuleringV1(perioder = listOf(
             simPeriode("2025-01-01/2025-01-20")
         ))
         val klippetSimulering = simulering.klipp(listOf(periode("2025-01-07/2025-01-14")))
@@ -48,12 +48,12 @@ class SimuleringTest {
         assertThat(klippetSimulering.perioder[1].tom).isEqualTo(LocalDate.parse("2025-01-20"))
     }
 
-    private fun simPeriode(periode: String): Simuleringsperiode {
+    private fun simPeriode(periode: String): SimuleringsperiodeV1 {
         val p = periode(periode)
-        return Simuleringsperiode(
+        return SimuleringsperiodeV1(
             fom = p.fom,
             tom = p.tom,
-            utbetalinger = listOf(SimulertUtbetaling(
+            utbetalinger = listOf(SimulertUtbetalingV1(
                 sakId = "1",
                 utbetalesTil = "2",
                 tidligereUtbetalt = 1000,

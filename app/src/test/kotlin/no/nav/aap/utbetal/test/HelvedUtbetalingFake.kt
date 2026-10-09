@@ -8,6 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.aap.utbetal.klienter.helved.Postering
 import no.nav.aap.utbetal.helved.Utbetalingsmelding as HelvedUtbetalingsmelding
 import no.nav.aap.utbetal.klienter.helved.SlettAvvent
 import no.nav.aap.utbetal.klienter.helved.Simulering
@@ -82,15 +83,26 @@ fun Application.helvedUtbetalingFake(
             val melding = call.receive<HelvedUtbetalingsmelding>()
             val simulering = Simulering(
                 perioder = melding.utbetalinger.map { utbetaling ->
+                    val fom = LocalDate.parse(utbetaling.fom)
+                    val tom = LocalDate.parse(utbetaling.tom)
                     Simuleringsperiode(
-                        fom = LocalDate.parse(utbetaling.fom),
-                        tom = LocalDate.parse(utbetaling.tom),
+                        fom = fom,
+                        tom = tom,
                         utbetalinger = listOf(
                             SimulertUtbetaling(
                                 sakId = melding.sakId,
                                 utbetalesTil = melding.ident,
                                 tidligereUtbetalt = 0,
                                 nyttBeløp = utbetaling.utbetaltBeløp.toInt(),
+                                posteringer = listOf(
+                                    Postering(
+                                        fom = fom,
+                                        tom = tom,
+                                        beløp = utbetaling.utbetaltBeløp.toInt(),
+                                        type = "YTEL",
+                                        klassekode = "AAPOR"
+                                    )
+                                )
                             )
                         )
                     )
