@@ -46,7 +46,7 @@ jobs:
         steps:
             - uses: actions/checkout@v7
             - name: deploy to dev
-              uses: nais/deploy/actions/deploy@v2
+              uses: nais/deploy/actions/deploy@v3
               env:
                   CLUSTER: dev-gcp
                   RESOURCE: kafka/${{ matrix.topic }}/topic.yaml
@@ -54,7 +54,7 @@ jobs:
                   PRINT_PAYLOAD: true
 
             - name: deploy to prod
-              uses: nais/deploy/actions/deploy@v2
+              uses: nais/deploy/actions/deploy@v3
               env:
                   CLUSTER: prod-gcp
                   RESOURCE: kafka/${{ matrix.topic }}/topic.yaml
