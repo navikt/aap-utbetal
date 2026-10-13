@@ -2,7 +2,7 @@ package no.nav.aap.utbetal.simulering
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.utbetal.helved.tilUtbetalingsmelding
-import no.nav.aap.utbetal.klienter.helved.Simulering
+import no.nav.aap.utbetal.klienter.helved.Simuleringsrespons
 import no.nav.aap.utbetal.klienter.helved.UtbetalingV2Klient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
@@ -13,7 +13,7 @@ import java.util.*
 class SimuleringService(private val connection: DBConnection) {
 
 
-    fun simuler(tilkjentYtelse: TilkjentYtelse): Simulering {
+    fun simuler(tilkjentYtelse: TilkjentYtelse): Simuleringsrespons {
         val meldeperiodeUtbetalingMapping = finnMeldeperiodeUtbetalingMapping(tilkjentYtelse)
         val utbetalingMelding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMapping)
         return UtbetalingV2Klient().simuleringUtbetaling(utbetalingMelding)

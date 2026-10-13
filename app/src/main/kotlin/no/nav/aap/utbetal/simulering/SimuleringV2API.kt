@@ -8,6 +8,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.utbetal.httpCallCounter
+import no.nav.aap.utbetal.simuleringv2.SimuleringsresponseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.tilTilkjentYtelse
 import org.slf4j.Logger
@@ -18,14 +19,14 @@ private val log: Logger = LoggerFactory.getLogger("POST /simulering/v2")
 
 fun NormalOpenAPIRoute.simuleringV2(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
 
-    route("/simulering/v2").authorizedPost<Unit, SimuleringDto, TilkjentYtelseDto>(authConfig, null) { _, dto ->
+    route("/simulering/v2").authorizedPost<Unit, SimuleringsresponseDto, TilkjentYtelseDto>(authConfig, null) { _, dto ->
         prometheus.httpCallCounter("/simulering/v2").increment()
         log.info("Simulering v2 kalt for behandling: {}", dto.behandlingsreferanse)
         val tilkjentYtelse = dto.tilTilkjentYtelse()
-        val simulering = dataSource.transaction(readOnly = true) { connection ->
+        val simuleringsrespons = dataSource.transaction(readOnly = true) { connection ->
             SimuleringService(connection).simuler(tilkjentYtelse)
         }
-        log.info("Simulering utbetalinger: $simulering") //TODO: fjern(eller reduser loggingen) når vi har testet integrasjonen nok
-        respond(simulering.tilSimuleringDto())
+        log.info("Simulering utbetalinger: $simuleringsrespons") //TODO: fjern(eller reduser loggingen) når vi har testet integrasjonen nok
+        respond(simuleringsrespons.tilDto())
     }
 

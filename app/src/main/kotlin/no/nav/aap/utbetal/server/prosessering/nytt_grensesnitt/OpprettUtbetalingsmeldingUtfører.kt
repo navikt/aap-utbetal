@@ -11,8 +11,11 @@ import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Avvent
+import no.nav.aap.utbetal.klienter.helved.Info
+import no.nav.aap.utbetal.klienter.helved.Simulering
 import no.nav.aap.utbetal.klienter.helved.SlettAvventUtbetalingMelding
 import no.nav.aap.utbetal.simulering.SimuleringService
+import no.nav.aap.utbetal.simuleringv2.SimuleringStatus
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
@@ -76,10 +79,12 @@ class OpprettUtbetalingsmeldingUtfører(
         if (gjeldendeAvventPeriode != null && nyAvventPeriode != null) {
             if (gjeldendeAvventPeriode.periode != nyAvventPeriode) {
                 // Sjekk om det er endring i beløp. Hvis ikke er det ikke mulig å sende feilregistrering av avvent periode.
-                val simeringsresultat = simuleringServiceFactory(connection).simuler(tilkjentYtelse)
-                return simeringsresultat.perioder.any { periode ->
-                    periode.utbetalinger.any { utbetaling ->
-                        utbetaling.tidligereUtbetalt != utbetaling.nyttBeløp
+                return when (val simeringsrespons = simuleringServiceFactory(connection).simuler(tilkjentYtelse)) {
+                    is Info -> if (simeringsrespons.status == SimuleringStatus.OK_UTEN_ENDRING) false else throw IllegalStateException("Ukjent status ${simeringsrespons.status} for sakUtbetalingId = $sakUtbetalingId og behandlingref = ${tilkjentYtelse.behandlingsreferanse}")
+                    is Simulering -> simeringsrespons.perioder.any { periode ->
+                        periode.utbetalinger.any { utbetaling ->
+                            utbetaling.tidligereUtbetalt != utbetaling.nyttBeløp
+                        }
                     }
                 }
             }

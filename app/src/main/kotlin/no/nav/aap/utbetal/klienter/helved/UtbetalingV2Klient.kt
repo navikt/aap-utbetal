@@ -24,7 +24,7 @@ class UtbetalingV2Klient {
         tokenProvider = AzureM2MTokenProvider
     )
 
-    fun simuleringUtbetaling(utbetalingsmelding: Utbetalingsmelding): Simulering {
+    fun simuleringUtbetaling(utbetalingsmelding: Utbetalingsmelding): Simuleringsrespons {
         log.info("Simulering av utbetaling for saksummer ${utbetalingsmelding.sakId} og behandling ${utbetalingsmelding.behandlingId}")
         val simuleringUrl = url.resolve("api/dryrun/aap")
         val request = PostRequest(body = utbetalingsmelding)

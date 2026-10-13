@@ -2,6 +2,7 @@ package no.nav.aap.utbetal.hendelse.konsument
 
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.log.SECURE_LOGGER
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
 import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
@@ -35,7 +36,6 @@ class UtbetalingStatusKonsument(
     consumerName = "AapUtbetalUtbetalingStatusHendelse",
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val secureLogger = LoggerFactory.getLogger("team-logs")
 
     override fun håndter(meldinger: ConsumerRecords<String, String>) {
         meldinger.forEach { håndterEnMelding(it) }
@@ -82,7 +82,7 @@ class UtbetalingStatusKonsument(
             }
         } catch (exception: Exception) {
             log.error("Kunne ikke håndtere melding fra utbetaling-status: ${melding.key()}", exception)
-            secureLogger.error("Kunne ikke håndtere melding fra utbetaling-status: ${melding.key()} med verdi: ${melding.value()}", exception)
+            SECURE_LOGGER.error("Kunne ikke håndtere melding fra utbetaling-status: ${melding.key()} med verdi: ${melding.value()}", exception)
             throw exception
         }
     }
