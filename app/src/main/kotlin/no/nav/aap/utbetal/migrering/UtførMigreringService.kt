@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.migrering
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.hendelse.konsument.Status
@@ -18,6 +19,7 @@ import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetaling
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingData
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
@@ -108,12 +110,16 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         val utbetalingerForSak = UtbetalingRepository(connection).hent(saksnummer)
         val alleUtbetalingerErBekreftet = utbetalingerForSak.all { it.utbetalingStatus == UtbetalingStatus.BEKREFTET }
 
+        val utbetalingerPerTilkjentYtelseId = utbetalingerForSak.groupBy { it.tilkjentYtelseId }
+
         val utbetalingStatusRepository = UtbetalingStatusRepository(connection)
         val utbetalingsmeldingRepository = UtbetalingsmeldingRepository(connection)
         tilkjentYtelseListe.forEach { tilkjentYtelse ->
             if (alleUtbetalingerErBekreftet) {
                 // Finn tidspunkt for bekreftelse av utbetaling. Henter det fra siste utbetaling for saken, og dersom det ikke finnes, sett til nå.
                 val utbetalingBekreftetTidspunkt = utbetalingerForSak.map { it.utbetalingEndret ?: it.utbetalingOversendt } .lastOrNull() ?: LocalDateTime.now()
+
+                val utbetalingerForTilkjentYtelse: List<Utbetaling> = utbetalingerPerTilkjentYtelseId[tilkjentYtelse.id] ?: emptyList()
 
                 if (!dryRun) {
                     val sakUtbetaling = SakUtbetalingRepository(connection).hent(tilkjentYtelse.saksnummer)
@@ -125,7 +131,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
                                 tilkjentYtelseId = tilkjentYtelse.id!!,
                                 referanse = tilkjentYtelse.behandlingsreferanse,
                                 utbetalingsmeldingType = UtbetalingsmeldingType.MIGRERT_UTBETALING,
-                                melding = "{}", //Mangler melding på migrerte utbetalinger. Lagrer derfor kun tom JSON.
+                                melding = DefaultJsonMapper.toJson(utbetalingerForTilkjentYtelse),
                             )
                         )
                     utbetalingStatusRepository.oppdaterUtbetalingsstatus(
