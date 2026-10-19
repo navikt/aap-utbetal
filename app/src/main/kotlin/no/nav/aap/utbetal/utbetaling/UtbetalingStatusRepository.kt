@@ -1,12 +1,11 @@
-package no.nav.aap.utbetal.tilkjentytelse
+package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingLinje
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
-import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
+import no.nav.aap.utbetal.kodeverk.Status
 import java.time.LocalDateTime
 import java.util.*
 

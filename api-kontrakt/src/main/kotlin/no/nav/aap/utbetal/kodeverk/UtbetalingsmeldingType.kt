@@ -1,4 +1,4 @@
-package no.nav.aap.utbetal.utbetaling
+package no.nav.aap.utbetal.kodeverk
 
 enum class UtbetalingsmeldingType {
     /** Vanlig utbetalingsmelding */

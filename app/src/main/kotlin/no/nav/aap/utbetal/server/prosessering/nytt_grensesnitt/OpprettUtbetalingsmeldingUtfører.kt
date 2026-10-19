@@ -7,7 +7,6 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.utbetal.helved.tilUtbetalingsmelding
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Avvent
@@ -15,11 +14,12 @@ import no.nav.aap.utbetal.klienter.helved.Info
 import no.nav.aap.utbetal.klienter.helved.Simulering
 import no.nav.aap.utbetal.klienter.helved.Simuleringsrespons
 import no.nav.aap.utbetal.klienter.helved.SlettAvventUtbetalingMelding
+import no.nav.aap.utbetal.kodeverk.Status
 import no.nav.aap.utbetal.simulering.SimuleringService
 import no.nav.aap.utbetal.simuleringv2.SimuleringStatus
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
@@ -27,7 +27,7 @@ import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
-import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID

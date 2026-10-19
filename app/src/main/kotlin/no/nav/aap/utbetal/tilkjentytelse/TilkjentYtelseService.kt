@@ -13,6 +13,7 @@ import no.nav.aap.utbetal.utbetaling.Utbetaling
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.UtbetalingLight
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
