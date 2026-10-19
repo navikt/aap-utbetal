@@ -12,7 +12,7 @@ import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository

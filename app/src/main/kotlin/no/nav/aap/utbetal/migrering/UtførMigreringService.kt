@@ -6,14 +6,14 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Migrering
 import no.nav.aap.utbetal.klienter.helved.MigreringRequest
 import no.nav.aap.utbetal.klienter.helved.UtbetalingKlient
+import no.nav.aap.utbetal.kodeverk.Status
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
@@ -25,7 +25,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
-import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

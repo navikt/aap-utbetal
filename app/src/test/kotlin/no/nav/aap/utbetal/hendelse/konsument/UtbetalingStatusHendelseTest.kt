@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.hendelse.konsument
 
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.utbetal.kodeverk.Status
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import kotlin.test.Test

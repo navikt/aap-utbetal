@@ -17,11 +17,11 @@ import no.nav.aap.tilgang.NoAuthConfig
 import no.nav.aap.utbetal.NyApiTest.Companion.WHITELISTET_FNR
 import no.nav.aap.utbetal.NyApiTest.Companion.fakeUtbetalingsmeldingSender
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
+import no.nav.aap.utbetal.kodeverk.Status
 import no.nav.aap.utbetal.server.DbConfig
 import no.nav.aap.utbetal.server.initDatasource
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
@@ -36,10 +36,10 @@ import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriodeDto
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseTrekkDto
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.trekk.TrekkRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
-import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

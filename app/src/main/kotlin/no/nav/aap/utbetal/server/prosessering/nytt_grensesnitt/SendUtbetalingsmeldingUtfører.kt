@@ -5,12 +5,12 @@ import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbUtfører
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.utbetal.hendelse.kafka.KafkaProdusentKonfig
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.hendelse.produsent.UtbetalingProdusent
 import no.nav.aap.utbetal.hendelse.produsent.UtbetalingsmeldingSender
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.kodeverk.Status
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import java.util.UUID
 
 class SendUtbetalingsmeldingUtfører(

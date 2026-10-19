@@ -1,7 +1,6 @@
 package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

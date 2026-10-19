@@ -5,7 +5,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.log.SECURE_LOGGER
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetaling.helved.base64ToUUID

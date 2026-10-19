@@ -1,6 +1,7 @@
 package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import java.time.LocalDateTime
 import java.util.UUID
 

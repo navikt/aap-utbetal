@@ -3,6 +3,7 @@ package no.nav.aap.utbetal.utbetaling
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

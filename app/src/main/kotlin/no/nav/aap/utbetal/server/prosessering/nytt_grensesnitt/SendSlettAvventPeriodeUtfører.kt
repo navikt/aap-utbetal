@@ -4,14 +4,14 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
-import no.nav.aap.utbetal.hendelse.konsument.Status
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingDetaljer
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetal.klienter.helved.SlettAvventUtbetalingMelding
 import no.nav.aap.utbetal.klienter.helved.UtbetalingV2Klient
 import no.nav.aap.utbetal.kodeverk.AvventÅrsak
-import no.nav.aap.utbetal.tilkjentytelse.UtbetalingStatusRepository
+import no.nav.aap.utbetal.kodeverk.Status
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import java.time.LocalDate
 import java.util.UUID
 
