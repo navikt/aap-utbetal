@@ -13,6 +13,7 @@ import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetal.klienter.helved.Info
 import no.nav.aap.utbetal.klienter.helved.Simulering
+import no.nav.aap.utbetal.klienter.helved.Simuleringsrespons
 import no.nav.aap.utbetal.klienter.helved.SlettAvventUtbetalingMelding
 import no.nav.aap.utbetal.simulering.SimuleringService
 import no.nav.aap.utbetal.simuleringv2.SimuleringStatus
@@ -27,12 +28,16 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingType
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class OpprettUtbetalingsmeldingUtfører(
     private val connection: DBConnection,
     private val simuleringServiceFactory: (DBConnection) -> SimuleringService = { SimuleringService(it) },
     ): JobbUtfører {
+
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun utfør(input: JobbInput) {
         //OBS: sakId er i dette tilfellet sak_utbetaling_id siden vi ikke har sak_id i utbetalings-appen.
@@ -49,9 +54,14 @@ class OpprettUtbetalingsmeldingUtfører(
         // slik at en senere endring av avvent-perioden faktisk kan oppdages og feilregistreres.
         initialiserGjeldendeAvventPeriodeHvisFørsteGang(sakUtbetalingId, tilkjentYtelse)
 
+        // Kaller simulering for å kunne se reponsen på alle vedtak ifm med test. Må Flyttes inn i
+        // erEndringAvventUtbetaling() før vi går i prod.
+        val simeringsrespons = simuleringServiceFactory(connection).simuler(tilkjentYtelse)
+        log.info("Simuleringsrespons: $simeringsrespons")
+
         // Håndtere endring av avvent utbetaling periode
         var utsettUtbetalingEtterSlettAvventPeriode = false
-        if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse)) {
+        if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse, simeringsrespons)) {
             opprettSendSlettAvventPeriodeJobb(sakUtbetalingId, tilkjentYtelse)
             utsettUtbetalingEtterSlettAvventPeriode = true
         }
@@ -73,13 +83,13 @@ class OpprettUtbetalingsmeldingUtfører(
         }
     }
 
-    private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse): Boolean {
+    private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse, simeringsrespons: Simuleringsrespons): Boolean {
         val gjeldendeAvventPeriode = GjeldendeAvventPeriodeRepository(connection).hentGjeldendeAvventPeriode(sakUtbetalingId)
         val nyAvventPeriode = tilkjentYtelse.avventPeriode()
         if (gjeldendeAvventPeriode != null && nyAvventPeriode != null) {
             if (gjeldendeAvventPeriode.periode != nyAvventPeriode) {
                 // Sjekk om det er endring i beløp. Hvis ikke er det ikke mulig å sende feilregistrering av avvent periode.
-                return when (val simeringsrespons = simuleringServiceFactory(connection).simuler(tilkjentYtelse)) {
+                return when (simeringsrespons) {
                     is Info -> if (simeringsrespons.status == SimuleringStatus.OK_UTEN_ENDRING) false else throw IllegalStateException("Ukjent status ${simeringsrespons.status} for sakUtbetalingId = $sakUtbetalingId og behandlingref = ${tilkjentYtelse.behandlingsreferanse}")
                     is Simulering -> simeringsrespons.perioder.any { periode ->
                         periode.utbetalinger.any { utbetaling ->
