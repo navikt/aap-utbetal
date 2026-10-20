@@ -7,6 +7,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.Drift
 import no.nav.aap.tilgang.RollerConfig
 import no.nav.aap.tilgang.authorizedPost
@@ -73,4 +74,17 @@ fun NormalOpenAPIRoute.migrerSak(dataSource: DataSource, prometheus: PrometheusM
                 )
             )
         }
+    }
+
+
+fun NormalOpenAPIRoute.erSakMigrert(dataSource: DataSource, prometheus: PrometheusMeterRegistry, authConfig: AuthorizationRouteConfig) =
+
+    route("/migrert/sak").authorizedPost<Unit, ErMigrertResponseDto, ErMigrertRequestDto>(authConfig, null) { _, dto ->
+        prometheus.httpCallCounter("/migrert/sak").increment()
+
+        val erMigrert = dataSource.transaction(readOnly = true) { connection ->
+            SjekkMigreringService(connection).skalTilNyttGrensesnitt(fnr = dto.personIdent, saksnummer = Saksnummer(dto.saksnummer))
+        }
+
+        respond(response = ErMigrertResponseDto(erMigrert))
     }
