@@ -48,9 +48,7 @@ private fun List<TilkjentYtelsePeriode>.tilUtbetalinger(meldeperiodeUtbetalingMa
         }
         .flatMap { klippPeriodeOgFjernHelger(it) }
         .map { tyPeriode ->
-            val meldeperiode = tyPeriode.detaljer.meldeperiode
-                ?: error("Meldeperiode må være satt for å kunne sende utbetaling. Skal være satt for alle nye tilkjent ytelse perioder.")
-            val utbetalingId = meldeperiodeUtbetalingMap.finnMatchendeUtbetalingsreferanse(meldeperiode, saksnummer)
+            val utbetalingId = meldeperiodeUtbetalingMap.finnMatchendeUtbetalingsreferanse(tyPeriode.periode, saksnummer)
             Utbetaling(
                 id = utbetalingId.toString(),
                 fom = tyPeriode.periode.fom.toString(),
