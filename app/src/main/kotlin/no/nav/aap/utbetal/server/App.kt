@@ -38,6 +38,7 @@ import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
 import no.nav.aap.utbetal.hendelse.konsument.UTBETALING_STATUS_TOPIC
 import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusKonsument
+import no.nav.aap.utbetal.migrering.erSakMigrert
 import no.nav.aap.utbetal.migrering.migrerSak
 import no.nav.aap.utbetal.migrering.migrering
 import no.nav.aap.utbetal.server.prosessering.ProsesseringsJobber
@@ -126,6 +127,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 simuleringV2(dataSource, prometheus, authConfig)
                 migrering(dataSource, prometheus)
                 migrerSak(dataSource, prometheus)
+                erSakMigrert(dataSource, prometheus, authConfig)
             }
         }
         actuator(prometheus, motor)
