@@ -10,12 +10,11 @@ import no.nav.aap.utbetal.kodeverk.AvventÅrsak
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseAvvent
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelsePeriode
-import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class TilkjentYtelseExtTest {
 
@@ -257,6 +256,38 @@ class TilkjentYtelseExtTest {
         assertThat(avvent.årsak).isNull()
         assertThat(avvent.feilregistrering).isEqualTo(feilregistrering)
     }
+
+    @Test
+    fun `perioden overlapper med flere meldeperioder`() {
+        val meldeperiode1 = Periode(LocalDate.parse("2026-08-24"), LocalDate.parse("2026-08-25"))
+        val meldeperiode2 = Periode(LocalDate.parse("2026-08-26"), LocalDate.parse("2026-08-28"))
+        val tilkjentYtelse = lagTilkjentYtelse(
+            listOf(
+                lagPeriode(
+                    fom = meldeperiode1.fom,
+                    tom = meldeperiode2.tom,
+                    dagsats = Beløp(1000),
+                    redusertDagsats = Beløp(500),
+                    utbetalingsdato = meldeperiode2.tom.plusDays(1),
+                    meldeperiode = meldeperiode1,
+                ),
+            )
+        )
+        val meldeperiodeUtbetalingMap = lagMeldeperiodeMap(meldeperiode1, meldeperiode2)
+
+        val melding = tilkjentYtelse.tilUtbetalingsmelding(meldeperiodeUtbetalingMap)
+
+        assertThat(melding.utbetalinger).hasSize(2)
+        assertThat(melding.utbetalinger[0].fom).isEqualTo("2026-08-24")
+        assertThat(melding.utbetalinger[0].tom).isEqualTo("2026-08-25")
+        assertThat(melding.utbetalinger[0].utbetaltBeløp).isEqualTo(500u)
+        assertThat(melding.utbetalinger[0].sats).isEqualTo(1000u)
+        assertThat(melding.utbetalinger[1].fom).isEqualTo("2026-08-26")
+        assertThat(melding.utbetalinger[1].tom).isEqualTo("2026-08-28")
+        assertThat(melding.utbetalinger[1].utbetaltBeløp).isEqualTo(500u)
+        assertThat(melding.utbetalinger[1].sats).isEqualTo(1000u)
+    }
+
 
     private fun lagTilkjentYtelse(perioder: List<TilkjentYtelsePeriode>): TilkjentYtelse {
         return TilkjentYtelse(

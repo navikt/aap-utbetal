@@ -39,17 +39,16 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
         val meldeperiodeUtbetalingMap = hentMeldeperiodeUtbetalingMapping(sakUtbetalingId).toMutableMap()
 
         tilkjentYtelse.perioder.forEach { tilkjentYtelsePeriode ->
-            val meldeperiode = tilkjentYtelsePeriode.detaljer.meldeperiode
-                ?: error("Meldeperiode må være satt for å kunne oppdatere meldeperiode utbetaling mapping")
+            val periode = tilkjentYtelsePeriode.periode
             val lagretMeldeperiode = meldeperiodeUtbetalingMap
                 .keys
-                .firstOrNull { it.overlapper(meldeperiode) }
+                .firstOrNull { it.overlapper(periode) }
             if (lagretMeldeperiode == null) {
                 val utbetalingId = UUID.randomUUID()
                 if (lagreResultat) {
-                    lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, meldeperiode, utbetalingId)
+                    lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, periode, utbetalingId)
                 }
-                meldeperiodeUtbetalingMap[meldeperiode] = utbetalingId
+                meldeperiodeUtbetalingMap[periode] = utbetalingId
             }
         }
         return meldeperiodeUtbetalingMap.toMap()

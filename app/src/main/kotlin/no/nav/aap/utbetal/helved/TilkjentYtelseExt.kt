@@ -46,18 +46,28 @@ private fun List<TilkjentYtelsePeriode>.tilUtbetalinger(meldeperiodeUtbetalingMa
             //Bare send over perioder som har beløp større enn 0, og som har utbetalingdato som er i dag eller tidligere.
             it.detaljer.redusertDagsats.avrundet() > 0u && it.detaljer.utbetalingsdato <= iDag
         }
-        .flatMap { klippPeriodeOgFjernHelger(it) }
-        .map { tyPeriode ->
-            val utbetalingId = meldeperiodeUtbetalingMap.finnMatchendeUtbetalingsreferanse(tyPeriode.periode, saksnummer)
-            Utbetaling(
-                id = utbetalingId.toString(),
-                fom = tyPeriode.periode.fom.toString(),
-                tom = tyPeriode.periode.tom.toString(),
-                sats = tyPeriode.detaljer.dagsatsMedBarnetillegg(tyPeriode.periode).avrundet(),
-                utbetaltBeløp = tyPeriode.detaljer.redusertDagsats.avrundet(),
-            )
+        .flatMap { tyPeriode ->
+            klippPeriodeOgFjernHelger(tyPeriode)
+        }
+        .flatMap { tyPeriode ->
+            val utbetalingIdMap =
+                meldeperiodeUtbetalingMap.finnMatchendeUtbetalingsreferanse(tyPeriode.periode, saksnummer)
+            val utbetalingIdTidslinje = Tidslinje(utbetalingIdMap.map { Segment(it.key, it.value) })
+            val tyPeriodeTidslinje = Tidslinje(listOf(Segment(tyPeriode.periode, Unit)))
+
+            tyPeriodeTidslinje.innerJoin(utbetalingIdTidslinje) { periode, _, utbetalingId ->
+                Utbetaling(
+                    id = utbetalingId.toString(),
+                    fom = periode.fom.toString(),
+                    tom = periode.tom.toString(),
+                    sats = tyPeriode.detaljer.dagsatsMedBarnetillegg(tyPeriode.periode).avrundet(),
+                    utbetaltBeløp = tyPeriode.detaljer.redusertDagsats.avrundet(),
+                )
+            }.verdier()
         }
 }
+
+
 
 private fun klippPeriodeOgFjernHelger(tilkjentYtelsePeriode: TilkjentYtelsePeriode): List<TilkjentYtelsePeriode> {
     val helger = tilkjentYtelsePeriode.periode.finnHelger()
@@ -76,15 +86,12 @@ private fun List<Periode>.tilTidslinje() =
 
 
 
-private fun MeldeperiodeUtbetalingIdMap.finnMatchendeUtbetalingsreferanse(periode: Periode, saksnummer: Saksnummer): UUID {
+private fun MeldeperiodeUtbetalingIdMap.finnMatchendeUtbetalingsreferanse(periode: Periode, saksnummer: Saksnummer): Map<Periode, UUID> {
     val overlappendePerioder = this.entries.filter {   (meldeperiode, _) -> meldeperiode.overlapper(periode) }
     if (overlappendePerioder.isEmpty()) {
         error("Ingen overlappende meldeperiode for periode: $periode. UtbetalingId må være satt for å kunne sende utbetaling. Gjelder sak: $saksnummer")
     }
-    if (overlappendePerioder.size > 1) {
-        error("Flere overlappende meldeperioder for periode: $periode. Gjelder sak: $saksnummer.")
-    }
-    return overlappendePerioder.first().value
+    return overlappendePerioder.associate { it.key to it.value }
 }
 
 //Siden Beløp her alltid er heltall, så holder det å trunkere til UInt.
