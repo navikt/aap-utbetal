@@ -2,7 +2,6 @@ package no.nav.aap.utbetal.utbetaling
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import java.util.UUID
 
 private data class MeldperiodeUtbetalingMapping(
@@ -33,25 +32,6 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
             }
         }
         return sakUtbetalingMappingList.associate { it.meldeperiode to it.utbetalingId }
-    }
-
-    fun oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse, lagreResultat: Boolean): MeldeperiodeUtbetalingIdMap {
-        val meldeperiodeUtbetalingMap = hentMeldeperiodeUtbetalingMapping(sakUtbetalingId).toMutableMap()
-
-        tilkjentYtelse.perioder.forEach { tilkjentYtelsePeriode ->
-            val periode = tilkjentYtelsePeriode.periode
-            val lagretMeldeperiode = meldeperiodeUtbetalingMap
-                .keys
-                .firstOrNull { it.overlapper(periode) }
-            if (lagretMeldeperiode == null) {
-                val utbetalingId = UUID.randomUUID()
-                if (lagreResultat) {
-                    lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, periode, utbetalingId)
-                }
-                meldeperiodeUtbetalingMap[periode] = utbetalingId
-            }
-        }
-        return meldeperiodeUtbetalingMap.toMap()
     }
 
     fun lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, meldeperiode: Periode, utbetalingId: UUID) {
