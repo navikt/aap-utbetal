@@ -23,11 +23,11 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
-import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
+import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -47,8 +47,8 @@ class OpprettUtbetalingsmeldingUtfører(
         val tilkjentYtelse = TilkjentYtelseRepository(connection).hent(behandlingsreferanse)
             ?: throw IllegalArgumentException("Finner ikke tilkjent ytelse for behandling: $behandlingsreferanse")
 
-        val meldeperiodeUtbetalingMap = MeldeperiodeUtbetalingMappingRepository(connection)
-            .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse, true)
+        val meldeperiodeUtbetalingMap = MeldeperiodeUtbetalingMappingService(connection)
+            .oppdatereMeldeperiodeUtbetalingMapping(sakUtbetalingId, tilkjentYtelse)
 
         // Initialiserer GJELDENDE_AVVENT_PERIODE første gang avvent settes for en sak (utenom migrering),
         // slik at en senere endring av avvent-perioden faktisk kan oppdages og feilregistreres.
