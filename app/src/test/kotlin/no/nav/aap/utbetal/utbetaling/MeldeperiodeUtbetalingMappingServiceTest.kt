@@ -103,13 +103,8 @@ class MeldeperiodeUtbetalingMappingServiceTest {
         }
     }
 
-    /** Testen kjører fra MeldeperiodeUtbetalingMappingRepositoryTest.kt
-     * I MeldeperiodeUtbetalingMappingRepository.kt:42–51 opprettes ingen ny mapping når en utvidet tilkjent periode
-     * overlapper en eksisterende mapping. Hvis perioden utvides fra 1.–5. til 1.–10., kan dagene 6.–10. falle stille
-     * ut av utbetalingsmeldingen. Mappingene må dekke hele den tilkjente perioden.
-     */
     @Test
-    fun `oppdatering av periode dekker også siste dag`() {
+    fun `oppdaterer mapping når tilkjent ytelse perioden utvider seg`() {
         dataSource.transaction { connection ->
             val saksnummer = Saksnummer("abc123")
             val førstePeriode = Periode(LocalDate.parse("2026-08-24"), LocalDate.parse("2026-08-25"))
