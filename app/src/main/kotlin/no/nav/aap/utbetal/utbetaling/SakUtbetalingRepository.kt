@@ -85,7 +85,12 @@ class SakUtbetalingRepository(val connection: DBConnection) {
         )
 
     fun hentSakerForMigrering(maxAntall: Int): List<SakUtbetaling> {
-        val sql = "SELECT $alleSakUtbetalingFelter FROM SAK_UTBETALING WHERE MIGRERT_TIL_KAFKA IS NULL AND  AKTIV = TRUE LIMIT ?"
+        val sql = """
+            SELECT $alleSakUtbetalingFelter 
+            FROM SAK_UTBETALING 
+            WHERE MIGRERT_TIL_KAFKA IS NULL AND AKTIV = TRUE AND SAKSNUMMER NOT IN (SELECT SAKSNUMMER FROM SAK_UTBETALING WHERE AKTIV = FALSE) 
+            LIMIT ?
+        """.trimMargin()
 
         return connection.queryList(sql) {
             setParams {
