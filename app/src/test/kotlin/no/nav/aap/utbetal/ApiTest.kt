@@ -457,7 +457,8 @@ class ApiTest {
         @JvmStatic
         @BeforeAll
         fun beforeall() {
-            System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+            // Settes til prod-gcp for at SjekkMigreringService skal returnere false.
+            System.setProperty("NAIS_CLUSTER_NAME", "prod-gcp")
         }
 
         @AfterTest
