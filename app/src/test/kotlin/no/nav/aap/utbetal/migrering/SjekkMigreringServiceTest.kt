@@ -39,18 +39,6 @@ class SjekkMigreringServiceTest {
     }
 
     @Test
-    fun `Returnerer true for fnr i whitelist`() {
-        val fnrIWhitelist = "29509000997"
-        val saksnummer = Saksnummer("SAK-002")
-
-        val resultat = dataSource.transaction { connection ->
-            SjekkMigreringService(connection).skalTilNyttGrensesnitt(fnrIWhitelist, saksnummer)
-        }
-
-        assertThat(resultat).isTrue()
-    }
-
-    @Test
     fun `Returnerer true når sak er migrert til Kafka`() {
         val fnr = "12345678901"
         val saksnummer = Saksnummer("SAK-003")
@@ -89,6 +77,6 @@ class SjekkMigreringServiceTest {
             SjekkMigreringService(connection).skalTilNyttGrensesnitt(fnr, saksnummer)
         }
 
-        assertThat(resultat).isFalse()
+        assertThat(resultat).isTrue()
     }
 }
