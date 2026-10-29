@@ -99,8 +99,13 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
             // Sett sak_utbetaling til migrert
             SakUtbetalingRepository(connection).settMigrertTilKafka(saksnummer)
 
-            // Kall utsjekk som migreringstjeneste.
-            utbetalingKlient.migrering(migreringRequest)
+            if (migreringRequest.items.isNotEmpty()) {
+                // Kall utsjekk sin migreringstjeneste.
+                utbetalingKlient.migrering(migreringRequest)
+                log.info("Uid mapping for sak $saksnummer utført")
+            } else {
+                log.info("Ingen uid mapping for sak $saksnummer")
+            }
         }
     }
 
