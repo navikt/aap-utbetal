@@ -27,6 +27,7 @@ jobs:
         uses: navikt/aap-workflows/.github/workflows/gradle-build.yml@main
         secrets: inherit
         with:
+            jdk: 25
             publish-typescript: false
     publiser-kontrakt:
         needs: gradle
