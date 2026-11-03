@@ -6,6 +6,7 @@ import com.papsign.ktor.openapigen.route.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.tilgang.AuthorizationParamPathConfig
 import no.nav.aap.tilgang.Drift
@@ -19,6 +20,9 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingData
 import no.nav.aap.utbetal.utbetaling.UtbetalingLight
 import no.nav.aap.utbetal.utbetaling.UtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingService
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingMedStatus
+import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetaling.UtbetalingStatus
 import javax.sql.DataSource
 
@@ -32,6 +36,29 @@ fun NormalOpenAPIRoute.hentStatus(dataSource: DataSource, prometheus: Prometheus
             utbetalinger.groupBy { it.utbetalingStatus }
         }
         respond(response = utbetalingerPerStatus.tilListAvUtbetalingStatusDto())
+    }
+
+fun NormalOpenAPIRoute.hentUtbetalingsmeldingStatus(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+    route("/admin/utbetalingsmelding/status").authorizedGet<Unit, UtbetalingStatusAntallDto>(harDriftsRolleConfig) {
+        prometheus.httpCallCounter("/admin/utbetalingsmelding/status").increment()
+        val antallUtbetalingerPerStatus = dataSource.transaction(readOnly = true) { connection ->
+            UtbetalingStatusRepository(connection).antallUtbetalingerPerStatus()
+        }
+        respond(response = UtbetalingStatusAntallDto(antallPerStatus = antallUtbetalingerPerStatus))
+    }
+
+fun NormalOpenAPIRoute.hentUtbetalingsmeldinger(dataSource: DataSource, prometheus: PrometheusMeterRegistry) =
+    route("/admin/utbetalingsmelding/{saksnummer}").authorizedGet<SaksnummerParameter, List<UtbetalingsmeldingMedStatusDto>>(
+        AuthorizationParamPathConfig(
+            sakPathParam = SakPathParam("saksnummer"),
+            operasjon = Operasjon.DRIFT_LES,
+        )
+    ) { params->
+        prometheus.httpCallCounter("/admin/utbetalingsmelding").increment()
+        val utbetalingsmeldingerMedStatus = dataSource.transaction(readOnly = true) { connection ->
+            UtbetalingsmeldingRepository(connection).hent(Saksnummer(params.saksnummer))
+        }
+        respond(response = utbetalingsmeldingerMedStatus.tilDto())
     }
 
 
@@ -93,3 +120,16 @@ private fun UtbetalingLight.tilUtbetalingInfoDto() = UtbetalingInfoDto(
     utbetalingOpprettet = this.utbetalingOpprettet,
     utbetalingEndret = this.utbetalingEndret,
 )
+
+private fun List<UtbetalingsmeldingMedStatus>.tilDto() =
+    map {
+        UtbetalingsmeldingMedStatusDto(
+            referanse = it.utbetalingsmelding.referanse,
+            utbetalingsmeldingType = it.utbetalingsmelding.utbetalingsmeldingType,
+            melding = it.utbetalingsmelding.melding.prettyFormatJson(),
+            opprettet = it.utbetalingsmelding.opprettet,
+            status = it.status,
+        )
+    }
+
+private fun String.prettyFormatJson() = DefaultJsonMapper.objectMapper().readTree(this).toPrettyString()
