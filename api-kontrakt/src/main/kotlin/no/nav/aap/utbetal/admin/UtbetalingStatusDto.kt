@@ -16,5 +16,4 @@ data class UtbetalingInfoDto(
     val utbetalingStatus: UtbetalingStatus,
     val utbetalingOpprettet: LocalDateTime,
     val utbetalingEndret: LocalDateTime?,
-
-    )
+)

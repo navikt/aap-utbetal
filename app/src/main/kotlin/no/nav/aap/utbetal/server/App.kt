@@ -33,6 +33,8 @@ import no.nav.aap.tilgang.AuthorizationRouteConfig
 import no.nav.aap.tilgang.TeamAap
 import no.nav.aap.utbetal.admin.hentMigreringStatus
 import no.nav.aap.utbetal.admin.hentStatus
+import no.nav.aap.utbetal.admin.hentUtbetalingsmeldingStatus
+import no.nav.aap.utbetal.admin.hentUtbetalingsmeldinger
 import no.nav.aap.utbetal.admin.hentUtbetalingtidslinjeForSaksnummer
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
@@ -128,6 +130,8 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
                 migrering(dataSource, prometheus)
                 migrerSak(dataSource, prometheus)
                 erSakMigrert(dataSource, prometheus, authConfig)
+                hentUtbetalingsmeldingStatus(dataSource, prometheus)
+                hentUtbetalingsmeldinger(dataSource, prometheus)
             }
         }
         actuator(prometheus, motor)
