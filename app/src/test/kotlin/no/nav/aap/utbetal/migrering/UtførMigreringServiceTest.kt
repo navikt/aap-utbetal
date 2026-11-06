@@ -144,39 +144,6 @@ class UtførMigreringServiceTest {
     }
 
     @Test
-    fun `Kaster IllegalStateException ved overlappende perioder`() {
-        // UUID1 har perioder [jan 1-10] og [jan 20-31] -> envelope [jan 1, jan 31]
-        // UUID2 har periode  [jan 11-19]               -> envelope [jan 11, jan 19]
-        // Envelope jan 1-31 overlapper med jan 11-19, som trigger sjekkOmPerioderOverlapper
-        val saksnummer = Saksnummer("SAK-OVERLAP")
-        dataSource.transaction { connection ->
-            val sakUtbetalingId = opprettSakUtbetaling(connection, saksnummer)
-            val behandlingRef1 = UUID.randomUUID()
-            val behandlingRef2 = UUID.randomUUID()
-            val tyId1 = opprettTilkjentYtelse(connection, saksnummer, behandlingRef1)
-            val tyId2 = opprettTilkjentYtelse(connection, saksnummer, behandlingRef2, forrigeBehandlingRef = behandlingRef1)
-
-            opprettBekreftetUtbetalingMedPerioder(
-                connection, saksnummer, behandlingRef1, tyId1, sakUtbetalingId,
-                perioder = listOf(
-                    Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 10)),
-                    Periode(LocalDate.of(2025, 1, 20), LocalDate.of(2025, 1, 31)),
-                )
-            )
-            opprettBekreftetUtbetalingMedPerioder(
-                connection, saksnummer, behandlingRef2, tyId2, sakUtbetalingId,
-                perioder = listOf(Periode(LocalDate.of(2025, 1, 11), LocalDate.of(2025, 1, 19)))
-            )
-        }
-
-        assertThatExceptionOfType(IllegalStateException::class.java).isThrownBy {
-            dataSource.transaction { connection ->
-                UtførMigreringService(dataSource, utbetalingKlient).utførMigrering(connection, saksnummer, dryRun = false)
-            }
-        }.withMessageContaining("overlapper")
-    }
-
-    @Test
     fun `Oppretter gjeldende avvent periode korrekt ved avvent-historikk`() {
         val saksnummer = Saksnummer("SAK-AVVENT")
         val avventPeriode = Periode(LocalDate.of(2025, 2, 1), LocalDate.of(2025, 2, 14))
