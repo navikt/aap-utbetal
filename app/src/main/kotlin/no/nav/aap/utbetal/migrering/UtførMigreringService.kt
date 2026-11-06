@@ -26,6 +26,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingService
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
+import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -92,9 +93,9 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
 
         // Opprett mapping for alle utbetalinger knyttet til denne saken. Hentes ut med utbetaling-tidslinje.")
         val utbetalingTidslinje = UtbetalingService(connection).lagUtbetalingTidslinje(saksnummer)
-        val uidTilPeriodeMap = opprettUtbetalingMapping(connection, sakUtbetaling, utbetalingTidslinje, dryRun)
+        val periodeTilUidMap = opprettUtbetalingMapping(connection, sakUtbetaling, utbetalingTidslinje, dryRun)
 
-        val migreringRequest = MigreringRequest(uidTilPeriodeMap.keys.toSet().map { Migrering(it, it) })
+        val migreringRequest = MigreringRequest(periodeTilUidMap.values.toSet().map { Migrering(it, it) })
         if (!dryRun) {
             // Sett sak_utbetaling til migrert
             SakUtbetalingRepository(connection).settMigrertTilKafka(saksnummer)
@@ -187,7 +188,7 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         sakUtbetaling: SakUtbetaling,
         utbetalingTidslinje: Tidslinje<UtbetalingData>,
         dryRun: Boolean
-    ): Map<UUID, Periode> {
+    ): MeldeperiodeUtbetalingIdMap {
 
         val uidTilPerioderMap = mutableMapOf<UUID, MutableList<Periode>>()
         utbetalingTidslinje.segmenter().forEach { s ->
@@ -199,26 +200,18 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
             }
         }
 
-        val uidTilPeriodeMap = uidTilPerioderMap.map { it.key to Periode(it.value.min().fom, it.value.max().tom) }.toMap()
         val meldeperiodeUtbetalingMappingRepository = MeldeperiodeUtbetalingMappingRepository(connection)
-        sjekkOmPerioderOverlapper(sakUtbetaling.saksnummer, uidTilPeriodeMap.values.toList())
 
         if (!dryRun) {
-            uidTilPeriodeMap.forEach { (uid, periode) ->
-                meldeperiodeUtbetalingMappingRepository.lagreMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!, periode, uid)
+            uidTilPerioderMap.forEach { (uid, perioder) ->
+                perioder.forEach { periode ->
+                    meldeperiodeUtbetalingMappingRepository.lagreMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!, periode, uid)
+
+                }
             }
         }
-        return uidTilPeriodeMap
-    }
 
-
-    private fun sjekkOmPerioderOverlapper(saksnummer: Saksnummer, perioder: List<Periode>) {
-        val sortert = perioder.sortedBy { it.fom }
-        for (i in 0 until sortert.size - 1) {
-            if (sortert[i].tom >= sortert[i + 1].fom) {
-                throw IllegalStateException("Perioder overlapper for $saksnummer: ${sortert[i]} og ${sortert[i + 1]}")
-            }
-        }
+        return meldeperiodeUtbetalingMappingRepository.hentMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!)
     }
 
 }

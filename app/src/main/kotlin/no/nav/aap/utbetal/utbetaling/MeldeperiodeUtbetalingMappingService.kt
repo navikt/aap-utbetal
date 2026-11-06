@@ -4,7 +4,9 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
 import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
+import java.time.DayOfWeek
 import java.util.UUID
 
 class MeldeperiodeUtbetalingMappingService(val connection: DBConnection) {
@@ -18,7 +20,11 @@ class MeldeperiodeUtbetalingMappingService(val connection: DBConnection) {
 
         val tyPerioderSomManglerMapping = tyTidslinje.kombiner(mappingTidslinje, StandardSammenslåere.minus())
 
-        tyPerioderSomManglerMapping
+        //  Fjern perioder som bare er helg siden helger ikke utbetales.
+        val tyPerioderSomManglerMappingUtenomHelger = tyPerioderSomManglerMapping.filter { !it.periode.erBareHelg() }
+
+        // Opprett utbetalingId for alle perioder som er nye.
+        tyPerioderSomManglerMappingUtenomHelger
             .perioder()
             .forEach { repo.lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, it, UUID.randomUUID()) }
 
@@ -29,5 +35,9 @@ class MeldeperiodeUtbetalingMappingService(val connection: DBConnection) {
 
         return oppdatertMeldeperiodeUtbetalingMapping
     }
+
+    private val helgedager = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+
+    private fun Periode.erBareHelg() = this.antallDager() < 3 && fom.dayOfWeek in helgedager && tom.dayOfWeek in helgedager
 
 }
