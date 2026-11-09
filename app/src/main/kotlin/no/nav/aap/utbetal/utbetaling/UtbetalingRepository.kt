@@ -401,7 +401,7 @@ class UtbetalingRepository(private val connection: DBConnection) {
                 if (it != 1) {
                     log.warn("Utbetaling med status $status oppdatert for utbetalingId $utbetalingId, versjon $versjon. Antall rader oppdatert: $it")
                 }
-                require(it == 1)
+                require(it == 1) { "Statusoppdatering for utbetalingId $utbetalingId feilet" }
             }
         }
     }
