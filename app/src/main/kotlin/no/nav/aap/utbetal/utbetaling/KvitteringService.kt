@@ -17,6 +17,7 @@ class KvitteringService(private val connection: DBConnection, private val utbeta
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun sjekkKvittering(utbetaling: UtbetalingLight) {
+        log.info("Sjekket kvittering for utbetalingId: ${utbetaling.id}")
         val utbetalingRepo = UtbetalingRepository(connection)
         val status = try {
             utbetalingKlient.hentStatus(utbetaling.utbetalingRef)
