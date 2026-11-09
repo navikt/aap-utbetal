@@ -12,25 +12,24 @@ import no.nav.aap.utbetal.hendelse.konsument.UtbetalingStatusHendelse
 import no.nav.aap.utbetal.klienter.helved.Avvent
 import no.nav.aap.utbetal.klienter.helved.Info
 import no.nav.aap.utbetal.klienter.helved.Simulering
-import no.nav.aap.utbetal.klienter.helved.Simuleringsrespons
 import no.nav.aap.utbetal.klienter.helved.SlettAvventUtbetalingMelding
 import no.nav.aap.utbetal.kodeverk.Status
+import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import no.nav.aap.utbetal.simulering.SimuleringService
 import no.nav.aap.utbetal.simuleringv2.SimuleringStatus
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelse
 import no.nav.aap.utbetal.tilkjentytelse.TilkjentYtelseRepository
-import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriode
 import no.nav.aap.utbetal.utbetaling.GjeldendeAvventPeriodeRepository
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
+import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingService
 import no.nav.aap.utbetal.utbetaling.UtbetalingJobbService
+import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
-import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
-import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingMappingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 
 class OpprettUtbetalingsmeldingUtfører(
     private val connection: DBConnection,
@@ -54,14 +53,10 @@ class OpprettUtbetalingsmeldingUtfører(
         // slik at en senere endring av avvent-perioden faktisk kan oppdages og feilregistreres.
         initialiserGjeldendeAvventPeriodeHvisFørsteGang(sakUtbetalingId, tilkjentYtelse)
 
-        // Kaller simulering for å kunne se reponsen på alle vedtak ifm med test. Må Flyttes inn i
-        // erEndringAvventUtbetaling() før vi går i prod.
-        val simeringsrespons = simuleringServiceFactory(connection).simuler(tilkjentYtelse)
-        log.info("Simuleringsrespons: $simeringsrespons")
 
         // Håndtere endring av avvent utbetaling periode
         var utsettUtbetalingEtterSlettAvventPeriode = false
-        if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse, simeringsrespons)) {
+        if (erEndringAvventUtbetaling(sakUtbetalingId, tilkjentYtelse)) {
             opprettSendSlettAvventPeriodeJobb(sakUtbetalingId, tilkjentYtelse)
             utsettUtbetalingEtterSlettAvventPeriode = true
         }
@@ -83,11 +78,13 @@ class OpprettUtbetalingsmeldingUtfører(
         }
     }
 
-    private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse, simeringsrespons: Simuleringsrespons): Boolean {
+    private fun erEndringAvventUtbetaling(sakUtbetalingId: Long, tilkjentYtelse: TilkjentYtelse): Boolean {
         val gjeldendeAvventPeriode = GjeldendeAvventPeriodeRepository(connection).hentGjeldendeAvventPeriode(sakUtbetalingId)
         val nyAvventPeriode = tilkjentYtelse.avventPeriode()
         if (gjeldendeAvventPeriode != null && nyAvventPeriode != null) {
             if (gjeldendeAvventPeriode.periode != nyAvventPeriode) {
+                val simeringsrespons = simuleringServiceFactory(connection).simuler(tilkjentYtelse)
+
                 // Sjekk om det er endring i beløp. Hvis ikke er det ikke mulig å sende feilregistrering av avvent periode.
                 return when (simeringsrespons) {
                     is Info -> if (simeringsrespons.status == SimuleringStatus.OK_UTEN_ENDRING) false else throw IllegalStateException("Ukjent status ${simeringsrespons.status} for sakUtbetalingId = $sakUtbetalingId og behandlingref = ${tilkjentYtelse.behandlingsreferanse}")
