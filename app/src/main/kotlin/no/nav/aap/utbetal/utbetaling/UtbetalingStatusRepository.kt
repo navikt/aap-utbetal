@@ -103,11 +103,10 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
 
     fun antallUtbetalingerPerStatus(): Map<Status, Int> {
         val sql = """
-            SELECT COUNT(1) AS ANTALL, STATUS 
-            FROM UTBETALING_STATUS
-            WHERE AKTIV = TRUE
-            GROUP BY STATUS
-            
+            SELECT COUNT(1) AS ANTALL, US.STATUS
+            FROM UTBETALING_STATUS US, UTBETALINGSMELDING UM, SAK_UTBETALING SU
+            WHERE US.AKTIV = TRUE AND SU.AKTIV = TRUE AND US.UTBETALINGSMELDING_ID = UM.ID AND UM.SAK_UTBETALING_ID = SU.ID
+            GROUP BY US.STATUS
         """.trimMargin()
 
         return connection.queryList(sql) {

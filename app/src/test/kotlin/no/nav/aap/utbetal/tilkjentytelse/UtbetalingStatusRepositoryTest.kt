@@ -13,6 +13,7 @@ import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
+import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -193,12 +194,17 @@ class UtbetalingStatusRepositoryTest {
         }
     }
 
+    private var sakIdTeller = 1;
+
     private fun opprettUtbetalingsmelding(tilkjentYtelseId: Long, referanse: UUID) {
         return dataSource.transaction { connection ->
 
+            val sakUtbetalingId = SakUtbetalingRepository(connection).lagre(Saksnummer("sak$sakIdTeller"), true)
+            sakIdTeller++
+
             UtbetalingsmeldingRepository(connection).lagre(
                 Utbetalingsmelding(
-                    sakUtbetalingId = 123,
+                    sakUtbetalingId = sakUtbetalingId,
                     tilkjentYtelseId = tilkjentYtelseId,
                     referanse = referanse,
                     utbetalingsmeldingType = UtbetalingsmeldingType.UTBETALING,
@@ -206,7 +212,6 @@ class UtbetalingStatusRepositoryTest {
                     opprettet = LocalDateTime.now(),
                 )
             )
-
         }
     }
 
