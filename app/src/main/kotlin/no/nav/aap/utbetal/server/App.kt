@@ -77,10 +77,10 @@ fun main() {
         )
     )
 
-    embeddedServer(Netty, 8080) { server(DbConfig(), authConfig) }.start(wait = true)
+    embeddedServer(Netty, 8080) { server(DbConfig(), authConfig, true) }.start(wait = true)
 }
 
-internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig) {
+internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRouteConfig, startStatusKonsument: Boolean) {
     commonKtorModule(
         prometheus, InfoModel(
             title = "AAP - Utbetal",
@@ -107,8 +107,7 @@ internal fun Application.server(dbConfig: DbConfig, authConfig: AuthorizationRou
 
     val motor = motor(dataSource, prometheus)
 
-    // NB: Ikke gjør dette lokalt eller
-    if (!Miljø.erLokal() && !Miljø.erProd()) {
+    if (startStatusKonsument) {
         startUtbetalingStatusEventKonsument(dataSource)
     }
 

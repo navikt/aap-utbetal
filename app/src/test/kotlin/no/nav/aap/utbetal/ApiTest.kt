@@ -449,7 +449,7 @@ class ApiTest {
 
         // Starter server
         private val server = embeddedServer(Netty, port = 8080) {
-            server(dbConfig = dbConfig, NoAuthConfig)
+            server(dbConfig = dbConfig, NoAuthConfig, false)
             module(fakes)
         }.start()
 
