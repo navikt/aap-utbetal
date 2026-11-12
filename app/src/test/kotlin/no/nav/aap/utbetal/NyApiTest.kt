@@ -442,7 +442,7 @@ class NyApiTest {
 
         // Starter server
         private val server = embeddedServer(Netty, port = 8082) {
-            server(dbConfig = dbConfig, NoAuthConfig)
+            server(dbConfig = dbConfig, NoAuthConfig, false)
             module(fakes)
         }.start()
 
