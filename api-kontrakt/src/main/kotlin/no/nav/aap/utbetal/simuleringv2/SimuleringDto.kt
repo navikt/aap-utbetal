@@ -1,9 +1,13 @@
 package no.nav.aap.utbetal.simuleringv2
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.LocalDate
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed class SimuleringsresponseDto
 
+@JsonTypeName("simulering")
 data class SimuleringDto(
     val perioder: List<SimuleringsperiodeDto>
 ) : SimuleringsresponseDto()
@@ -39,6 +43,7 @@ enum class SimuleringStatus {
     UGYLDIG_REQUEST,
 }
 
+@JsonTypeName("info")
 data class InfoDto(
     val status: SimuleringStatus,
     val fagsystem: String,
