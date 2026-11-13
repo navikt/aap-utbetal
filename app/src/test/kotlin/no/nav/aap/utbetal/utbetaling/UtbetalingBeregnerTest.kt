@@ -22,7 +22,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 
-
 class UtbetalingBeregnerTest {
 
     @Test
@@ -141,16 +140,14 @@ class UtbetalingBeregnerTest {
         assertThat(utbetalinger.nyeUtbetalinger).isEmpty()
     }
 
-//    @Test
-    fun `Barnetillegg skal med i fastsatt sats`() {
-        //Kan fjernes når erProd sjekk er fjernet i YtelseDetaljer.
-        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
+    @Test
+    fun `Barnetillegg skal med i fastsatt sats etter 12 oktober 2026`() {
+        val datoEtter12Oktober2026 = LocalDate.of(2026, 10, 24)
 
-        val start = LocalDate.of(2026, 8, 10)
         val ty = opprettTilkjentYtelse(
-            startDato = start,
-            vedtaksdato =  LocalDate.of(2026, 8, 24),
-            utbetalingsdato = LocalDate.of(2026, 8, 24),
+            startDato = datoEtter12Oktober2026,
+            vedtaksdato =  datoEtter12Oktober2026,
+            utbetalingsdato = datoEtter12Oktober2026,
             antallBarn = 2,
             barnetilleggSats = 38,
             beløpListe = doubleArrayOf(1000.0)
