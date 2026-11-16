@@ -5,6 +5,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 
+private val FNR_SOM_SKAL_TIL_GAMMELT_API = listOf(
+    "22498627300", "05478624672", "03468629177", "26488627790", "16508638918"
+)
+
 class SjekkMigreringService(private val connection: DBConnection) {
 
     fun skalTilNyttGrensesnitt(fnr: String, saksnummer: Saksnummer): Boolean {
@@ -20,6 +24,9 @@ class SjekkMigreringService(private val connection: DBConnection) {
             // Ikke send nye saker til nytt api enda
             return false
         } else {
+            if (fnr in FNR_SOM_SKAL_TIL_GAMMELT_API) {
+                return false
+            }
             // Alle saker til nytt api dersom ikke i prod
             return true
         }
