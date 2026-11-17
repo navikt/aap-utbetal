@@ -91,8 +91,8 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         // Opprett gjeldende avvent utbetaling historikk for saken.
         opprettGjeldendeAvventUtbetalingHistorikk(connection, sakUtbetaling, dryRun)
 
-        // Opprett mapping for alle utbetalinger knyttet til denne saken. Hentes ut med utbetaling-tidslinje.")
-        val utbetalingTidslinje = UtbetalingService(connection).lagUtbetalingTidslinje(saksnummer)
+        // Opprett mapping for alle utbetalinger knyttet til denne saken. Hentes ut med utbetaling-tidslinje. Komprimeres for å unngå unødvendige splitter.
+        val utbetalingTidslinje = UtbetalingService(connection).lagUtbetalingTidslinje(saksnummer).komprimer()
         val periodeTilUidMap = opprettUtbetalingMapping(connection, sakUtbetaling, utbetalingTidslinje, dryRun)
 
         val migreringRequest = MigreringRequest(periodeTilUidMap.values.toSet().map { Migrering(it, it) })
