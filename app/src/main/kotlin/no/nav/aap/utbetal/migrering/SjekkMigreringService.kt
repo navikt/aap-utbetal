@@ -2,12 +2,7 @@ package no.nav.aap.utbetal.migrering
 
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
-
-private val FNR_SOM_SKAL_TIL_GAMMELT_API = listOf(
-    "22498627300", "05478624672", "03468629177", "26488627790", "16508638918"
-)
 
 class SjekkMigreringService(private val connection: DBConnection) {
 
@@ -20,16 +15,13 @@ class SjekkMigreringService(private val connection: DBConnection) {
             return sakUtbetaling.migrertTilKafka != null
         }
 
-        if (Miljø.erProd()) {
-            // Ikke send nye saker til nytt api enda
+        // Ruter til gammelt api dersom saksnummer starter med "APITEST_". Brukes av ApiTest.kt for å teste logikk for gammelt api.
+        if (saksnummer.toString().startsWith("APITEST_")) {
             return false
-        } else {
-            if (fnr in FNR_SOM_SKAL_TIL_GAMMELT_API) {
-                return false
-            }
-            // Alle saker til nytt api dersom ikke i prod
-            return true
         }
+
+        // Alle andre saker går til nytt api
+        return true
     }
 
 }

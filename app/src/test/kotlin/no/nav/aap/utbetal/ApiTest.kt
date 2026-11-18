@@ -146,7 +146,7 @@ class ApiTest {
 
     @Test
     fun `Trekk i utbetaling med endring på meldekort som gjør at posteringer må flyttes`() {
-        val saksnummer = Random().nextInt(999999999).toString()
+        val saksnummer = randomSaksnummer()
 
         val tilkjentYtelse = opprettTilkjentYtelse(
             saksnummer,
@@ -211,7 +211,7 @@ class ApiTest {
     @Test
     fun `Endring av avvent-periode skal feilregistrere gammel periode før ny periode sendes`() {
         // Opprett første behandling med avvent
-        val saksnummer = Random().nextInt(999999999).toString()
+        val saksnummer = randomSaksnummer()
         val startDato = LocalDate.of(2024, 12, 1)
 
         val gammelAvvent = TilkjentYtelseAvventDto(
@@ -265,7 +265,7 @@ class ApiTest {
 
     @Test
     fun `Uendret avvent-periode skal ikke føre til feilregistrering`() {
-        val saksnummer = Random().nextInt(999999999).toString()
+        val saksnummer = randomSaksnummer()
         val startDato = LocalDate.of(2024, 12, 1)
 
         val avvent = TilkjentYtelseAvventDto(
@@ -292,7 +292,7 @@ class ApiTest {
 
     @Test
     fun `Første gang avvent settes skal ikke føre til feilregistrering`() {
-        val saksnummer = Random().nextInt(999999999).toString()
+        val saksnummer = randomSaksnummer()
         val startDato = LocalDate.of(2024, 12, 1)
 
         val ty1 = opprettTilkjentYtelse(saksnummer, startDato, BigDecimal(500L))
@@ -406,7 +406,7 @@ class ApiTest {
                 )
             )
         }
-        val saksnummer = Random().nextInt(999999999).toString()
+        val saksnummer = randomSaksnummer()
         return TilkjentYtelseDto(
             saksnummer = saksnummer,
             behandlingsreferanse = UUID.randomUUID(),
@@ -516,3 +516,5 @@ private fun Application.module(fakes: Fakes) {
         application.monitor.unsubscribe(ApplicationStopped) {}
     }
 }
+
+private fun randomSaksnummer() = "APITEST_${Random().nextInt(999999999)}"
