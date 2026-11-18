@@ -18,7 +18,7 @@ class MeldeperiodeUtbetalingMappingService(val connection: DBConnection) {
         // Tidslinje over alle mappinger mellom periode og utbetalingId.
         val mappingTidslinje = Tidslinje(meldeperiodeUtbetalingMapping.map { Segment(it.key, it.value) })
         // Tidslinje over alle perioder i en tilkjent ytelse. Komprimeres for å unngå unødvendige splitter.
-        val tyTidslinje = Tidslinje(tilkjentYtelse.perioder.map { Segment(it.periode, it) }).komprimer()
+        val tyTidslinje = Tidslinje(tilkjentYtelse.perioder.map { Segment(it.periode, it.detaljer) }).komprimer()
 
         val tyPerioderSomManglerMapping = tyTidslinje.kombiner(mappingTidslinje, StandardSammenslåere.minus())
 
