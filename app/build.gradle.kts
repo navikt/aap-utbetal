@@ -41,7 +41,7 @@ dependencies {
     implementation(kelvinLibs.logstash.logback.encoder)
     implementation(kelvinLibs.kafka.clients)
 
-    implementation("no.bekk.bekkopen:nocommons:0.17.0")
+    implementation(libs.nocommons)
 
     implementation(project(":dbflyway"))
     implementation(project(":api-kontrakt"))
@@ -59,7 +59,7 @@ dependencies {
 }
 
 tasks {
-    withType<ShadowJar> {
+    withType<ShadowJar>().configureEach {
         mergeServiceFiles()
         duplicatesStrategy = DuplicatesStrategy.WARN
     }

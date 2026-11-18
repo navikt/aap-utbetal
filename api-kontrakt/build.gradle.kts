@@ -4,8 +4,6 @@ plugins {
     `java-library`
 }
 
-group = "no.nav.aap.utbetal"
-
 dependencies {
     implementation(kelvinLibs.jackson.datatype.jsr310)
     api(libs.ktorOpenapiGenerator)
@@ -19,7 +17,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             artifactId = project.name
-            version = project.findProperty("version")?.toString() ?: "0.0.0"
             from(components["java"])
         }
     }
@@ -31,7 +28,7 @@ publishing {
             credentials {
                 username = "x-access-token"
                 // Ligger tilgjengelig i Github Actions
-                password = System.getenv("GITHUB_TOKEN")
+                password = providers.environmentVariable("GITHUB_TOKEN").orNull
             }
         }
     }

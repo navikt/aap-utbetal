@@ -68,7 +68,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  ./gradlew -Pversion=${{ steps.tag.outputs.version }} publish
+                  ./gradlew clean publish --no-build-cache -Pversion=${{ steps.tag.outputs.version }}
             - uses:  softprops/action-gh-release@v3
               if: ${{ steps.tag.outputs.changed == 'true' }}
               id: create_release
