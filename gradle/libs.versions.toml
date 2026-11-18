@@ -2,8 +2,13 @@
 komponenter = "3.0.3"
 behandlingsflyt = "0.0.678"
 tilgang = "1.0.244"
+kotlin = "2.4.21"
+nocommons = "0.17.0"
 
 [libraries]
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+nocommons = { module = "no.bekk.bekkopen:nocommons", version.ref = "nocommons" }
+
 # AAP Kelvin
 httpklient = { module = "no.nav.aap.kelvin:httpklient", version.ref = "komponenter" }
 dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "komponenter" }

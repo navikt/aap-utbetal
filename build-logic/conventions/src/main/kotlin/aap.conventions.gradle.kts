@@ -5,27 +5,26 @@ plugins {
 }
 
 group = "no.nav.aap.utbetal"
-version = project.findProperty("version")?.toString() ?: "0.0.0"
+version = providers.gradleProperty("version").getOrElse("0.0.0")
 
-// https://docs.gradle.org/8.12.1/userguide/jvm_test_suite_plugin.html
 testing {
     suites {
-        @Suppress("UnstableApiUsage", "unused") val test = getByName<JvmTestSuite>("test") {
+        named<JvmTestSuite>("test") {
             useJUnitJupiter()
         }
     }
 }
 
 tasks {
-    test {
+    withType<Test>().configureEach {
         useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         testLogging {
             events("passed", "skipped", "failed")
         }
     }
 
-    (findByName("jar") as? Jar)?.apply {
+    named<Jar>(JavaPlugin.JAR_TASK_NAME) {
         // Bruk et unikt navn for jar-filen til hver submodul, for å unngå navnekollisjoner i multi-modul prosjekt,
         // gjennom at vi ikke bruker samme navn, feks. "kontrakt.jar" og "api.jar", i flere moduler.
         // Dette unngår feil av typen "Entry <name>.jar is a duplicate but no duplicate handling strategy has been set"
