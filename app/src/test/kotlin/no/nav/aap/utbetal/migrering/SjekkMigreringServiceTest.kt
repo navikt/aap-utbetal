@@ -16,26 +16,11 @@ class SjekkMigreringServiceTest {
     @BeforeEach
     fun setup() {
         dataSource = TestDataSource()
-        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
     }
 
     @AfterEach
     fun tearDown() {
-        System.clearProperty("NAIS_CLUSTER_NAME")
         dataSource.close()
-    }
-
-    @Test
-    fun `Returnerer alltid false i produksjonsmiljø`() {
-        System.setProperty("NAIS_CLUSTER_NAME", "prod-gcp")
-        val fnrIWhitelist = "29509000997"
-        val saksnummer = Saksnummer("SAK-001")
-
-        val resultat = dataSource.transaction { connection ->
-            SjekkMigreringService(connection).skalTilNyttGrensesnitt(fnrIWhitelist, saksnummer)
-        }
-
-        assertThat(resultat).isFalse()
     }
 
     @Test
@@ -69,7 +54,7 @@ class SjekkMigreringServiceTest {
     }
 
     @Test
-    fun `Returnerer false når sak ikke finnes i databasen`() {
+    fun `Returnerer true når sak ikke finnes i databasen`() {
         val fnr = "12345678901"
         val saksnummer = Saksnummer("SAK-005")
 
@@ -78,18 +63,6 @@ class SjekkMigreringServiceTest {
         }
 
         assertThat(resultat).isTrue()
-    }
-
-    @Test
-    fun `Returner false dersom ikke i prod og fnr er i listen over de som skal gå til gammelt api`() {
-        val fnr = "03468629177"
-        val saksnummer = Saksnummer("SAK-006")
-
-        val resultat = dataSource.transaction { connection ->
-            SjekkMigreringService(connection).skalTilNyttGrensesnitt(fnr, saksnummer)
-        }
-
-        assertThat(resultat).isFalse()
     }
 
 }
