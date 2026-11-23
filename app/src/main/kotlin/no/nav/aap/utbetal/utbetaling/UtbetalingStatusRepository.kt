@@ -70,6 +70,11 @@ class UtbetalingStatusRepository(private val connection: DBConnection) {
         return utbetalingStatus.copy(linjer = hentUtbetalingStatusLinjer(utbetalingStatus.id))
     }
 
+    fun hentSisteStatus(behandlingRef: UUID): Status? {
+        val utbetalingStatus = hentUtbetalingStatus(behandlingRef) ?: return null
+        return utbetalingStatus.status
+    }
+
     fun erAlleUtbetalingerBekreftet(saksnummer: Saksnummer): Boolean {
         val hentUtbetalingStatusSql = """
             SELECT 
