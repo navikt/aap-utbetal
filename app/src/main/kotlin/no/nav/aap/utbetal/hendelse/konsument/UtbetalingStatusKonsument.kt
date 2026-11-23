@@ -5,6 +5,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.log.SECURE_LOGGER
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsument
 import no.nav.aap.utbetal.hendelse.kafka.KafkaKonsumentKonfig
+import no.nav.aap.utbetal.kodeverk.Status
 import no.nav.aap.utbetal.utbetaling.UtbetalingStatusRepository
 import no.nav.aap.utbetal.utbetaling.SakUtbetalingRepository
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
@@ -64,17 +65,22 @@ class UtbetalingStatusKonsument(
                 val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse)
 
                 if (utbetalingsmelding != null) {
-                    verifisertUtbetalingslinjer(referanse, utbetalingStatusHendelse)
-                    val sakUtbetaling = SakUtbetalingRepository(connection).hent(utbetalingsmelding.sakUtbetalingId)
-                    val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse) ?: throw IllegalStateException("Fant ikke utbetalingsmelding for referanse $referanse")
-                    if (sakUtbetaling.migrertTilKafka != null) {
-                        UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
-                            utbetalingsmelding.tilkjentYtelseId,
-                            referanse,
-                            utbetalingStatusHendelse
-                        )
+                    val sisteStatus = UtbetalingStatusRepository(connection).hentSisteStatus(referanse)
+                    if (sisteStatus != Status.OK) { //Hopper over status oppdatering dersom utbetalingen allerede har fått OK status.
+                        verifisertUtbetalingslinjer(referanse, utbetalingStatusHendelse)
+                        val sakUtbetaling = SakUtbetalingRepository(connection).hent(utbetalingsmelding.sakUtbetalingId)
+                        val utbetalingsmelding = UtbetalingsmeldingRepository(connection).hent(referanse) ?: throw IllegalStateException("Fant ikke utbetalingsmelding for referanse $referanse")
+                        if (sakUtbetaling.migrertTilKafka != null) {
+                            UtbetalingStatusRepository(connection).oppdaterUtbetalingsstatus(
+                                utbetalingsmelding.tilkjentYtelseId,
+                                referanse,
+                                utbetalingStatusHendelse
+                            )
+                        } else {
+                            throw IllegalStateException("Kunne ikke lagre tilkjent ytelse for utbetaling-status")
+                        }
                     } else {
-                        throw IllegalStateException("Kunne ikke lagre tilkjent ytelse for utbetaling-status")
+                        log.warn("Hopper over status oppdatering fordi vi allerede har fått OK status for behandlingRef $referanse")
                     }
                 } else {
                     log.info("Fant ikke behandling for $referanse. Tolker derfor denne til å være utbetaling_id og tilhører gammel utbetalingsløsning.")
