@@ -49,4 +49,23 @@ class MeldeperiodeUtbetalingMappingRepository(val connection: DBConnection) {
         }
     }
 
+    fun lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId: Long, meldeperiodeUtbetalingIdMappinger: List<MeldeperiodeUtbetalingIdMapping>) {
+        val sql = """
+            INSERT INTO MELDEPERIODE_UTBETALING_MAPPING (SAK_UTBETALING_ID, MELDEPERIODE, UTBETALING_ID) 
+            VALUES (?, ?::daterange, ?)            
+        """.trimIndent()
+        connection.executeBatch(sql, meldeperiodeUtbetalingIdMappinger) {
+            setParams {
+                setLong(1, sakUtbetalingId)
+                setPeriode(2, it.meldeperiode)
+                setUUID(3, it.utbetalingId)
+            }
+        }
+    }
+
 }
+
+data class MeldeperiodeUtbetalingIdMapping(
+    val meldeperiode: Periode,
+    val utbetalingId: UUID,
+)

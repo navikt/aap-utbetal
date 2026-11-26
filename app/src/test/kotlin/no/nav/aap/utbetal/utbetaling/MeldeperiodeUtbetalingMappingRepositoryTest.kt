@@ -34,7 +34,7 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
     }
 
     @Test
-    fun `lagre og hent lagrer og henter mapping`() {
+    fun `lagre og henter mapping`() {
         val sakUtbetalingId = 123L
         val periode = Periode(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31))
         val utbetalingId = UUID.randomUUID()
@@ -48,5 +48,28 @@ class MeldeperiodeUtbetalingMappingRepositoryTest {
         }
 
         assertThat(lagret[periode]).isEqualTo(utbetalingId)
+    }
+
+    @Test
+    fun `lagre batchvis og hente mapping`() {
+        val sakUtbetalingId = 123L
+        val startDato = LocalDate.parse("2026-11-23")
+
+        val mapping = (0..99).map { i ->
+            MeldeperiodeUtbetalingIdMapping(
+                meldeperiode = Periode(fom = startDato.plusDays(i*14L), tom = startDato.plusDays(i*14L).plusDays(13)),
+                utbetalingId = UUID.randomUUID()
+            )
+        }
+
+        dataSource.transaction { connection ->
+            MeldeperiodeUtbetalingMappingRepository(connection).lagreMeldeperiodeUtbetalingMapping(sakUtbetalingId, mapping)
+        }
+
+        val lagret = dataSource.transaction { connection ->
+            MeldeperiodeUtbetalingMappingRepository(connection).hentMeldeperiodeUtbetalingMapping(sakUtbetalingId)
+        }
+
+        assertThat(lagret.size).isEqualTo(100)
     }
 }

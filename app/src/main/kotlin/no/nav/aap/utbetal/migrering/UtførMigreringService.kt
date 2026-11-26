@@ -27,6 +27,7 @@ import no.nav.aap.utbetal.utbetaling.Utbetalingsmelding
 import no.nav.aap.utbetal.utbetaling.UtbetalingsmeldingRepository
 import no.nav.aap.utbetal.kodeverk.UtbetalingsmeldingType
 import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMap
+import no.nav.aap.utbetal.utbetaling.MeldeperiodeUtbetalingIdMapping
 import no.nav.aap.utbetaling.UtbetalingStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -203,12 +204,13 @@ class UtførMigreringService(private val dataSource: DataSource, private val utb
         val meldeperiodeUtbetalingMappingRepository = MeldeperiodeUtbetalingMappingRepository(connection)
 
         if (!dryRun) {
+            val meldeperiodeUtbetalingIdMappinger = mutableListOf<MeldeperiodeUtbetalingIdMapping>()
             uidTilPerioderMap.forEach { (uid, perioder) ->
                 perioder.forEach { periode ->
-                    meldeperiodeUtbetalingMappingRepository.lagreMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!, periode, uid)
-
+                    meldeperiodeUtbetalingIdMappinger.add(MeldeperiodeUtbetalingIdMapping(periode, uid))
                 }
             }
+            meldeperiodeUtbetalingMappingRepository.lagreMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!, meldeperiodeUtbetalingIdMappinger)
         }
 
         return meldeperiodeUtbetalingMappingRepository.hentMeldeperiodeUtbetalingMapping(sakUtbetaling.id!!)
