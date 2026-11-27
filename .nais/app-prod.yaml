@@ -45,16 +45,20 @@ spec:
                     - id: ff9a228b-4aab-47bd-8aee-598d80f0fb4b #AAP_DRIFT
                     - id: ec868c89-5d4f-47b4-8298-e954035d3873 # 0000-GA-AAP_DRIFT_LES
                     - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 #NAIS_TEAM_AAP
+    startup:
+        path: /actuator/live
+        # Trenger 25 + 5x8 = 65 sek
+        initialDelay: 25
+        periodSeconds: 5
+        failureThreshold: 8
     liveness:
         path: /actuator/live
-        initialDelay: 5
-        periodSeconds: 5
-        failureThreshold: 5
+        periodSeconds: 3
+        failureThreshold: 3
     readiness:
         path: /actuator/ready
-        initialDelay: 5
-        periodSeconds: 5
-        failureThreshold: 5
+        periodSeconds: 3
+        failureThreshold: 3
     accessPolicy:
         inbound:
             rules:
